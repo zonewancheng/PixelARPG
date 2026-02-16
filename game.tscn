@@ -1,0 +1,92 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://player_scene" path="res://player.tscn" id="1"]
+[ext_resource type="Script" path="res://game.gd" id="2"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("2")
+
+[node name="Ground" type="Node2D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("1")]
+position = Vector2(100, 100)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+zoom = Vector2(1.5, 1.5)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="StatsPanel" type="PanelContainer" parent="UI"]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 150.0
+offset_bottom = 100.0
+
+[node name="Stats" type="VBoxContainer" parent="UI/StatsPanel"]
+
+[node name="Level" type="Label" parent="UI/StatsPanel/Stats"]
+text = "等级: 1"
+
+[node name="HP" type="Label" parent="UI/StatsPanel/Stats"]
+text = "HP: 100/100"
+
+[node name="EXP" type="Label" parent="UI/StatsPanel/Stats"]
+text = "经验: 0/100"
+
+[node name="Atk" type="Label" parent="UI/StatsPanel/Stats"]
+text = "攻击: 10"
+
+[node name="Def" type="Label" parent="UI/StatsPanel/Stats"]
+text = "防御: 0"
+
+[node name="Weapon" type="Label" parent="UI/StatsPanel/Stats"]
+text = "武器: 木剑"
+
+[node name="Armor" type="Label" parent="UI/StatsPanel/Stats"]
+text = "护甲: 布衣"
+
+[node name="WavePanel" type="PanelContainer" parent="UI"]
+offset_left = 380.0
+offset_top = 10.0
+offset_right = 470.0
+offset_bottom = 60.0
+
+[node name="Wave" type="VBoxContainer" parent="UI/WavePanel"]
+
+[node name="Label" type="Label" parent="UI/WavePanel/Wave"]
+text = "波次: 1"
+
+[node name="Enemies" type="Label" parent="UI/WavePanel/Wave"]
+text = "敌人: 0"
+
+[node name="HelpPanel" type="PanelContainer" parent="UI"]
+offset_left = 330.0
+offset_top = 300.0
+offset_right = 470.0
+offset_bottom = 355.0
+
+[node name="Help" type="VBoxContainer" parent="UI/HelpPanel"]
+
+[node name="H1" type="Label" parent="UI/HelpPanel/Help"]
+text = "WASD 移动"
+
+[node name="H2" type="Label" parent="UI/HelpPanel/Help"]
+text = "J 攻击"
+
+[node name="H3" type="Label" parent="UI/HelpPanel/Help"]
+text = "空格 拾取"
+
+[node name="H4" type="Label" parent="UI/HelpPanel/Help"]
+text = "1-2 切换装备"
+
+[node name="BossPanel" type="PanelContainer" parent="UI"]
+visible = false
+offset_left = 140.0
+offset_top = 320.0
+offset_right = 340.0
+offset_bottom = 345.0
+
+[node name="BossHP" type="ProgressBar" parent="UI/BossPanel"]
+max_value = 300.0
+value = 300.0
+show_percentage = false

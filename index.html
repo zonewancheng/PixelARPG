@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pixel Hero ARPG</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="game" width="480" height="640"></canvas>
+        <div id="ui">
+            <div id="player-info">
+                <button id="characterBtn" class="info-avatar">🧙</button>
+                <div class="info-content">
+                    <div class="info-lv-gold">
+                        <span class="info-level">Lv.<span id="level">1</span></span>
+                        <span class="info-gold">💰<span id="gold">0</span></span>
+                    </div>
+                    <div class="info-bars-compact">
+                        <div class="bar-row">
+                            <div class="bar hp-bar" id="hp-bar"></div>
+                        </div>
+                        <div class="bar-row">
+                            <div class="bar mp-bar" id="mp-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="game-buttons">
+                <button id="saveBtn" class="icon-btn">💾</button>
+                <button id="languageToggle" class="icon-btn">中</button>
+                <button id="controlsBtn" class="icon-btn">🎮</button>
+            </div>
+            
+            <div id="skills-container">
+                <button id="inventoryBtn" class="side-btn">
+                    <span class="btn-icon">🎒</span>
+                    <span id="eq-count" class="btn-badge"></span>
+                </button>
+                <div id="skills"></div>
+                <button id="shopBtn" class="side-btn">
+                    <span class="btn-icon">🏪</span>
+                </button>
+            </div>
+            
+            <div id="inventory"></div>
+            
+            <div id="character-panel">
+                <div id="character-title">
+                    <span>角色</span>
+                    <button id="character-close">✕</button>
+                </div>
+                <div id="character-display">
+                    <div class="char-equip-left">
+                        <div class="char-equip char-weapon" id="char-weapon"></div>
+                        <div class="char-equip char-ring" id="char-ring"></div>
+                        <div class="char-equip char-boots" id="char-boots"></div>
+                    </div>
+                    <div class="char-body" id="char-body"></div>
+                    <div class="char-equip-right">
+                        <div class="char-equip char-helmet" id="char-helmet"></div>
+                        <div class="char-equip char-necklace" id="char-necklace"></div>
+                        <div class="char-equip char-armor" id="char-armor"></div>
+                    </div>
+                </div>
+                <div id="character-stats">
+                    <div>等级: <span id="char-level"></span></div>
+                    <div>生命: <span id="char-hp"></span></div>
+                    <div>魔法: <span id="char-mp"></span></div>
+                    <div>攻击: <span id="char-atk"></span><span id="char-atk-percent"></span></div>
+                    <div>防御: <span id="char-def"></span><span id="char-def-percent"></span></div>
+                    <div>生命回复: <span id="char-hp-regen"></span></div>
+                    <div>魔法回复: <span id="char-mp-regen"></span></div>
+                </div>
+            </div>
+            
+            <div id="shop-panel">
+                <div id="shop-title">
+                    <span>商店</span>
+                    <button id="shop-close">✕</button>
+                </div>
+                <div id="shop-gold">金币: <span id="shop-gold-value">0</span></div>
+                <div id="shop-items"></div>
+                <div id="shop-buttons">
+                    <button id="shop-refresh">刷新 (50金币)</button>
+                </div>
+            </div>
+            
+            <div id="messages"></div>
+            
+            <div id="controls">
+                <button></button>
+                <button id="up">▲</button>
+                <button></button>
+                <button id="left">◀</button>
+                <button class="attack-btn" id="attack">⚔️</button>
+                <button id="right">▶</button>
+                <button></button>
+                <button id="down">▼</button>
+                <button></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
