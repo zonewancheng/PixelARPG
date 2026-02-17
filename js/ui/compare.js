@@ -160,6 +160,7 @@ window.UICompare = {
         
         this.hide();
         window.UIInventory?.render();
+        window.UICharacter?.render();
         if (window.updatePlayerAvatar) window.updatePlayerAvatar();
     },
     
@@ -181,9 +182,18 @@ window.UICompare = {
         item.uid = Date.now() + Math.random();
         player.inventory.push(item);
         
+        // 从商店移除已购买的物品
+        if (this.source === 'shop' && window.UIShop?.items) {
+            const idx = window.UIShop.items.indexOf(item);
+            if (idx > -1) {
+                window.UIShop.items.splice(idx, 1);
+            }
+        }
+        
         this.hide();
         window.UIShop?.render();
         window.UIInventory?.render();
+        window.updatePlayerAvatar?.();
         window.showMessage?.(`购买 ${item.name}`);
     }
 };

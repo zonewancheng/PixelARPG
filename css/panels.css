@@ -237,12 +237,12 @@
     }
 }
 
-.item-slot {
+.item-slot, .inv-slot {
     width: 48px;
     height: 48px;
-    border-radius: 10px;
+    border-radius: 8px;
     background: linear-gradient(145deg, rgba(40, 45, 60, 0.8) 0%, rgba(30, 35, 50, 0.8) 100%);
-    border: 2px solid rgba(80, 100, 140, 0.2);
+    border: 1px solid rgba(80, 100, 140, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -250,6 +250,7 @@
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
+    box-sizing: border-box;
 }
 
 .item-slot.legendary {

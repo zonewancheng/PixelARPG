@@ -50,7 +50,7 @@ window.UIInventory = {
                 iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:40px;height:40px;">`;
             }
             
-            itemsHtml += `<div class="item-slot ${slotClass}" 
+            itemsHtml += `<div class="inv-slot ${slotClass}" 
                 data-index="${i}" 
                 style="border-color:${borderColor}"
                 title="${tooltip}">
@@ -105,7 +105,7 @@ window.UIInventory = {
         }
         
         // 物品格子点击 - 打开对比面板
-        document.querySelectorAll('#inventory-panel .item-slot:not(.empty)').forEach(slot => {
+        document.querySelectorAll('#inventory-panel .inv-slot:not(.empty)').forEach(slot => {
             slot.onclick = () => {
                 const index = parseInt(slot.dataset.index);
                 const item = window.player.inventory[index];
@@ -116,7 +116,7 @@ window.UIInventory = {
         });
         
         // 物品格子长按 - 一键出售该品质
-        document.querySelectorAll('#inventory-panel .item-slot:not(.empty)').forEach(slot => {
+        document.querySelectorAll('#inventory-panel .inv-slot:not(.empty)').forEach(slot => {
             slot.oncontextmenu = (e) => {
                 e.preventDefault();
                 const index = parseInt(slot.dataset.index);

@@ -87,6 +87,10 @@ function initGame() {
     setupInput();
     setupUI();
     
+    setTimeout(() => {
+        updatePlayerAvatar();
+    }, 100);
+    
     openDB().then(() => {
         loadGame();
     }).catch(e => {
@@ -496,15 +500,28 @@ function update() {
         if (window.boss.attackCooldown > 0) window.boss.attackCooldown--;
         if (!window.boss.aggro) window.boss.aggro = 0;
         if (window.boss.aggro > 0) window.boss.aggro--;
+        if (!window.boss.wanderTimer) window.boss.wanderTimer = 0;
+        if (!window.boss.wanderDir) window.boss.wanderDir = Math.random() * Math.PI * 2;
         
         const dx = player.x - window.boss.x;
         const dy = player.y - window.boss.y;
         const dist = Math.sqrt(dx*dx + dy*dy);
         
-        if (dist < 250 && dist > 50) {
-            const chaseSpeed = window.boss.aggro > 0 ? 1.5 : 1;
+        // Boss chases player when in range but maintains distance
+        if (dist < 250 && dist > 60) {
+            const chaseSpeed = window.boss.aggro > 0 ? 1.2 : 0.8;
             window.boss.x += (dx / dist) * chaseSpeed;
             window.boss.y += (dy / dist) * chaseSpeed;
+        } else if (dist >= 250) {
+            // Idle wandering when player is far
+            window.boss.wanderTimer--;
+            if (window.boss.wanderTimer <= 0) {
+                window.boss.wanderDir = Math.random() * Math.PI * 2;
+                window.boss.wanderTimer = 60 + Math.random() * 60;
+            }
+            const wanderSpeed = 0.3;
+            window.boss.x += Math.cos(window.boss.wanderDir) * wanderSpeed;
+            window.boss.y += Math.sin(window.boss.wanderDir) * wanderSpeed;
         }
         
         window.boss.x = Math.max(window.TILE, Math.min((window.MAP_W - 1) * window.TILE - window.boss.w, window.boss.x));
@@ -679,6 +696,7 @@ function render() {
     }
     
     drawMap(ctx, map, window.TILE, window.MAP_W, window.MAP_H);
+    drawClouds(ctx, canvas.width, canvas.height, player);
     drawDrops(ctx, drops);
     drawProjectiles(ctx, projectiles);
     drawEnemies(ctx, enemies, drawPixelSprite);
@@ -710,6 +728,24 @@ function render() {
         ctx.font = '18px Courier New';
         ctx.fillText('Tap to restart', 240, 340);
         ctx.textAlign = 'left';
+    }
+}
+
+function updatePlayerAvatar() {
+    if (window.renderPlayerIcon) {
+        const avatarBtn = document.getElementById('characterBtn');
+        if (avatarBtn) {
+            try {
+                const imgUrl = window.renderPlayerIcon(window.player, 40);
+                avatarBtn.innerHTML = `<img src="${imgUrl}" style="image-rendering:pixelated;width:40px;height:40px;">`;
+            } catch (e) {
+                console.error('Failed to render player avatar:', e);
+                avatarBtn.innerHTML = '🧙';
+            }
+        }
+    }
+    if (window.UICharacter?.render) {
+        window.UICharacter.render();
     }
 }
 
