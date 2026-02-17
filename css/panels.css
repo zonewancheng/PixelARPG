@@ -1,0 +1,1030 @@
+/* ========== 统一面板基础样式 ========== */
+
+/* 面板容器 */
+#inventory-panel,
+#character-panel,
+#shop-panel,
+#bestiary-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #1a1d26 0%, #12151c 100%);
+    display: none;
+    flex-direction: column;
+    z-index: 100;
+    box-sizing: border-box;
+    pointer-events: auto;
+    color: #c8d8f0;
+}
+
+#inventory-panel { z-index: 150; }
+#shop-panel { z-index: 160; }
+#bestiary-panel { z-index: 170; }
+
+.panel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.panel-content {
+    width: 90%;
+    max-width: 380px;
+    max-height: 90%;
+    background: linear-gradient(145deg, #1a1d26 0%, #12151c 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(100, 140, 180, 0.15);
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.25s ease;
+}
+
+/* ========== 面板标题栏 ========== */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(100, 140, 180, 0.1);
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #e8f0ff;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.panel-close-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #8899aa;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel-close-btn:hover {
+    background: rgba(255, 80, 80, 0.2);
+    color: #ff6666;
+    transform: rotate(90deg);
+}
+
+/* ========== 面板主体 ========== */
+.panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    color: #c8d8f0;
+}
+
+/* 商店按钮 */
+.shop-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+/* 自定义滚动条 */
+.panel-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+    background: rgba(100, 140, 180, 0.3);
+    border-radius: 3px;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 140, 180, 0.5);
+}
+
+/* ========== 标签页样式 ========== */
+.panel-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px;
+    margin-bottom: 12px;
+}
+
+.panel-tab {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    color: #7788aa;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.panel-tab:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #99aabb;
+}
+
+.panel-tab.active {
+    background: linear-gradient(135deg, rgba(80, 120, 180, 0.3) 0%, rgba(60, 90, 150, 0.3) 100%);
+    color: #a8d4ff;
+    border-color: rgba(100, 150, 220, 0.3);
+    box-shadow: 0 2px 8px rgba(80, 120, 180, 0.2);
+}
+
+/* ========== 物品网格 ========== */
+.item-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    justify-items: stretch;
+    align-items: stretch;
+}
+
+.item-grid .item-slot {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: 0;
+    border-left: none;
+    border-top: none;
+    border-bottom: 1px solid rgba(80, 100, 140, 0.15);
+    border-right: 1px solid rgba(80, 100, 140, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-grid .item-slot:first-child {
+    border-left: 2px solid rgba(80, 100, 140, 0.2);
+}
+
+.item-grid .item-slot:nth-child(4n+1) {
+    border-left: 2px solid rgba(80, 100, 140, 0.2);
+}
+
+.item-grid .item-slot:hover {
+    transform: none;
+    z-index: 10;
+    border-color: rgba(100, 180, 255, 0.5) !important;
+    box-shadow: 0 0 10px rgba(100, 180, 255, 0.3);
+}
+
+/* 闪光动画 */
+@keyframes legendaryGlow {
+    0%, 100% { 
+        box-shadow: 0 0 8px rgba(255, 180, 60, 0.4), 0 0 16px rgba(255, 180, 60, 0.2);
+    }
+    50% { 
+        box-shadow: 0 0 16px rgba(255, 180, 60, 0.6), 0 0 24px rgba(255, 180, 60, 0.3);
+    }
+}
+
+@keyframes legendaryShine {
+    0%, 100% { 
+        filter: brightness(1) drop-shadow(0 0 2px rgba(255, 200, 100, 0.3));
+    }
+    50% { 
+        filter: brightness(1.2) drop-shadow(0 0 6px rgba(255, 200, 100, 0.6));
+    }
+}
+
+.item-slot {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, rgba(40, 45, 60, 0.8) 0%, rgba(30, 35, 50, 0.8) 100%);
+    border: 2px solid rgba(80, 100, 140, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.item-slot.legendary {
+    animation: legendaryGlow 1.5s ease-in-out infinite;
+    border-color: rgba(255, 180, 60, 0.6) !important;
+}
+
+.item-slot.legendary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 8px;
+    background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 200, 0.15) 50%, transparent 60%);
+    animation: legendaryShine 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.item-slot:hover {
+    border-color: rgba(100, 180, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.item-slot.empty {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.item-slot.empty:hover {
+    transform: none;
+    border-color: rgba(80, 100, 140, 0.2);
+    box-shadow: none;
+}
+
+.item-slot.equipped {
+    border-width: 2px;
+    box-shadow: 0 0 8px rgba(100, 180, 255, 0.3);
+}
+
+.item-slot.equipped::after {
+    content: 'E';
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #ffcc66;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.item-slot.legendary {
+    border-color: rgba(255, 180, 60, 0.5);
+    box-shadow: 0 0 12px rgba(255, 180, 60, 0.2);
+}
+
+.item-slot.selected {
+    background: linear-gradient(145deg, rgba(80, 50, 50, 0.9) 0%, rgba(60, 35, 35, 0.9) 100%) !important;
+    border-color: rgba(255, 80, 80, 0.6) !important;
+}
+
+.item-slot .select-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 80, 80, 0.9);
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.item-slot.selling {
+    background: linear-gradient(145deg, rgba(80, 40, 40, 0.9) 0%, rgba(60, 25, 25, 0.9) 100%) !important;
+    border-color: rgba(255, 80, 80, 0.6) !important;
+}
+
+.item-slot.selling::after {
+    content: '×';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ff6666;
+}
+
+/* ========== 装备栏 ========== */
+.equipment-section {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.character-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.equip-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.equip-label {
+    font-size: 10px;
+    color: #7788aa;
+}
+
+.equip-slot {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, rgba(50, 55, 70, 0.9) 0%, rgba(35, 40, 55, 0.9) 100%);
+    border: 2px solid rgba(80, 100, 140, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.equip-slot.legendary {
+    animation: legendaryGlow 1.5s ease-in-out infinite;
+    border-color: rgba(255, 180, 60, 0.6) !important;
+}
+
+.equip-slot.legendary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 8px;
+    background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 200, 0.15) 50%, transparent 60%);
+    animation: legendaryShine 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.equip-slot:hover {
+    border-color: rgba(100, 180, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.equip-slot.has-item {
+    border-color: rgba(100, 180, 255, 0.4);
+    box-shadow: 0 0 10px rgba(100, 180, 255, 0.15);
+}
+
+.char-body {
+    width: 56px;
+    height: 72px;
+    background: linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%);
+    border: 2px solid #556;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ========== 属性面板 ========== */
+.stats-panel {
+    background: linear-gradient(145deg, rgba(40, 45, 60, 0.5) 0%, rgba(30, 35, 50, 0.5) 100%);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid rgba(80, 100, 140, 0.15);
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(100, 140, 180, 0.08);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: #7788aa;
+    font-size: 13px;
+}
+
+.stat-value {
+    color: #e8f0ff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.stat-value.bonus {
+    color: #66ccaa;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+/* ========== 按钮样式 ========== */
+.panel-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, rgba(80, 120, 180, 0.4) 0%, rgba(60, 90, 150, 0.4) 100%);
+    color: #a8d4ff;
+    border: 1px solid rgba(100, 150, 220, 0.3);
+}
+
+.panel-btn:hover {
+    background: linear-gradient(135deg, rgba(90, 140, 200, 0.5) 0%, rgba(70, 100, 170, 0.5) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(80, 120, 180, 0.3);
+}
+
+.panel-btn:active {
+    transform: translateY(0);
+}
+
+.panel-btn.danger {
+    background: linear-gradient(135deg, rgba(180, 60, 60, 0.4) 0%, rgba(150, 40, 40, 0.4) 100%);
+    border-color: rgba(220, 80, 80, 0.3);
+    color: #ffa8a8;
+}
+
+.panel-btn.danger:hover {
+    background: linear-gradient(135deg, rgba(200, 70, 70, 0.5) 0%, rgba(170, 50, 50, 0.5) 100%);
+    box-shadow: 0 4px 12px rgba(200, 60, 60, 0.3);
+}
+
+/* ========== 背包操作按钮 ========== */
+.sell-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(100, 140, 180, 0.1);
+}
+
+.sell-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.sell-title {
+    color: #7788aa;
+    font-size: 12px;
+}
+
+.sell-confirm-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 80, 80, 0.4);
+    background: linear-gradient(135deg, rgba(180, 60, 60, 0.5) 0%, rgba(150, 40, 40, 0.5) 100%);
+    color: #ffa8a8;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sell-confirm-btn:hover {
+    background: linear-gradient(135deg, rgba(200, 70, 70, 0.6) 0%, rgba(170, 50, 50, 0.6) 100%);
+    transform: scale(1.02);
+}
+
+.sell-tip {
+    color: #556677;
+    font-size: 10px;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.quick-sell-btns {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.quick-sell-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid;
+    background: rgba(255, 255, 255, 0.03);
+    color: #aabbcc;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-sell-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ========== 快速操作按钮 ========== */
+.quick-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+/* ========== 图鉴列表 ========== */
+.bestiary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.bestiary-card {
+    background: linear-gradient(145deg, rgba(40, 45, 60, 0.7) 0%, rgba(30, 35, 50, 0.7) 100%);
+    border: 1px solid rgba(80, 100, 140, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.bestiary-card:hover {
+    border-color: rgba(100, 180, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.bestiary-card.locked {
+    opacity: 0.4;
+    filter: grayscale(0.8);
+}
+
+.bestiary-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.bestiary-card-icon img {
+    image-rendering: pixelated;
+    width: 32px;
+    height: 32px;
+}
+
+.bestiary-card-name {
+    color: #c8d8f0;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.bestiary-card-info {
+    color: #667788;
+    font-size: 10px;
+    text-align: center;
+}
+
+.bestiary-card-count {
+    color: #ffcc66;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* ========== 商店样式 ========== */
+.shop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.shop-header span:first-child {
+    color: #aabbcc;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.shop-gold {
+    color: #ffcc66;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.shop-items {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.shop-item {
+    position: relative;
+    background: linear-gradient(145deg, rgba(40, 45, 60, 0.8) 0%, rgba(30, 35, 50, 0.8) 100%);
+    border: 2px solid rgba(80, 100, 140, 0.2);
+    border-radius: 10px;
+    padding: 8px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 70px;
+}
+
+.shop-item:hover {
+    border-color: rgba(100, 180, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.shop-item.legendary {
+    animation: legendaryGlow 1.5s ease-in-out infinite;
+    border-color: rgba(255, 180, 60, 0.6) !important;
+}
+
+.shop-item.legendary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 8px;
+    background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 200, 0.1) 50%, transparent 60%);
+    animation: legendaryShine 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.shop-item-icon {
+    font-size: 24px;
+}
+
+.shop-item-name {
+    color: #a8c8e8;
+    font-size: 10px;
+    text-align: center;
+}
+
+.shop-item-price {
+    color: #ffcc66;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.shop-item-quality {
+    width: 100%;
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 4px;
+}
+
+/* ========== 对比面板样式 ========== */
+#compare-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    pointer-events: auto;
+}
+
+.compare-content {
+    width: 90%;
+    max-width: 360px;
+    background: linear-gradient(145deg, #1a1d26 0%, #12151c 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(100, 140, 180, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+.compare-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(100, 140, 180, 0.1);
+}
+
+.compare-header span {
+    color: #e8f0ff;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.compare-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #8899aa;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.compare-close:hover {
+    background: rgba(255, 80, 80, 0.2);
+    color: #ff6b6b;
+}
+
+.compare-body {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    padding: 16px 12px;
+    gap: 8px;
+}
+
+.compare-slot {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.compare-label {
+    color: #7788aa;
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.compare-item-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.compare-item-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(50, 55, 70, 0.9) 0%, rgba(35, 40, 55, 0.9) 100%);
+    border: 2px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+
+.compare-item-icon.legendary {
+    animation: legendaryGlow 1.5s ease-in-out infinite;
+}
+
+.compare-item-icon.legendary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 6px;
+    background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 200, 0.15) 50%, transparent 60%);
+    animation: legendaryShine 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.compare-item-header {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.compare-item-quality {
+    color: #667788;
+    font-size: 10px;
+    margin-bottom: 8px;
+}
+
+.compare-vs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffcc66;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 0 4px;
+}
+
+.compare-stats-column {
+    min-width: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.compare-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(100, 140, 180, 0.1);
+}
+
+.compare-stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    gap: 4px;
+}
+
+.stat-label {
+    color: #99aabb;
+    min-width: 36px;
+    font-weight: 500;
+}
+
+.stat-old {
+    color: #667788;
+    min-width: 40px;
+    text-align: right;
+}
+
+.stat-arrow {
+    color: #556677;
+    font-size: 10px;
+}
+
+.stat-new {
+    min-width: 50px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.stat-new.plus {
+    color: #4f8;
+    text-shadow: 0 0 6px rgba(80, 255, 140, 0.4);
+}
+
+.stat-new.minus {
+    color: #f44;
+    text-shadow: 0 0 6px rgba(255, 80, 80, 0.4);
+}
+
+.stat-new.neutral {
+    color: #99aabb;
+}
+
+.compare-empty {
+    color: #556677;
+    font-size: 11px;
+    padding: 20px 0;
+}
+
+.stat-plus {
+    color: #4f8 !important;
+    font-weight: 700;
+    text-shadow: 0 0 6px rgba(80, 255, 140, 0.4);
+}
+
+.stat-minus {
+    color: #f44 !important;
+    font-weight: 700;
+    text-shadow: 0 0 6px rgba(255, 80, 80, 0.4);
+}
+
+.stat-neutral {
+    color: #99aabb !important;
+}
+
+.compare-empty {
+    color: #556677;
+    font-size: 11px;
+    padding: 20px 0;
+}
+
+.compare-vs {
+    color: #ffcc66;
+    font-size: 18px;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255, 200, 100, 0.4);
+}
+
+.compare-actions {
+    display: flex;
+    gap: 10px;
+    padding: 14px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(100, 140, 180, 0.1);
+}
+
+.compare-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.compare-btn.equip {
+    background: linear-gradient(135deg, rgba(80, 150, 100, 0.5) 0%, rgba(60, 120, 80, 0.5) 100%);
+    color: #8feda3;
+    border: 1px solid rgba(100, 200, 130, 0.3);
+}
+
+.compare-btn.equip:hover {
+    background: linear-gradient(135deg, rgba(90, 170, 110, 0.6) 0%, rgba(70, 140, 90, 0.6) 100%);
+}
+
+.compare-btn.buy {
+    background: linear-gradient(135deg, rgba(180, 140, 60, 0.5) 0%, rgba(150, 110, 40, 0.5) 100%);
+    color: #ffd580;
+    border: 1px solid rgba(220, 180, 80, 0.3);
+}
+
+.compare-btn.buy:hover {
+    background: linear-gradient(135deg, rgba(200, 160, 70, 0.6) 0%, rgba(170, 130, 50, 0.6) 100%);
+}
+
+.compare-btn.cancel {
+    background: rgba(80, 90, 100, 0.4);
+    color: #99aabb;
+    border: 1px solid rgba(120, 130, 150, 0.3);
+}
+
+.compare-btn.cancel:hover {
+    background: rgba(100, 110, 120, 0.5);
+}
+

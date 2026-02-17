@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PixelARPG UI Tests</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #eee; }
+        .test { padding: 10px; margin: 5px 0; border-radius: 4px; }
+        .pass { background: #2a5a2a; }
+        .fail { background: #5a2a2a; }
+        .error { background: #5a4a2a; }
+        h2 { color: #aaf; }
+        
+        /* Mock UI elements */
+        #inventory, #character-panel, #shop-panel, #bestiary-panel { display: none; }
+        #inventory.show, #character-panel.show, #shop-panel.show, #bestiary-panel.show { display: block; }
+    </style>
+</head>
+<body>
+    <h1>PixelARPG UI Module Tests</h1>
+    <div id="results"></div>
+    
+    <!-- Mock UI Elements -->
+    <div id="inventory"></div>
+    <div id="character-panel"></div>
+    <div id="shop-panel"></div>
+    <div id="bestiary-panel"></div>
+    
+    <script src="js/data/qualities.js"></script>
+    <script src="js/data/items.js"></script>
+    <script src="js/data/skills.js"></script>
+    <script src="js/data/enemies.js"></script>
+    <script src="js/data/world.js"></script>
+    <script src="js/data.js"></script>
+    
+    <script src="js/ui/panelManager.js"></script>
+    <script src="js/ui/inventory.js"></script>
+    <script src="js/ui/character.js"></script>
+    <script src="js/ui/shop.js"></script>
+    <script src="js/ui/bestiary.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function test(name, fn) {
+            try {
+                const result = fn();
+                if (result) {
+                    results.innerHTML += `<div class="test pass">✓ ${name}</div>`;
+                } else {
+                    results.innerHTML += `<div class="test fail">✗ ${name}</div>`;
+                }
+            } catch (e) {
+                results.innerHTML += `<div class="test error">✗ ${name}: ${e.message}</div>`;
+            }
+        }
+        
+        // Test PanelManager
+        test('PanelManager exists', () => !!window.PanelManager);
+        test('PanelManager has panels object', () => !!window.PanelManager.panels);
+        test('PanelManager.isAnyOpen returns false initially', () => !window.PanelManager.isAnyOpen());
+        test('PanelManager.closeAll exists', () => typeof window.PanelManager.closeAll === 'function');
+        test('PanelManager.openPanel exists', () => typeof window.PanelManager.openPanel === 'function');
+        test('PanelManager.togglePanel exists', () => typeof window.PanelManager.togglePanel === 'function');
+        
+        // Test UIInventory
+        test('UIInventory exists', () => !!window.UIInventory);
+        test('UIInventory.init exists', () => typeof window.UIInventory.init === 'function');
+        test('UIInventory.open exists', () => typeof window.UIInventory.open === 'function');
+        test('UIInventory.close exists', () => typeof window.UIInventory.close === 'function');
+        test('UIInventory.render exists', () => typeof window.UIInventory.render === 'function');
+        
+        // Initialize UI modules
+        window.UIInventory.init();
+        window.UICharacter.init();
+        window.UIShop.init();
+        window.UIBestiary.init();
+        
+        test('UIInventory.element is set after init', () => !!window.UIInventory.element);
+        
+        // Test UICharacter
+        test('UICharacter exists', () => !!window.UICharacter);
+        test('UICharacter.init works', () => {
+            window.UICharacter.init();
+            return !!window.UICharacter.element;
+        });
+        
+        // Test UIShop
+        test('UIShop exists', () => !!window.UIShop);
+        test('UIShop.init works', () => {
+            window.UIShop.init();
+            return !!window.UIShop.element;
+        });
+        
+        // Test UIBestiary
+        test('UIBestiary exists', () => !!window.UIBestiary);
+        test('UIBestiary.init works', () => {
+            window.UIBestiary.init();
+            return !!window.UIBestiary.element;
+        });
+        
+        results.innerHTML += '<h2>All UI Tests Complete</h2>';
+    </script>
+</body>
+</html>

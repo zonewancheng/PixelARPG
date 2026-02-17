@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PixelARPG Module Tests</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #eee; }
+        .test { padding: 10px; margin: 5px 0; border-radius: 4px; }
+        .pass { background: #2a5a2a; }
+        .fail { background: #5a2a2a; }
+        .error { background: #5a4a2a; }
+        h2 { color: #aaf; }
+    </style>
+</head>
+<body>
+    <h1>PixelARPG Module Tests</h1>
+    <div id="results"></div>
+    
+    <script src="js/data/qualities.js"></script>
+    <script src="js/data/items.js"></script>
+    <script src="js/data/skills.js"></script>
+    <script src="js/data/enemies.js"></script>
+    <script src="js/data/world.js"></script>
+    <script src="js/data.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function test(name, fn) {
+            try {
+                const result = fn();
+                if (result) {
+                    results.innerHTML += `<div class="test pass">✓ ${name}</div>`;
+                } else {
+                    results.innerHTML += `<div class="test fail">✗ ${name}</div>`;
+                }
+            } catch (e) {
+                results.innerHTML += `<div class="test error">✗ ${name}: ${e.message}</div>`;
+            }
+        }
+        
+        // Test data/qualities.js
+        test('ITEM_QUALITIES exists', () => !!window.ITEM_QUALITIES);
+        test('ITEM_QUALITIES has 5 qualities', () => Object.keys(window.ITEM_QUALITIES).length === 5);
+        test('EQUIPMENT_SLOTS exists', () => !!window.EQUIPMENT_SLOTS);
+        test('EQUIPMENT_SLOTS has 6 slots', () => Object.keys(window.EQUIPMENT_SLOTS).length === 6);
+        
+        // Test data/items.js
+        test('BASE_ITEMS exists', () => !!window.BASE_ITEMS);
+        test('BASE_ITEMS has items', () => window.BASE_ITEMS.length > 0);
+        test('items exists', () => !!window.items);
+        test('createItem function exists', () => typeof window.createItem === 'function');
+        test('generateRandomItem function exists', () => typeof window.generateRandomItem === 'function');
+        test('getItemStats function exists', () => typeof window.getItemStats === 'function');
+        
+        // Test createItem
+        const testItem = window.createItem(window.BASE_ITEMS[0], 'common', 1);
+        test('createItem returns item with quality', () => testItem && testItem.quality === 'common');
+        test('createItem returns item with atk', () => testItem && testItem.atk > 0);
+        
+        // Test generateRandomItem
+        const randomItem = window.generateRandomItem('weapon', 1);
+        test('generateRandomItem returns item', () => !!randomItem);
+        
+        // Test data/skills.js
+        test('SKILLS exists', () => !!window.SKILLS);
+        test('SKILLS has 6 skills', () => window.SKILLS.length === 6);
+        test('skills alias exists', () => !!window.skills);
+        test('getSkillById function exists', () => typeof window.getSkillById === 'function');
+        
+        // Test getSkillById
+        const slashSkill = window.getSkillById('slash');
+        test('getSkillById returns slash skill', () => slashSkill && slashSkill.id === 'slash');
+        
+        // Test data/enemies.js
+        test('ENEMY_TYPES exists', () => !!window.ENEMY_TYPES);
+        test('ENEMY_TYPES has 4 enemies', () => window.ENEMY_TYPES.length === 4);
+        test('BOSS_TYPES exists', () => !!window.BOSS_TYPES);
+        test('enemyTypes alias exists', () => !!window.enemyTypes);
+        test('bossTypes alias exists', () => !!window.bossTypes);
+        test('createEnemyFromType function exists', () => typeof window.createEnemyFromType === 'function');
+        
+        // Test createEnemyFromType
+        const enemy = window.createEnemyFromType(window.ENEMY_TYPES[0], 1);
+        test('createEnemyFromType returns enemy', () => !!enemy);
+        test('createEnemyFromType scales HP', () => enemy && enemy.hp > window.ENEMY_TYPES[0].hp);
+        
+        // Test data/world.js
+        test('TILE_TYPES exists', () => !!window.TILE_TYPES);
+        test('TILE_COLORS exists', () => !!window.TILE_COLORS);
+        test('TREE_TYPES exists', () => !!window.TREE_TYPES);
+        test('TREE_TYPES has 5 types', () => window.TREE_TYPES.length === 5);
+        test('HILL_TYPES exists', () => !!window.HILL_TYPES);
+        test('CLOUD_TYPES exists', () => !!window.CLOUD_TYPES);
+        test('initClouds function exists', () => typeof window.initClouds === 'function');
+        test('getTileColor function exists', () => typeof window.getTileColor === 'function');
+        
+        // Test getTileColor
+        const groundColor = window.getTileColor(0);
+        test('getTileColor returns ground color', () => groundColor === '#1a3a3c');
+        
+        // Test data.js
+        test('TILE constant exists', () => window.TILE === 32);
+        test('MAP_W constant exists', () => window.MAP_W === 15);
+        test('MAP_H constant exists', () => window.MAP_H === 20);
+        
+        results.innerHTML += '<h2>All Tests Complete</h2>';
+    </script>
+</body>
+</html>

@@ -5,16 +5,10 @@ let enemies = [];
 let drops = [];
 let particles = [];
 let projectiles = [];
-let damageNumbers = [];
 let gameState = 'playing';
 let inventoryOpen = false;
 let characterOpen = false;
 let shopOpen = false;
-let bestiaryOpen = false;
-let bestiaryTab = 'monster';
-let discoveredEnemies = {};
-let discoveredSkills = {};
-let discoveredItems = {};
 let message = '';
 let messageTimer = 0;
 let damageFlash = 0;
@@ -77,7 +71,6 @@ let currentLanguage = 'zh';
 function initGame() {
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
-    initClouds(canvas.width, canvas.height);
     
     window.boss = null;
     window.player = createPlayer();
@@ -185,23 +178,11 @@ function generateMap() {
                 map[y][x] = 1;
             } else {
                 const rand = Math.random();
-                if (rand < 0.02 + mapLevel * 0.003) {
-                    if (x > 3 && x < window.MAP_W - 4 && y > 3 && y < window.MAP_H - 8) {
-                        map[y][x] = 4;
-                    } else {
-                        map[y][x] = 1;
-                    }
-                } else if (rand < 0.04 + mapLevel * 0.005) {
-                    if (x > 2 && x < window.MAP_W - 3 && y > 2 && y < window.MAP_H - 7) {
-                        map[y][x] = 5;
-                    } else {
-                        map[y][x] = 1;
-                    }
-                } else if (rand < 0.06 + mapLevel * 0.005) {
-                    map[y][x] = 6;
-                } else if (rand < 0.10 + mapLevel * 0.01) {
+                if (rand < 0.03 + mapLevel * 0.005) {
+                    map[y][x] = 1;
+                } else if (rand < 0.08 + mapLevel * 0.01) {
                     map[y][x] = 2;
-                } else if (rand < 0.14 + mapLevel * 0.01) {
+                } else if (rand < 0.12 + mapLevel * 0.01) {
                     map[y][x] = 3;
                 } else {
                     map[y][x] = 0;
@@ -236,6 +217,7 @@ function spawnEnemies() {
             atk: et.atk + mapLevel * 2,
             def: et.def + Math.floor(mapLevel * 0.5),
             type: et.type,
+            render: et.render,
             vx: 0, vy: 0,
             attackCooldown: 0,
             aggro: 30,
@@ -270,6 +252,7 @@ function spawnBoss() {
         atk: b.atk + mapLevel * 3,
         def: b.def + Math.floor(mapLevel * 2),
         type: 'boss',
+        render: b.render,
         vx: 0, vy: 0,
         attackCooldown: 0,
         aggro: 60,
@@ -346,17 +329,6 @@ function spawnParticles(x, y, color, count) {
     }
 }
 
-function spawnDamageNumber(x, y, value, isHeal = false) {
-    damageNumbers.push({
-        x: x + (Math.random() - 0.5) * 10,
-        y: y,
-        value: value,
-        isHeal: isHeal,
-        life: 45,
-        vy: -1.5
-    });
-}
-
 function showMessage(msg, duration = 60) {
     message = msg;
     messageTimer = duration;
@@ -391,13 +363,10 @@ function update() {
         if (player.regenTimer >= 60) {
             player.regenTimer = 0;
             if (player.hp < player.maxHp) {
-                const healAmount = player.hpRegen;
-                player.hp = Math.min(player.maxHp, player.hp + healAmount);
-                spawnDamageNumber(player.x + player.w/2, player.y - 10, healAmount, true);
+                player.hp = Math.min(player.maxHp, player.hp + player.hpRegen);
             }
             if (player.mp < player.maxMp) {
-                const mpAmount = player.mpRegen;
-                player.mp = Math.min(player.maxMp, player.mp + mpAmount);
+                player.mp = Math.min(player.maxMp, player.mp + player.mpRegen);
             }
         }
     }
@@ -491,7 +460,7 @@ function update() {
             
             const tileX = Math.floor((e.x + e.w/2) / window.TILE);
             const tileY = Math.floor((e.y + e.h/2) / window.TILE);
-            if (map[tileY] && (map[tileY][tileX] === 1 || map[tileY][tileX] === 4 || map[tileY][tileX] === 5)) {
+            if (map[tileY] && map[tileY][tileX] === 1) {
                 e.x = e.spawnX;
                 e.y = e.spawnY;
             }
@@ -502,7 +471,6 @@ function update() {
         if (dist < 30 && e.attackCooldown <= 0 && player.invulnerable <= 0 && e.frozen <= 0) {
             const dmg = Math.max(1, e.atk - player.def + Math.floor(Math.random() * 3));
             player.hp -= dmg;
-            spawnDamageNumber(player.x + player.w/2, player.y, dmg);
             player.invulnerable = 30;
             damageFlash = 10;
             spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 5);
@@ -534,7 +502,7 @@ function update() {
         
         const bossTileX = Math.floor((window.boss.x + window.boss.w/2) / window.TILE);
         const bossTileY = Math.floor((window.boss.y + window.boss.h/2) / window.TILE);
-        if (map[bossTileY] && (map[bossTileY][bossTileX] === 1 || map[bossTileY][bossTileX] === 4 || map[bossTileY][bossTileX] === 5)) {
+        if (map[bossTileY] && map[bossTileY][bossTileX] === 1) {
             window.boss.x = 7 * window.TILE;
             window.boss.y = 3 * window.TILE;
         }
@@ -542,7 +510,6 @@ function update() {
         if (dist < 40 && window.boss.attackCooldown <= 0 && player.invulnerable <= 0) {
             const dmg = Math.max(1, window.boss.atk - player.def + Math.floor(Math.random() * 5));
             player.hp -= dmg;
-            spawnDamageNumber(player.x + player.w/2, player.y, dmg);
             player.invulnerable = 20;
             damageFlash = 15;
             spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 10);
@@ -582,10 +549,6 @@ function update() {
                 }
             } else {
                 player.inventory.push(d.item);
-                if (!discoveredItems[d.item.id]) {
-                    discoveredItems[d.item.id] = { count: 0 };
-                }
-                discoveredItems[d.item.id].count++;
                 showMessage(`Got ${d.item.name}!`);
             }
             return false;
@@ -620,12 +583,6 @@ function update() {
         return p.life > 0;
     });
     
-    damageNumbers = damageNumbers.filter(d => {
-        d.y += d.vy;
-        d.life--;
-        return d.life > 0;
-    });
-    
     projectiles = projectiles.filter(p => {
         p.x += p.vx;
         p.y += p.vy;
@@ -637,14 +594,21 @@ function update() {
             const dy = p.y - (e.y + e.h/2);
             if (Math.sqrt(dx*dx + dy*dy) < 20) {
                 e.hp -= p.damage;
-                spawnDamageNumber(e.x + e.w/2, e.y, p.damage);
                 e.aggro = 120;
                 spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f84', 5);
                 hit = true;
-                if (e.hp <= 0) {
-                    discoverEnemy(e.type, e.name);
-                }
             }
+        });
+        
+        enemies = enemies.filter(e => {
+            if (e.hp <= 0) {
+                player.exp += e.exp;
+                player.gold += e.gold;
+                spawnDrop(e.x, e.y);
+                showMessage(`Defeated ${e.name}! +${e.exp} EXP`);
+                return false;
+            }
+            return true;
         });
         
         if (window.boss) {
@@ -652,12 +616,10 @@ function update() {
             const dy = p.y - (window.boss.y + window.boss.h/2);
             if (Math.sqrt(dx*dx + dy*dy) < 30) {
                 window.boss.hp -= p.damage;
-                spawnDamageNumber(window.boss.x + window.boss.w/2, window.boss.y, p.damage);
                 window.boss.aggro = 120;
                 spawnParticles(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2, '#f84', 10);
                 hit = true;
                 if (window.boss.hp <= 0) {
-                    discoverEnemy(window.boss.type, window.boss.name);
                     player.exp += window.boss.exp;
                     player.gold += window.boss.gold;
                     spawnDrop(window.boss.x, window.boss.y, true);
@@ -713,10 +675,7 @@ function render() {
     drawBoss(ctx, window.boss, drawPixelSprite);
     drawPlayer(ctx, player, drawPixelSprite, player.invulnerable);
     drawPlayerAttack(ctx, player);
-    drawClouds(ctx, canvas.width, canvas.height, player);
-    handleCloudLightning();
     drawParticles(ctx, particles);
-    drawDamageNumbers(ctx, damageNumbers);
     
     if (message) {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
@@ -809,8 +768,7 @@ function setupInput() {
             const tx = Math.floor((nx + 10) / window.TILE);
             const ty = Math.floor((ny + 10) / window.TILE);
             
-            const tile = map[ty] ? map[ty][tx] : 1;
-            if (tile !== 1 && tile !== 4 && tile !== 5) {
+            if (map[ty] && map[ty][tx] !== 1) {
                 player.x = nx;
                 player.y = ny;
             }
@@ -849,12 +807,10 @@ function attack() {
         if (dist < range && isTargetInDirection(e.x + e.w/2, e.y + e.h/2)) {
             const dmg = Math.max(1, player.atk - e.def + Math.floor(Math.random() * 5));
             e.hp -= dmg;
-            spawnDamageNumber(e.x + e.w/2, e.y, dmg);
             e.vx = dirX * 5;
             e.vy = dirY * 5;
             spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f44', 5);
             if (e.hp <= 0) {
-                discoverEnemy(e.type, e.name);
                 player.exp += e.exp;
                 player.gold += e.gold;
                 spawnDrop(e.x, e.y);
@@ -874,7 +830,6 @@ function attack() {
             window.boss.vy = dirY * 8;
             spawnParticles(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2, '#f44', 10);
             if (window.boss.hp <= 0) {
-                discoverEnemy(window.boss.type, window.boss.name);
                 player.exp += window.boss.exp;
                 player.gold += window.boss.gold;
                 spawnDrop(window.boss.x, window.boss.y, true);
@@ -971,14 +926,8 @@ function useSkill(index) {
             isLightning: skill.isLightning || false,
             isTornado: skill.isTornado || false,
             isIce: skill.isIce || false,
-            isVine: skill.isVine || false,
-            isFire: skill.id === 'fireball' ? true : false
+            isVine: skill.isVine || false
         });
-        
-        if (!discoveredSkills[skill.id]) {
-            discoveredSkills[skill.id] = { count: 0 };
-        }
-        discoveredSkills[skill.id].count++;
     }
     
     playSound('skill');
@@ -991,14 +940,27 @@ function setupUI() {
     window.playerSkills.forEach((skill, i) => {
         const slot = document.createElement('div');
         slot.className = 'skill-slot';
+        let iconHtml = skill.icon;
+        if (window.renderSkillIcon) {
+            const iconUrl = window.renderSkillIcon(skill, 28);
+            iconHtml = `<img src="${iconUrl}" style="image-rendering:pixelated;width:28px;height:28px;">`;
+        }
         slot.innerHTML = `
             <span class="hotkey">${i + 1}</span>
-            ${skill.icon}
+            ${iconHtml}
             <div class="cooldown"></div>
         `;
         slot.addEventListener('click', () => useSkill(i));
         skillsContainer.appendChild(slot);
     });
+    
+    if (window.renderPlayerIcon) {
+        const avatarBtn = document.getElementById('characterBtn');
+        if (avatarBtn) {
+            const imgUrl = window.renderPlayerIcon(window.player, 40);
+            avatarBtn.innerHTML = `<img src="${imgUrl}" style="image-rendering:pixelated;width:40px;height:40px;">`;
+        }
+    }
     
     canvas.addEventListener('click', () => {
         if (gameState === 'gameover') {
@@ -1134,56 +1096,6 @@ function setupUI() {
             e.stopPropagation();
             currentLanguage = currentLanguage === 'zh' ? 'en' : 'zh';
             langBtn.textContent = currentLanguage === 'zh' ? '中' : 'EN';
-        });
-    }
-    
-    const bestiaryBtn = document.getElementById('bestiaryBtn');
-    if (bestiaryBtn) {
-        bestiaryBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (characterOpen) {
-                closeCharacterPanel();
-                openBestiary();
-            } else if (shopOpen) {
-                closeShop();
-                openBestiary();
-            } else if (bestiaryOpen) {
-                closeBestiary();
-            } else {
-                openBestiary();
-            }
-        });
-    }
-    
-    const bestiaryCloseBtn = document.getElementById('bestiary-close');
-    if (bestiaryCloseBtn) {
-        bestiaryCloseBtn.addEventListener('click', closeBestiary);
-    }
-    
-    const bestiaryTabMonster = document.getElementById('bestiary-tab-monster');
-    if (bestiaryTabMonster) {
-        bestiaryTabMonster.addEventListener('click', () => {
-            bestiaryTab = 'monster';
-            updateBestiaryTabs();
-            renderBestiary();
-        });
-    }
-    
-    const bestiaryTabSkill = document.getElementById('bestiary-tab-skill');
-    if (bestiaryTabSkill) {
-        bestiaryTabSkill.addEventListener('click', () => {
-            bestiaryTab = 'skill';
-            updateBestiaryTabs();
-            renderBestiary();
-        });
-    }
-    
-    const bestiaryTabEquip = document.getElementById('bestiary-tab-equip');
-    if (bestiaryTabEquip) {
-        bestiaryTabEquip.addEventListener('click', () => {
-            bestiaryTab = 'equip';
-            updateBestiaryTabs();
-            renderBestiary();
         });
     }
     
@@ -1389,253 +1301,58 @@ function playSound(type) {
 }
 
 function openInventory() {
-    inventoryOpen = true;
-    const inv = document.getElementById('inventory');
-    const player = window.player;
-    
-    inv.innerHTML = `
-        <div id="inventory-title">
-            <span>背包 (${player.inventory.length})</span>
-            <button id="inventory-close">✕</button>
-        </div>
-        <div id="inventory-grid"></div>
-        <div id="inventory-equipment">
-            <div>武器 <span id="inv-weapon"></span></div>
-            <div>衣服 <span id="inv-armor"></span></div>
-            <div>帽子 <span id="inv-helmet"></span></div>
-            <div>鞋子 <span id="inv-boots"></span></div>
-            <div>戒指 <span id="inv-ring"></span></div>
-            <div>项链 <span id="inv-necklace"></span></div>
-        </div>
-        <div style="text-align:center;color:#aaa;font-size:12px;margin-bottom:5px;">一键出售未穿戴装备</div>
-        <div id="inventory-quick-sell">
-            <button class="quick-sell-btn" data-quality="common" style="border-color:#fff" title="出售白色装备">白</button>
-            <button class="quick-sell-btn" data-quality="uncommon" style="border-color:#4f4" title="出售绿色装备">绿</button>
-            <button class="quick-sell-btn" data-quality="rare" style="border-color:#44f" title="出售蓝色装备">蓝</button>
-            <button class="quick-sell-btn" data-quality="epic" style="border-color:#a4f" title="出售紫色装备">紫</button>
-            <button class="quick-sell-btn" data-quality="legendary" style="border-color:#fa4" title="出售金色装备">金</button>
-        </div>
-        <div id="inventory-actions">
-            <button id="inventory-sell">出售</button>
-        </div>
-    `;
-    
-    const grid = document.getElementById('inventory-grid');
-    
-    const ensureUid = (item) => {
-        if (item && !item.uid) {
-            item.uid = Date.now() + Math.random();
-        }
-    };
-    ensureUid(player.weapon);
-    ensureUid(player.armor);
-    ensureUid(player.helmet);
-    ensureUid(player.boots);
-    ensureUid(player.ring);
-    ensureUid(player.necklace);
-    player.inventory.forEach(ensureUid);
-    
-    for (let i = 0; i < player.inventory.length; i++) {
-        const slot = document.createElement('div');
-        slot.className = 'inv-slot';
-        if (player.inventory[i]) {
-            const item = player.inventory[i];
-            const itemUid = item.uid;
-            const isEquipped = (player.weapon && player.weapon.uid === itemUid) ||
-                              (player.armor && player.armor.uid === itemUid) ||
-                              (player.helmet && player.helmet.uid === itemUid) ||
-                              (player.boots && player.boots.uid === itemUid) ||
-                              (player.ring && player.ring.uid === itemUid) ||
-                              (player.necklace && player.necklace.uid === itemUid);
-            
-            let slotContent = item.icon || '?';
-            
-            if (isEquipped) {
-                slot.classList.add('equipped');
-                slotContent += '<span class="eq-badge">E</span>';
-            }
-            
-            let stats = '';
-            if (item.atk) stats += ` ATK:${item.atk}`;
-            if (item.atkPercent) stats += ` ATK%+${item.atkPercent}%`;
-            if (item.def) stats += ` DEF:${item.def}`;
-            if (item.defPercent) stats += ` DEF%+${item.defPercent}%`;
-            if (item.maxHp) stats += ` HP+${item.maxHp}`;
-            if (item.maxMp) stats += ` MP+${item.maxMp}`;
-            if (item.hpRegen) stats += ` HP回${item.hpRegen}/s`;
-            if (item.mpRegen) stats += ` MP回${item.mpRegen}/s`;
-            slot.innerHTML = slotContent;
-            slot.title = `${item.name || 'Unknown'}${item.qualityName ? ' (' + item.qualityName + ')' : ''}${stats}${isEquipped ? ' [已装备]' : ''}`;
-            slot.style.borderColor = item.color || '#888';
-            slot.style.position = 'relative';
-            if (item.quality === 'legendary') {
-                slot.classList.add('legendary');
-            }
-        }
-        grid.appendChild(slot);
-    }
-    
-    const eqWeapon = document.getElementById('inv-weapon');
-    const eqArmor = document.getElementById('inv-armor');
-    const eqHelmet = document.getElementById('inv-helmet');
-    const eqBoots = document.getElementById('inv-boots');
-    const eqRing = document.getElementById('inv-ring');
-    const eqNecklace = document.getElementById('inv-necklace');
-    
-    if (player.weapon) {
-        eqWeapon.textContent = player.weapon.icon + ' ' + player.weapon.name;
-        eqWeapon.style.color = player.weapon.color || '#fff';
-    }
-    if (player.armor) {
-        eqArmor.textContent = player.armor.icon + ' ' + player.armor.name;
-        eqArmor.style.color = player.armor.color || '#fff';
-    }
-    if (player.helmet) {
-        eqHelmet.textContent = player.helmet.icon + ' ' + player.helmet.name;
-        eqHelmet.style.color = player.helmet.color || '#fff';
-    }
-    if (player.boots) {
-        eqBoots.textContent = player.boots.icon + ' ' + player.boots.name;
-        eqBoots.style.color = player.boots.color || '#fff';
-    }
-    if (player.ring) {
-        eqRing.textContent = player.ring.icon + ' ' + player.ring.name;
-        eqRing.style.color = player.ring.color || '#fff';
-    }
-    if (player.necklace) {
-        eqNecklace.textContent = player.necklace.icon + ' ' + player.necklace.name;
-        eqNecklace.style.color = player.necklace.color || '#fff';
-    }
-    
-    document.getElementById('inventory-close').addEventListener('click', closeInventory);
-    
-    let sellMode = false;
-    const sellBtn = document.getElementById('inventory-sell');
-    sellBtn.addEventListener('click', () => {
-        sellMode = !sellMode;
-        sellBtn.textContent = sellMode ? '选择物品出售' : '出售';
-        sellBtn.style.background = sellMode ? 'rgba(150,50,50,0.8)' : '';
-        
-        if (sellMode) {
-            showMessage('点击物品出售 (返还50%金币)');
-        }
-    });
-    
-    document.querySelectorAll('.quick-sell-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const quality = btn.dataset.quality;
-            let totalGold = 0;
-            let count = 0;
-            
-            const equippedUids = new Set([
-                player.weapon?.uid, player.armor?.uid, player.helmet?.uid,
-                player.boots?.uid, player.ring?.uid, player.necklace?.uid
-            ].filter(Boolean));
-            
-            player.inventory = player.inventory.filter(item => {
-                if (item && item.quality === quality && !equippedUids.has(item.uid)) {
-                    const price = Math.floor((item.price || 10) * 0.5);
-                    totalGold += price;
-                    count++;
-                    return false;
-                }
-                return true;
-            });
-            
-            if (count > 0) {
-                player.gold += totalGold;
-                showMessage(`出售${count}件${quality}装备 +${totalGold}金币`);
-                openInventory();
-                updateUI();
-            } else {
-                showMessage(`没有可出售的${quality}装备`);
-            }
-        });
-    });
-    
-    grid.addEventListener('click', (e) => {
-        const slot = e.target.closest('.inv-slot');
-        if (!slot) return;
-        const index = Array.from(grid.children).indexOf(slot);
-        const item = player.inventory[index];
-        if (!item) return;
-        
-        if (sellMode) {
-            const itemUid = item.uid;
-            const isEquipped = (player.weapon && player.weapon.uid === itemUid) ||
-                              (player.armor && player.armor.uid === itemUid) ||
-                              (player.helmet && player.helmet.uid === itemUid) ||
-                              (player.boots && player.boots.uid === itemUid) ||
-                              (player.ring && player.ring.uid === itemUid) ||
-                              (player.necklace && player.necklace.uid === itemUid);
-            if (isEquipped) {
-                showMessage('不能出售已装备的物品!');
-                return;
-            }
-            const price = Math.floor((item.atk || item.def || 5) * 5 * (item.qualityBonus || 1));
-            player.gold += price;
-            player.inventory.splice(index, 1);
-            updateUI();
-            openInventory();
-            showMessage(`已出售 ${item.name} +${price}金币`);
-            return;
-        }
-        
-        useItem(index);
-    });
-    
-    inv.classList.add('show');
+    window.UIInventory.open();
 }
 
 function closeInventory() {
-    inventoryOpen = false;
-    document.getElementById('inventory').classList.remove('show');
+    window.UIInventory.close();
 }
 
 function openCharacterPanel() {
-    characterOpen = true;
-    inventoryOpen = true;
-    const panel = document.getElementById('character-panel');
-    const player = window.player;
-    
-    document.getElementById('char-level').textContent = player.level;
-    document.getElementById('char-hp').textContent = `${player.hp}/${player.maxHp}`;
-    document.getElementById('char-mp').textContent = `${player.mp}/${player.maxMp}`;
-    document.getElementById('char-atk').textContent = player.atk;
-    document.getElementById('char-def').textContent = player.def;
-    
-    const totalAtkPercent = ((player.weapon?.atkPercent || 0) + (player.armor?.atkPercent || 0) + (player.helmet?.atkPercent || 0) + (player.boots?.atkPercent || 0) + (player.ring?.atkPercent || 0) + (player.necklace?.atkPercent || 0));
-    const totalDefPercent = ((player.weapon?.defPercent || 0) + (player.armor?.defPercent || 0) + (player.helmet?.defPercent || 0) + (player.boots?.defPercent || 0) + (player.ring?.defPercent || 0) + (player.necklace?.defPercent || 0));
-    const totalHpRegen = (player.weapon?.hpRegen || 0) + (player.armor?.hpRegen || 0) + (player.helmet?.hpRegen || 0) + (player.boots?.hpRegen || 0) + (player.ring?.hpRegen || 0) + (player.necklace?.hpRegen || 0);
-    const totalMpRegen = (player.weapon?.mpRegen || 0) + (player.armor?.mpRegen || 0) + (player.helmet?.mpRegen || 0) + (player.boots?.mpRegen || 0) + (player.ring?.mpRegen || 0) + (player.necklace?.mpRegen || 0);
-    
-    document.getElementById('char-atk-percent').textContent = totalAtkPercent > 0 ? `+${totalAtkPercent}%` : '';
-    document.getElementById('char-def-percent').textContent = totalDefPercent > 0 ? `+${totalDefPercent}%` : '';
-    document.getElementById('char-hp-regen').textContent = totalHpRegen > 0 ? `+${totalHpRegen}/s` : '0';
-    document.getElementById('char-mp-regen').textContent = totalMpRegen > 0 ? `+${totalMpRegen}/s` : '0';
-    
-    document.getElementById('char-weapon').textContent = player.weapon ? player.weapon.icon : '';
-    document.getElementById('char-armor').textContent = player.armor ? player.armor.icon : '';
-    document.getElementById('char-helmet').textContent = player.helmet ? player.helmet.icon : '';
-    document.getElementById('char-boots').textContent = player.boots ? player.boots.icon : '';
-    document.getElementById('char-ring').textContent = player.ring ? player.ring.icon : '';
-    document.getElementById('char-necklace').textContent = player.necklace ? player.necklace.icon : '';
-    document.getElementById('char-body').textContent = '🧙';
-    
-    document.getElementById('char-weapon').style.borderColor = player.weapon?.color || '#668';
-    document.getElementById('char-armor').style.borderColor = player.armor?.color || '#668';
-    document.getElementById('char-helmet').style.borderColor = player.helmet?.color || '#668';
-    document.getElementById('char-boots').style.borderColor = player.boots?.color || '#668';
-    document.getElementById('char-ring').style.borderColor = player.ring?.color || '#668';
-    document.getElementById('char-necklace').style.borderColor = player.necklace?.color || '#668';
-    
-    panel.classList.add('show');
+    window.UICharacter.open();
 }
 
 function closeCharacterPanel() {
-    characterOpen = false;
-    inventoryOpen = false;
-    document.getElementById('character-panel').classList.remove('show');
+    window.UICharacter.close();
+}
+
+function openShop() {
+    window.UIShop.open();
+}
+
+function closeShop() {
+    window.UIShop.close();
+}
+
+function openBestiary() {
+    window.UIBestiary.open();
+}
+
+function closeBestiary() {
+    window.UIBestiary.close();
+}
+
+function generateShopItems() {
+}
+
+function closeCharacterPanel() {
+    window.UICharacter.close();
+}
+
+function openShop() {
+    window.UIShop.open();
+}
+
+function closeShop() {
+    window.UIShop.close();
+}
+
+function openBestiary() {
+    window.UIBestiary.open();
+}
+
+function closeBestiary() {
+    window.UIBestiary.close();
 }
 
 function generateShopItems() {
@@ -1655,273 +1372,6 @@ function generateShopItems() {
     }
 }
 
-function openShop() {
-    shopOpen = true;
-    inventoryOpen = true;
-    const panel = document.getElementById('shop-panel');
-    const player = window.player;
-    
-    document.getElementById('shop-gold-value').textContent = player.gold;
-    
-    if (shopItems.length === 0) {
-        generateShopItems();
-    }
-    
-    renderShopItems();
-    
-    panel.classList.add('show');
-}
-
-function renderShopItems() {
-    const container = document.getElementById('shop-items');
-    container.innerHTML = '';
-    
-    shopItems.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'shop-item';
-        div.style.borderColor = item.color || '#654';
-        if (item.quality === 'legendary') {
-            div.classList.add('legendary');
-        }
-        
-        let stats = '';
-        if (item.atk) stats += `<div>⚔️${item.atk}</div>`;
-        if (item.atkPercent) stats += `<div>⚔️%+${item.atkPercent}%</div>`;
-        if (item.def) stats += `<div>🛡️${item.def}</div>`;
-        if (item.defPercent) stats += `<div>🛡️%+${item.defPercent}%</div>`;
-        if (item.maxHp) stats += `<div>❤️+${item.maxHp}</div>`;
-        if (item.maxMp) stats += `<div>💙+${item.maxMp}</div>`;
-        if (item.hpRegen) stats += `<div>💚+${item.hpRegen}/s</div>`;
-        if (item.mpRegen) stats += `<div>💙+${item.mpRegen}/s</div>`;
-        
-        const qualityColor = getQualityColor(item.quality);
-        
-        div.innerHTML = `
-            <span class="shop-item-icon" style="color:${qualityColor}">${item.icon}</span>
-            <span class="shop-item-name" style="color:${qualityColor}">${item.name}</span>
-            <div class="shop-item-stats">${stats}</div>
-            <span class="shop-item-price">💰${item.price}</span>
-        `;
-        div.onclick = () => buyItem(index);
-        container.appendChild(div);
-    });
-}
-
-function closeShop() {
-    shopOpen = false;
-    inventoryOpen = false;
-    document.getElementById('shop-panel').classList.remove('show');
-}
-
-function openBestiary() {
-    bestiaryOpen = true;
-    renderBestiary();
-    document.getElementById('bestiary-panel').classList.add('show');
-}
-
-function closeBestiary() {
-    bestiaryOpen = false;
-    document.getElementById('bestiary-panel').classList.remove('show');
-}
-
-function updateBestiaryTabs() {
-    document.querySelectorAll('.bestiary-tab').forEach(btn => btn.classList.remove('active'));
-    if (bestiaryTab === 'monster') {
-        document.getElementById('bestiary-tab-monster')?.classList.add('active');
-    } else if (bestiaryTab === 'skill') {
-        document.getElementById('bestiary-tab-skill')?.classList.add('active');
-    } else if (bestiaryTab === 'equip') {
-        document.getElementById('bestiary-tab-equip')?.classList.add('active');
-    }
-}
-
-function discoverEnemy(type, name) {
-    if (!discoveredEnemies[type]) {
-        discoveredEnemies[type] = { name: name, count: 0, icon: getEnemyIcon(type) };
-    }
-    discoveredEnemies[type].count++;
-    discoveredEnemies[type].name = name;
-}
-
-function getEnemyIcon(type) {
-    const icons = {
-        'slime': '🟢',
-        'goblin': '👺',
-        'bat': '🦇',
-        'spider': '🕷️',
-        'slime_king': '👑',
-        'goblin_lord': '👹',
-        'orc_king': '👾',
-        'dark_mage': '🧙',
-        'fire_dragon': '🐉',
-        'ice_devil': '❄️',
-        'demon_lord': '😈'
-    };
-    return icons[type] || '👾';
-}
-
-function renderBestiary() {
-    const list = document.getElementById('bestiary-list');
-    if (!list) return;
-    
-    list.innerHTML = '';
-    
-    if (bestiaryTab === 'monster') {
-        renderBestiaryMonsters(list);
-    } else if (bestiaryTab === 'skill') {
-        renderBestiarySkills(list);
-    } else if (bestiaryTab === 'equip') {
-        renderBestiaryItems(list);
-    }
-}
-
-function renderBestiaryMonsters(list) {
-    const allEnemies = [...window.enemyTypes, ...window.bossTypes];
-    const previewCanvas = document.getElementById('bestiary-canvas');
-    const previewCtx = previewCanvas.getContext('2d');
-    
-    allEnemies.forEach(enemy => {
-        const discovered = discoveredEnemies[enemy.type] || { count: 0, name: enemy.name };
-        
-        previewCtx.clearRect(0, 0, 32, 32);
-        drawEnemyPreview(previewCtx, enemy.type, enemy.color);
-        
-        const dataUrl = previewCanvas.toDataURL();
-        
-        const item = document.createElement('div');
-        item.className = 'bestiary-item';
-        
-        item.innerHTML = `
-            <img src="${dataUrl}" class="bestiary-icon" />
-            <span class="bestiary-name">${enemy.name}</span>
-            <span class="bestiary-info">HP:${enemy.hp} ATK:${enemy.atk}</span>
-            <span class="bestiary-count">击杀: ${discovered.count}</span>
-        `;
-        
-        list.appendChild(item);
-    });
-}
-
-function renderBestiarySkills(list) {
-    const allSkills = window.skills;
-    
-    allSkills.forEach(skill => {
-        const discovered = discoveredSkills[skill.id] || { count: 0 };
-        
-        const item = document.createElement('div');
-        item.className = 'bestiary-item';
-        
-        item.innerHTML = `
-            <span class="bestiary-icon">${skill.icon}</span>
-            <span class="bestiary-name">${skill.name}</span>
-            <span class="bestiary-info">${skill.desc}</span>
-            <span class="bestiary-count">使用: ${discovered.count}</span>
-        `;
-        
-        list.appendChild(item);
-    });
-}
-
-function renderBestiaryItems(list) {
-    const allItems = items.filter(i => ['weapon', 'clothes', 'hat', 'boots', 'ring', 'necklace'].includes(i.type));
-    const uniqueItems = [];
-    const seen = new Set();
-    allItems.forEach(item => {
-        if (!seen.has(item.id)) {
-            seen.add(item.id);
-            uniqueItems.push(item);
-        }
-    });
-    
-    uniqueItems.forEach(item => {
-        const discovered = discoveredItems[item.id] || { count: 0 };
-        
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'bestiary-item';
-        
-        const qualityColor = getQualityColor(item.quality);
-        
-        itemDiv.innerHTML = `
-            <span class="bestiary-icon" style="color:${qualityColor}">${item.icon}</span>
-            <span class="bestiary-name" style="color:${qualityColor}">${item.name}</span>
-            <span class="bestiary-info">${item.type}</span>
-            <span class="bestiary-count">获得: ${discovered.count}</span>
-        `;
-        
-        list.appendChild(itemDiv);
-    });
-}
-
-function getQualityColor(quality) {
-    const colors = {
-        'common': '#fff',
-        'uncommon': '#0f0',
-        'rare': '#08f',
-        'epic': '#a0f',
-        'legendary': '#fa0'
-    };
-    return colors[quality] || '#fff';
-}
-
-function drawEnemyPreview(ctx, type, color) {
-    const breathe = Math.sin(Date.now() / 400) * 1;
-    const x = 4, y = 4 + breathe;
-    ctx.fillStyle = color || '#4a4';
-    
-    if (type === 'slime') {
-        ctx.fillRect(x + 4, y + 8, 16, 12);
-        ctx.fillRect(x + 2, y + 12, 20, 8);
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x + 6, y + 10, 4, 4);
-        ctx.fillRect(x + 14, y + 10, 4, 4);
-    } else if (type === 'goblin') {
-        ctx.fillRect(x + 6, y + 2, 12, 10);
-        ctx.fillRect(x + 4, y + 10, 16, 14);
-        ctx.fillRect(x + 2, y + 18, 6, 6);
-        ctx.fillRect(x + 16, y + 18, 6, 6);
-        ctx.fillStyle = '#f00';
-        ctx.fillRect(x + 7, y + 6, 3, 3);
-        ctx.fillRect(x + 14, y + 6, 3, 3);
-    } else if (type === 'bat') {
-        ctx.fillRect(x + 8, y + 8, 8, 6);
-        ctx.fillRect(x + 4, y + 6, 6, 4);
-        ctx.fillRect(x + 14, y + 6, 6, 4);
-        ctx.fillRect(x + 2, y + 8, 4, 3);
-        ctx.fillRect(x + 18, y + 8, 4, 3);
-        ctx.fillStyle = '#f00';
-        ctx.fillRect(x + 9, y + 9, 2, 2);
-        ctx.fillRect(x + 13, y + 9, 2, 2);
-    } else if (type === 'spider') {
-        ctx.fillRect(x + 8, y + 4, 8, 8);
-        ctx.fillRect(x + 6, y + 10, 12, 10);
-        ctx.fillRect(x + 2, y + 8, 4, 4);
-        ctx.fillRect(x + 4, y + 14, 3, 8);
-        ctx.fillRect(x + 17, y + 14, 3, 8);
-        ctx.fillRect(x + 18, y + 8, 4, 4);
-        ctx.fillStyle = '#f00';
-        ctx.fillRect(x + 10, y + 6, 2, 2);
-        ctx.fillRect(x + 12, y + 6, 2, 2);
-    } else if (type.includes('king') || type.includes('lord') || type.includes('dragon') || type.includes('mage') || type.includes('devil') || type.includes('demon')) {
-        ctx.fillStyle = color || '#a22';
-        ctx.fillRect(x + 8, y, 16, 8);
-        ctx.fillRect(x + 4, y + 4, 20, 16);
-        ctx.fillRect(x, y + 8, 4, 12);
-        ctx.fillRect(x + 24, y + 8, 4, 12);
-        ctx.fillStyle = '#ff0';
-        ctx.fillRect(x + 6, y + 4, 4, 4);
-        ctx.fillRect(x + 18, y + 4, 4, 4);
-        ctx.fillStyle = '#f00';
-        ctx.fillRect(x + 7, y + 5, 2, 2);
-        ctx.fillRect(x + 19, y + 5, 2, 2);
-    } else {
-        ctx.fillRect(x + 4, y + 2, 16, 12);
-        ctx.fillRect(x + 2, y + 10, 20, 12);
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x + 6, y + 6, 4, 4);
-        ctx.fillRect(x + 14, y + 6, 4, 4);
-    }
-}
-
 function buyItem(index) {
     const player = window.player;
     const item = shopItems[index];
@@ -1934,10 +1384,6 @@ function buyItem(index) {
     
     player.gold -= item.price;
     player.inventory.push(item);
-    if (!discoveredItems[item.id]) {
-        discoveredItems[item.id] = { count: 0 };
-    }
-    discoveredItems[item.id].count++;
     shopItems.splice(index, 1);
     
     document.getElementById('shop-gold-value').textContent = player.gold;
@@ -2151,78 +1597,6 @@ function recalculateStats() {
     player.maxMp = totalMaxMp;
     player.hpRegen = totalHpRegen;
     player.mpRegen = totalMpRegen;
-}
-
-function handleCloudLightning() {
-    const clouds = getClouds();
-    if (!clouds || !clouds.length) return;
-    
-    const playerCenterX = player.x + player.w / 2;
-    const playerCenterY = player.y + player.h / 2;
-    
-    clouds.forEach(cloud => {
-        if (!cloud || cloud.type !== 'storm') return;
-        if (!cloud.lightningTimer || cloud.lightningTimer !== 1) return;
-        
-        const cloudCenterX = cloud.x;
-        const cloudCenterY = cloud.y;
-        
-        const distToPlayer = Math.hypot(cloudCenterX - playerCenterX, cloudCenterY - playerCenterY);
-        if (distToPlayer < 30) {
-            const damage = 1;
-            player.hp -= damage;
-            spawnDamageNumber(playerCenterX, player.y, damage);
-            if (player.hp <= 0) {
-                player.hp = 0;
-                gameState = 'gameover';
-            }
-        }
-        
-        const enemiesCopy = enemies.slice();
-        enemiesCopy.forEach(enemy => {
-            if (!enemy || enemy.hp <= 0) return;
-            const enemyCenterX = enemy.x + 16;
-            const enemyCenterY = enemy.y + 16;
-            const distToEnemy = Math.hypot(cloudCenterX - enemyCenterX, cloudCenterY - enemyCenterY);
-            if (distToEnemy < 30) {
-                const damage = 2;
-                enemy.hp -= damage;
-                spawnDamageNumber(enemyCenterX, enemy.y, damage);
-                enemy.aggro = 120;
-                spawnParticles(enemy.x + 16, enemy.y + 16, '#ff0', 3);
-            }
-        });
-        
-        if (window.boss && window.boss.hp > 0) {
-            const bossCenterX = window.boss.x + 24;
-            const bossCenterY = window.boss.y + 24;
-            const distToBoss = Math.hypot(cloudCenterX - bossCenterX, cloudCenterY - bossCenterY);
-            if (distToBoss < 40) {
-                const damage = 3;
-                window.boss.hp -= damage;
-                spawnDamageNumber(bossCenterX, window.boss.y, damage);
-                window.boss.aggro = 120;
-                spawnParticles(window.boss.x + 24, window.boss.y + 24, '#ff0', 5);
-                if (window.boss.hp <= 0) {
-                    discoverEnemy(window.boss.type, window.boss.name);
-                    player.exp += window.boss.exp;
-                    player.gold += window.boss.gold;
-                    spawnDrop(window.boss.x, window.boss.y, true);
-                    showMessage(`BOSS DEFEATED! +${window.boss.exp} EXP!`);
-                    mapLevel++;
-                    levelTransitioning = true;
-                    setTimeout(() => {
-                        generateMap();
-                        spawnEnemies();
-                        player.x = 7 * window.TILE;
-                        player.y = 15 * window.TILE;
-                        levelTransitioning = false;
-                    }, 2000);
-                    window.boss = null;
-                }
-            }
-        }
-    });
 }
 
 window.onload = initGame;

@@ -505,17 +505,10 @@ canvas {
 }
 
 #inventory-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 50px);
-    gap: 8px;
-    margin-bottom: 20px;
-    max-height: 280px;
-    overflow-y: auto;
-    padding-right: 5px;
-    justify-content: center;
+    display: none;
 }
 
-#inventory-grid::-webkit-scrollbar {
+/* #inventory-grid::-webkit-scrollbar {
     width: 8px;
 }
 
@@ -544,7 +537,7 @@ canvas {
     box-sizing: border-box;
 }
 
-#inventory .inv-slot:hover {
+/* #inventory .inv-slot:hover {
     background: linear-gradient(180deg, rgba(55,65,85,0.98) 0%, rgba(40,48,60,0.99) 100%);
     border-color: #8a9aaa;
     transform: scale(1.05);
@@ -579,9 +572,10 @@ canvas {
     background: rgba(0,0,0,0.8);
     padding: 1px 3px;
     border-radius: 3px;
-}
+} */
 
-#character-panel {
+/* ========== 通用弹窗组件 ========== */
+.modal-panel {
     position: absolute;
     top: 0;
     left: 0;
@@ -597,185 +591,29 @@ canvas {
     box-sizing: border-box;
 }
 
-#character-panel.show {
+.modal-panel.show {
     display: flex;
 }
 
-#shop-panel {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(8, 10, 15, 0.92);
-    backdrop-filter: blur(4px);
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    pointer-events: auto;
-    z-index: 300;
-}
-
-#shop-panel.show {
-    display: flex;
-}
-
-#shop-title {
+.modal-title {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-bottom: 12px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border-bottom: 2px solid rgba(100, 140, 180, 0.25);
     box-sizing: border-box;
 }
 
-#shop-title span {
-    color: #8cf;
-    font-size: 20px;
-    font-weight: 600;
-}
-
-#shop-close {
-    background: transparent;
-    border: none;
-    color: #889;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0 8px;
-}
-
-#shop-close:hover {
-    color: #f88;
-}
-
-#shop-gold {
-    color: #fa4;
-    font-size: 16px;
-    margin-bottom: 10px;
-    width: 100%;
-}
-
-#shop-items {
-    width: 100%;
-    flex: 1;
-    overflow-y: auto;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    padding: 5px;
-    box-sizing: border-box;
-}
-
-.shop-item {
-    background: rgba(30, 35, 45, 0.8);
-    border: 2px solid #445;
-    border-radius: 8px;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    cursor: pointer;
-}
-
-.shop-item:hover {
-    border-color: #68a;
-    background: rgba(40, 50, 70, 0.9);
-}
-
-.shop-item-icon {
-    font-size: 20px;
-}
-
-.shop-item-price {
-    color: #fa4;
-    font-size: 10px;
-    font-weight: 600;
-}
-
-.shop-item-stats {
-    font-size: 9px;
-    color: #789;
-    text-align: center;
-    margin: 2px 0;
-}
-
-.shop-item-stats div {
-    margin: 1px 0;
-}
-
-.shop-item-name {
-    color: #abc;
-    font-size: 8px;
-    text-align: center;
-    margin-top: 2px;
-}
-
-#shop-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    width: 100%;
-}
-
-#shop-refresh, #shop-sell {
-    flex: 1;
-    padding: 10px 16px;
-    background: rgba(50,50,70,0.8);
-    border: 2px solid #668;
-    color: #aaf;
-    font-size: 12px;
-    cursor: pointer;
-    border-radius: 6px;
-}
-
-#shop-refresh:hover, #shop-sell:hover {
-    background: rgba(60,60,80,0.9);
-    border-color: #88a;
-}
-
-#bestiary-panel {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(8, 10, 15, 0.95);
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    pointer-events: auto;
-    z-index: 100;
-    box-sizing: border-box;
-}
-
-#bestiary-panel.show {
-    display: flex;
-}
-
-#bestiary-title {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 12px;
-    margin-bottom: 10px;
-    border-bottom: 2px solid rgba(100, 140, 180, 0.25);
-    box-sizing: border-box;
-}
-
-#bestiary-title > span {
+.modal-title > span {
     color: #8cf;
     font-size: 20px;
     font-weight: 600;
     text-shadow: 0 2px 8px rgba(100, 180, 255, 0.3);
 }
 
-#bestiary-title > button {
+.modal-close {
     background: transparent;
     border: none;
     color: #889;
@@ -784,74 +622,19 @@ canvas {
     padding: 0 8px;
 }
 
-#bestiary-title > button:hover {
+.modal-close:hover {
     color: #f88;
 }
 
-#inventory-equipment {
-    display: flex;
-    gap: 15px;
-    color: #abc;
-    font-size: 12px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
+.modal-content {
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
 }
 
-#inventory-equipment div {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-#inventory-quick-sell {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-}
-
-.quick-sell-btn {
-    width: 40px;
-    height: 28px;
-    background: linear-gradient(180deg, rgba(50,55,70,0.9) 0%, rgba(35,38,48,0.95) 100%);
-    border: 2px solid;
-    color: #fff;
-    font-size: 12px;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: all 0.2s;
-    font-weight: 500;
-}
-
-.quick-sell-btn:hover {
-    background: linear-gradient(180deg, rgba(65,75,90,0.95) 0%, rgba(45,50,60,0.98) 100%);
-    transform: translateY(-2px);
-}
-
-#inventory-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 12px;
-}
-
-#inventory-sell {
-    padding: 10px 28px;
-    background: linear-gradient(180deg, rgba(80,60,40,0.9) 0%, rgba(55,40,25,0.95) 100%);
-    border: 2px solid #a76;
-    color: #fc8;
-    font-size: 14px;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.2s;
-    font-weight: 500;
-}
-
-#inventory-sell:hover {
-    background: linear-gradient(180deg, rgba(95,75,50,0.95) 0%, rgba(70,50,35,0.98) 100%);
-    border-color: #c98;
+/* ========== 角色面板 ========== */
+#character-panel {
+    z-index: 100;
 }
 
 #character-title {

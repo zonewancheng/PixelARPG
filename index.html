@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Pixel Hero ARPG</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/panels.css">
 </head>
 <body>
     <div id="gameContainer">
@@ -48,62 +49,10 @@
                 </button>
             </div>
             
-            <div id="inventory"></div>
-            
-            <div id="bestiary-panel">
-                <div id="bestiary-title">
-                    <span>图鉴</span>
-                    <button id="bestiary-close">✕</button>
-                </div>
-                <div id="bestiary-tabs">
-                    <button id="bestiary-tab-monster" class="bestiary-tab active">怪物</button>
-                    <button id="bestiary-tab-skill" class="bestiary-tab">技能</button>
-                    <button id="bestiary-tab-equip" class="bestiary-tab">装备</button>
-                </div>
-                <div id="bestiary-list"></div>
-                <canvas id="bestiary-canvas" width="32" height="32" style="display:none;"></canvas>
-            </div>
-            
-            <div id="character-panel">
-                <div id="character-title">
-                    <span>角色</span>
-                    <button id="character-close">✕</button>
-                </div>
-                <div id="character-display">
-                    <div class="char-equip-left">
-                        <div class="char-equip char-weapon" id="char-weapon"></div>
-                        <div class="char-equip char-ring" id="char-ring"></div>
-                        <div class="char-equip char-boots" id="char-boots"></div>
-                    </div>
-                    <div class="char-body" id="char-body"></div>
-                    <div class="char-equip-right">
-                        <div class="char-equip char-helmet" id="char-helmet"></div>
-                        <div class="char-equip char-necklace" id="char-necklace"></div>
-                        <div class="char-equip char-armor" id="char-armor"></div>
-                    </div>
-                </div>
-                <div id="character-stats">
-                    <div>等级: <span id="char-level"></span></div>
-                    <div>生命: <span id="char-hp"></span></div>
-                    <div>魔法: <span id="char-mp"></span></div>
-                    <div>攻击: <span id="char-atk"></span><span id="char-atk-percent"></span></div>
-                    <div>防御: <span id="char-def"></span><span id="char-def-percent"></span></div>
-                    <div>生命回复: <span id="char-hp-regen"></span></div>
-                    <div>魔法回复: <span id="char-mp-regen"></span></div>
-                </div>
-            </div>
-            
-            <div id="shop-panel">
-                <div id="shop-title">
-                    <span>商店</span>
-                    <button id="shop-close">✕</button>
-                </div>
-                <div id="shop-gold">金币: <span id="shop-gold-value">0</span></div>
-                <div id="shop-items"></div>
-                <div id="shop-buttons">
-                    <button id="shop-refresh">刷新 (50金币)</button>
-                </div>
-            </div>
+            <div id="inventory-panel"></div>
+            <div id="character-panel"></div>
+            <div id="shop-panel"></div>
+            <div id="bestiary-panel"></div>
             
             <div id="messages"></div>
             
@@ -121,7 +70,19 @@
         </div>
     </div>
 
+    <script src="js/data/qualities.js"></script>
+    <script src="js/data/items.js"></script>
+    <script src="js/data/skills.js"></script>
+    <script src="js/data/enemies.js"></script>
+    <script src="js/data/world.js"></script>
     <script src="js/data.js"></script>
+    <script src="js/ui/panelManager.js"></script>
+    <script src="js/ui/compare.js"></script>
+    <script src="js/renderUtils.js"></script>
+    <script src="js/ui/inventory.js"></script>
+    <script src="js/ui/character.js"></script>
+    <script src="js/ui/shop.js"></script>
+    <script src="js/ui/bestiary.js"></script>
     <script src="js/renderer.js"></script>
     <script src="js/game.js"></script>
 </body>

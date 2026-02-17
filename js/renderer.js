@@ -1,6 +1,28 @@
+/**
+ * PixelARPG - 渲染模块
+ * 处理所有游戏画面的绘制
+ */
+
+// 地面颜色
 const GROUND_COLOR = '#1a3a3c';
 
+/**
+ * 绘制像素精灵 (玩家/敌人)
+ * @param {CanvasRenderingContext2D} ctx - 画布上下文
+ * @param {number} x - X坐标
+ * @param {number} y - Y坐标
+ * @param {number} w - 宽度
+ * @param {number} h - 高度
+ * @param {string} color - 颜色
+ * @param {string} type - 类型
+ * @param {Object} player - 玩家对象
+ */
 function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
+    if (type === 'player' && window.renderPlayerSprite) {
+        window.renderPlayerSprite(ctx, player, x, y, w, h);
+        return;
+    }
+    
     const dir = player.dirX > 0 ? 1 : (player.dirX < 0 ? -1 : 1);
     ctx.fillStyle = color;
     if (type === 'player') {
@@ -125,6 +147,122 @@ function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
         ctx.fillStyle = '#000';
         ctx.fillRect(x + 6, y + 6, 4, 4);
         ctx.fillRect(x + 14, y + 6, 4, 4);
+    } else if (type === 'skeleton') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 8, y + 2, 8, 8);
+        ctx.fillRect(x + 4, y + 8, 16, 12);
+        ctx.fillRect(x + 2, y + 18, 6, 6);
+        ctx.fillRect(x + 16, y + 18, 6, 6);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x + 8, y + 5, 3, 3);
+        ctx.fillRect(x + 13, y + 5, 3, 3);
+    } else if (type === 'wolf') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 6, y + 6, 12, 10);
+        ctx.fillRect(x + 4, y + 14, 16, 8);
+        ctx.fillRect(x + 2, y + 12, 4, 4);
+        ctx.fillRect(x + 18, y + 12, 4, 4);
+        ctx.fillStyle = '#ff0';
+        ctx.fillRect(x + 7, y + 8, 3, 3);
+        ctx.fillRect(x + 14, y + 8, 3, 3);
+    } else if (type === 'snake') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 8, y + 4, 8, 4);
+        ctx.fillRect(x + 6, y + 6, 12, 4);
+        ctx.fillRect(x + 4, y + 8, 16, 4);
+        ctx.fillRect(x + 2, y + 10, 20, 4);
+        ctx.fillRect(x + 4, y + 12, 16, 4);
+        ctx.fillRect(x + 6, y + 14, 12, 4);
+        ctx.fillStyle = '#ff0';
+        ctx.fillRect(x + 9, y + 5, 2, 2);
+        ctx.fillRect(x + 13, y + 5, 2, 2);
+    } else if (type === 'scorpion') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 6, y + 10, 12, 8);
+        ctx.fillRect(x + 2, y + 8, 4, 4);
+        ctx.fillRect(x + 18, y + 8, 4, 4);
+        ctx.fillRect(x, y + 6, 4, 4);
+        ctx.fillRect(x + 20, y + 6, 4, 4);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x + 8, y + 12, 3, 2);
+        ctx.fillRect(x + 13, y + 12, 3, 2);
+    } else if (type === 'boss_slime') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 4, y + 4, 16, 10);
+        ctx.fillRect(x, y + 8, 24, 14);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x + 5, y + 8, 4, 4);
+        ctx.fillRect(x + 15, y + 8, 4, 4);
+        ctx.fillStyle = '#ff0';
+        ctx.fillRect(x + 6, y + 9, 2, 2);
+        ctx.fillRect(x + 16, y + 9, 2, 2);
+    } else if (type === 'boss_goblin') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 6, y + 2, 12, 10);
+        ctx.fillRect(x + 2, y + 10, 20, 14);
+        ctx.fillRect(x, y + 20, 6, 6);
+        ctx.fillRect(x + 18, y + 20, 6, 6);
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(x + 6, y + 6, 3, 3);
+        ctx.fillRect(x + 15, y + 6, 3, 3);
+    } else if (type === 'boss_orc') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 6, y, 16, 12);
+        ctx.fillRect(x + 2, y + 10, 20, 16);
+        ctx.fillRect(x, y + 22, 8, 8);
+        ctx.fillRect(x + 16, y + 22, 8, 8);
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(x + 7, y + 5, 4, 4);
+        ctx.fillRect(x + 13, y + 5, 4, 4);
+    } else if (type === 'boss_mage') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 8, y, 12, 10);
+        ctx.fillRect(x + 4, y + 8, 20, 16);
+        ctx.fillRect(x, y + 20, 24, 6);
+        ctx.fillStyle = '#ff0';
+        ctx.fillRect(x + 8, y + 3, 4, 4);
+        ctx.fillRect(x + 16, y + 3, 4, 4);
+        ctx.fillStyle = '#0ff';
+        ctx.fillRect(x + 6, y + 12, 6, 6);
+        ctx.fillRect(x + 16, y + 12, 6, 6);
+    } else if (type === 'boss_dragon') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 8, y + 2, 16, 12);
+        ctx.fillRect(x + 2, y + 10, 8, 8);
+        ctx.fillRect(x + 22, y + 10, 8, 8);
+        ctx.fillRect(x, y + 14, 10, 12);
+        ctx.fillRect(x + 22, y + 14, 10, 12);
+        ctx.fillRect(x + 4, y + 18, 24, 14);
+        ctx.fillStyle = '#ff0';
+        ctx.fillRect(x + 10, y + 4, 4, 4);
+        ctx.fillRect(x + 18, y + 4, 4, 4);
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(x + 11, y + 5, 2, 2);
+        ctx.fillRect(x + 19, y + 5, 2, 2);
+    } else if (type === 'boss_ice') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 6, y + 2, 16, 12);
+        ctx.fillRect(x + 2, y + 10, 20, 14);
+        ctx.fillRect(x - 2, y + 14, 6, 8);
+        ctx.fillRect(x + 24, y + 14, 6, 8);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(x + 8, y + 5, 4, 4);
+        ctx.fillRect(x + 16, y + 5, 4, 4);
+        ctx.fillStyle = '#00f';
+        ctx.fillRect(x + 9, y + 6, 2, 2);
+        ctx.fillRect(x + 17, y + 6, 2, 2);
+    } else if (type === 'boss_demon') {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + 8, y, 16, 10);
+        ctx.fillRect(x + 2, y + 8, 20, 14);
+        ctx.fillRect(x - 2, y + 18, 6, 8);
+        ctx.fillRect(x + 24, y + 18, 6, 8);
+        ctx.fillStyle = '#ff0';
+        ctx.fillRect(x + 8, y + 3, 5, 5);
+        ctx.fillRect(x + 17, y + 3, 5, 5);
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(x + 10, y + 5, 2, 2);
+        ctx.fillRect(x + 18, y + 5, 2, 2);
     } else if (type === 'boss') {
         ctx.fillStyle = '#a22';
         ctx.fillRect(x + 8, y, 32, 16);
@@ -140,6 +278,12 @@ function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
     }
 }
 
+// ===== 地图绘制 =====
+
+/**
+ * 绘制地图
+ * 遍历地图数组，绘制不同类型的瓦片
+ */
 function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
     ctx.fillStyle = '#1a2a3a';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -386,6 +530,12 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
     }
 }
 
+// ===== 掉落物绘制 =====
+
+/**
+ * 绘制掉落物品
+ * 显示物品图标和发光效果
+ */
 function drawDrops(ctx, drops) {
     drops.forEach(d => {
         if (!d.item) return;
@@ -428,6 +578,12 @@ function hexToRgb(hex) {
     } : { r: 255, g: 255, b: 255 };
 }
 
+// ===== 投射物绘制 =====
+
+/**
+ * 绘制投射物 (技能)
+ * 火球、雷电、冰霜等
+ */
 function drawProjectiles(ctx, projectiles) {
     projectiles.forEach(p => {
         const color = p.color || '#fff';
@@ -531,12 +687,18 @@ function drawProjectiles(ctx, projectiles) {
     });
 }
 
+// ===== 敌人绘制 =====
+
+/**
+ * 绘制敌人
+ * 遍历敌人数组，绘制每个敌人
+ */
 function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
     const time = Date.now();
     enemies.forEach((e, i) => {
         const breathe = Math.sin(time / 400 + i) * 1;
         const color = e.color || '#4a4';
-        drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.type, window.player);
+        drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
         
         const hpPercent = Math.max(0, e.hp / e.maxHp);
         ctx.fillStyle = '#300';
@@ -546,9 +708,15 @@ function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
     });
 }
 
+// ===== Boss 绘制 =====
+
+/**
+ * 绘制 Boss
+ * 特殊外观和血条
+ */
 function drawBoss(ctx, boss, drawPixelSpriteFn) {
     if (!boss) return;
-    drawPixelSpriteFn(ctx, boss.x, boss.y, boss.w, boss.h, boss.color || '#a22', 'boss', window.player);
+    drawPixelSpriteFn(ctx, boss.x, boss.y, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
     const hpPercent = Math.max(0, boss.hp / boss.maxHp);
     ctx.fillStyle = '#300';
     ctx.fillRect(boss.x, boss.y - 16, boss.w, 8);
@@ -556,6 +724,12 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
     ctx.fillRect(boss.x, boss.y - 16, boss.w * hpPercent, 8);
 }
 
+// ===== 玩家攻击绘制 =====
+
+/**
+ * 绘制玩家攻击效果
+ * 挥刀弧线
+ */
 function drawPlayerAttack(ctx, player) {
     if (player.attacking <= 0) return;
     const attackProgress = 1 - (player.attacking / 20);
@@ -631,6 +805,12 @@ function drawPlayerAttack(ctx, player) {
     ctx.restore();
 }
 
+// ===== 粒子效果绘制 =====
+
+/**
+ * 绘制粒子效果
+ * 血液、火花等
+ */
 function drawParticles(ctx, particles) {
     particles.forEach(p => {
         ctx.globalAlpha = p.life / 30;
@@ -640,53 +820,39 @@ function drawParticles(ctx, particles) {
     ctx.globalAlpha = 1;
 }
 
+// ===== 玩家绘制 =====
+
+/**
+ * 绘制玩家角色
+ * 带呼吸动画和无敌闪烁
+ */
 function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     if (invulnerable && invulnerable % 4 < 2) return;
     const breathe = Math.sin(Date.now() / 300) * 1;
     drawPixelSpriteFn(ctx, player.x, player.y + breathe, player.w, player.h, '#fa0', 'player', player);
 }
 
-let clouds = [];
-function initClouds(canvasWidth, canvasHeight) {
-    clouds = [];
-    const cloudCount = 4 + Math.floor(Math.random() * 2);
-    for (let i = 0; i < cloudCount; i++) {
-        const rand = Math.random();
-        let cloudType = 'white';
-        if (rand < 0.15) cloudType = 'storm';
-        else if (rand < 0.45) cloudType = 'dark';
-        
-        clouds.push({
-            x: Math.random() * canvasWidth * 1.5 - canvasWidth * 0.25,
-            y: 10 + Math.random() * (canvasHeight - 20),
-            size: 14 + Math.random() * 18,
-            speedX: (Math.random() > 0.5 ? 1 : -1) * (0.08 + Math.random() * 0.12),
-            speedY: (Math.random() - 0.5) * 0.05,
-            type: cloudType,
-            phase: Math.random() * Math.PI * 2,
-            wobblePhase: Math.random() * Math.PI * 2,
-            wobbleSpeed: 0.2 + Math.random() * 0.3,
-            lightningTimer: 0,
-            circles: [
-                { ox: -0.4, oy: 0, r: 0.5 },
-                { ox: 0, oy: 0, r: 0.6 },
-                { ox: 0.45, oy: 0, r: 0.5 },
-                { ox: -0.2, oy: -0.25, r: 0.4 },
-                { ox: 0.25, oy: -0.2, r: 0.4 },
-                { ox: -0.55, oy: 0.1, r: 0.35 },
-                { ox: 0.55, oy: 0.1, r: 0.35 }
-            ]
-        });
-    }
-}
+// ===== 云朵获取 =====
 
+/**
+ * 获取云朵数据
+ */
 function getClouds() {
-    return clouds;
+    return window.clouds || clouds;
 }
 
+// ===== 云朵绘制 =====
+
+/**
+ * 绘制云朵和天气效果
+ * 包括白云、乌云、闪电云
+ */
 function drawClouds(ctx, canvasWidth, canvasHeight, player) {
+    const cloudData = getClouds();
+    if (!cloudData || !cloudData.length) return;
+    
     const time = Date.now() / 1000;
-    clouds.forEach(cloud => {
+    cloudData.forEach(cloud => {
         cloud.x += cloud.speedX;
         cloud.y += cloud.speedY + Math.sin(time * cloud.wobbleSpeed + cloud.wobblePhase) * 0.15;
         
@@ -737,6 +903,12 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
     });
 }
 
+// ===== 伤害数字绘制 =====
+
+/**
+ * 绘制伤害数字
+ * 红色伤害数字、绿色回复数字
+ */
 function drawDamageNumbers(ctx, damageNumbers) {
     damageNumbers.forEach(d => {
         const alpha = Math.min(1, d.life / 15);
@@ -752,3 +924,6 @@ function drawDamageNumbers(ctx, damageNumbers) {
     });
     ctx.globalAlpha = 1;
 }
+
+// 导出 drawPixelSprite 函数供 game.js 使用
+window.drawPixelSprite = drawPixelSprite;
