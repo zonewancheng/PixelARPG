@@ -117,6 +117,15 @@ window.PanelManager = {
     },
     
     /**
+     * 检查面板是否打开
+     * @param {string} panelName - 面板名称
+     * @returns {boolean} 面板是否打开
+     */
+    isPanelOpen: function(panelName) {
+        return this.panels[panelName] || false;
+    },
+    
+    /**
      * 设置图鉴标签页
      * @param {string} tab - 标签页名称
      */

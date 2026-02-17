@@ -78,6 +78,10 @@ function initGame() {
     window.skillCooldowns = {};
     window.skills.forEach(s => window.skillCooldowns[s.id] = 0);
     
+    if (window.initClouds) {
+        window.initClouds(canvas.width, canvas.height);
+    }
+    
     generateMap();
     spawnEnemies();
     setupInput();
@@ -180,9 +184,15 @@ function generateMap() {
                 const rand = Math.random();
                 if (rand < 0.03 + mapLevel * 0.005) {
                     map[y][x] = 1;
-                } else if (rand < 0.08 + mapLevel * 0.01) {
-                    map[y][x] = 2;
+                } else if (rand < 0.06 + mapLevel * 0.008) {
+                    map[y][x] = 5;
+                } else if (rand < 0.09 + mapLevel * 0.008) {
+                    map[y][x] = 4;
                 } else if (rand < 0.12 + mapLevel * 0.01) {
+                    map[y][x] = 2;
+                } else if (rand < 0.15 + mapLevel * 0.01) {
+                    map[y][x] = 6;
+                } else if (rand < 0.18 + mapLevel * 0.01) {
                     map[y][x] = 3;
                 } else {
                     map[y][x] = 0;
@@ -1104,6 +1114,18 @@ function setupUI() {
         controlsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             document.getElementById('controls').classList.toggle('show');
+        });
+    }
+    
+    const bestiaryBtn = document.getElementById('bestiaryBtn');
+    if (bestiaryBtn) {
+        bestiaryBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (window.PanelManager?.isPanelOpen('bestiary')) {
+                window.PanelManager.closePanel('bestiary');
+            } else {
+                window.PanelManager.openPanel('bestiary');
+            }
         });
     }
 }
