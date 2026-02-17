@@ -178,11 +178,23 @@ function generateMap() {
                 map[y][x] = 1;
             } else {
                 const rand = Math.random();
-                if (rand < 0.03 + mapLevel * 0.005) {
-                    map[y][x] = 1;
-                } else if (rand < 0.08 + mapLevel * 0.01) {
+                if (rand < 0.02 + mapLevel * 0.003) {
+                    if (x > 3 && x < window.MAP_W - 4 && y > 3 && y < window.MAP_H - 8) {
+                        map[y][x] = 4;
+                    } else {
+                        map[y][x] = 1;
+                    }
+                } else if (rand < 0.04 + mapLevel * 0.005) {
+                    if (x > 2 && x < window.MAP_W - 3 && y > 2 && y < window.MAP_H - 7) {
+                        map[y][x] = 5;
+                    } else {
+                        map[y][x] = 1;
+                    }
+                } else if (rand < 0.06 + mapLevel * 0.005) {
+                    map[y][x] = 6;
+                } else if (rand < 0.10 + mapLevel * 0.01) {
                     map[y][x] = 2;
-                } else if (rand < 0.12 + mapLevel * 0.01) {
+                } else if (rand < 0.14 + mapLevel * 0.01) {
                     map[y][x] = 3;
                 } else {
                     map[y][x] = 0;
@@ -458,7 +470,7 @@ function update() {
             
             const tileX = Math.floor((e.x + e.w/2) / window.TILE);
             const tileY = Math.floor((e.y + e.h/2) / window.TILE);
-            if (map[tileY] && map[tileY][tileX] === 1) {
+            if (map[tileY] && (map[tileY][tileX] === 1 || map[tileY][tileX] === 4 || map[tileY][tileX] === 5)) {
                 e.x = e.spawnX;
                 e.y = e.spawnY;
             }
@@ -500,7 +512,7 @@ function update() {
         
         const bossTileX = Math.floor((window.boss.x + window.boss.w/2) / window.TILE);
         const bossTileY = Math.floor((window.boss.y + window.boss.h/2) / window.TILE);
-        if (map[bossTileY] && map[bossTileY][bossTileX] === 1) {
+        if (map[bossTileY] && (map[bossTileY][bossTileX] === 1 || map[bossTileY][bossTileX] === 4 || map[bossTileY][bossTileX] === 5)) {
             window.boss.x = 7 * window.TILE;
             window.boss.y = 3 * window.TILE;
         }
@@ -766,7 +778,8 @@ function setupInput() {
             const tx = Math.floor((nx + 10) / window.TILE);
             const ty = Math.floor((ny + 10) / window.TILE);
             
-            if (map[ty] && map[ty][tx] !== 1) {
+            const tile = map[ty] ? map[ty][tx] : 1;
+            if (tile !== 1 && tile !== 4 && tile !== 5) {
                 player.x = nx;
                 player.y = ny;
             }

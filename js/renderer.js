@@ -153,6 +153,229 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                 ctx.fillStyle = '#3a3a5a';
                 ctx.fillRect(x * TILE, y * TILE, TILE, 4);
+            } else if (tile === 4) {
+                ctx.fillStyle = '#1a3a1a';
+                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                const hillType = (x * 5 + y * 7) % 4;
+                const hillOffset = Math.sin(time * 0.3 + x * 0.2 + y * 0.1) * 1.5;
+                const baseX = x * TILE;
+                const baseY = y * TILE;
+                if (hillType === 0) {
+                    const grad = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY);
+                    grad.addColorStop(0, '#3a7a3a');
+                    grad.addColorStop(0.5, '#4a8a4a');
+                    grad.addColorStop(1, '#5a9a5a');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(baseX, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.5, baseY - 2 + hillOffset, baseX + TILE, baseY + TILE);
+                    ctx.fill();
+                    ctx.fillStyle = '#6aaa6a';
+                    ctx.beginPath();
+                    ctx.ellipse(baseX + TILE * 0.5, baseY + 6 + hillOffset * 0.5, 8, 4, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#7dba7d';
+                    ctx.beginPath();
+                    ctx.ellipse(baseX + TILE * 0.4, baseY + 4 + hillOffset * 0.3, 4, 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (hillType === 1) {
+                    const grad = ctx.createRadialGradient(baseX + TILE * 0.3, baseY + TILE * 0.7, 2, baseX + TILE * 0.5, baseY + TILE * 0.5, TILE * 0.7);
+                    grad.addColorStop(0, '#5a9a5a');
+                    grad.addColorStop(1, '#3a6a3a');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(baseX + 2, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.6, baseY - 4 + hillOffset, baseX + TILE - 2, baseY + TILE);
+                    ctx.fill();
+                    ctx.fillStyle = '#68a868';
+                    ctx.beginPath();
+                    ctx.ellipse(baseX + TILE * 0.55, baseY + 8 + hillOffset * 0.4, 6, 3, 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (hillType === 2) {
+                    const grad = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY + 4);
+                    grad.addColorStop(0, '#2d6a2d');
+                    grad.addColorStop(1, '#4d8a4d');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(baseX + 4, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.4, baseY + hillOffset, baseX + TILE - 4, baseY + TILE);
+                    ctx.fill();
+                    ctx.fillStyle = '#7dba7d';
+                    ctx.beginPath();
+                    ctx.ellipse(baseX + TILE * 0.35, baseY + 5 + hillOffset * 0.5, 5, 3, -0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#5a9a5a';
+                    ctx.beginPath();
+                    ctx.ellipse(baseX + TILE * 0.6, baseY + 3 + hillOffset * 0.3, 4, 2, 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = '#3a7a3a';
+                    ctx.beginPath();
+                    ctx.moveTo(baseX + 6, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.5, baseY - 6 + hillOffset, baseX + TILE - 6, baseY + TILE);
+                    ctx.fill();
+                    const grad2 = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY);
+                    grad2.addColorStop(0, '#4a8a4a');
+                    grad2.addColorStop(1, '#6aaa6a');
+                    ctx.fillStyle = grad2;
+                    ctx.beginPath();
+                    ctx.moveTo(baseX + 10, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.5, baseY - 2 + hillOffset, baseX + TILE - 10, baseY + TILE);
+                    ctx.fill();
+                }
+            } else if (tile === 5) {
+                const treeType = (x * 7 + y * 13) % 5;
+                const sway = Math.sin(time * 1.5 + x * 0.7 + y * 0.5) * 1.5;
+                if (treeType === 0) {
+                    ctx.fillStyle = '#1a3a1a';
+                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                    ctx.fillStyle = '#5a4030';
+                    ctx.fillRect(x * TILE + 14, y * TILE + 22, 4, 10);
+                    ctx.fillStyle = '#2d5a2d';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + sway, y * TILE + 14, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#3d6a3d';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 14 + sway * 0.8, y * TILE + 16, 7, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (treeType === 1) {
+                    ctx.fillStyle = '#1a3a1a';
+                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                    ctx.fillStyle = '#5a4030';
+                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 3, 12);
+                    const sway1 = sway * 0.8;
+                    ctx.fillStyle = '#2a5a2a';
+                    ctx.beginPath();
+                    ctx.moveTo(x * TILE + 6 + sway1, y * TILE + 24);
+                    ctx.lineTo(x * TILE + 16 + sway1, y * TILE + 4);
+                    ctx.lineTo(x * TILE + 26 + sway1, y * TILE + 24);
+                    ctx.fill();
+                    ctx.fillStyle = '#3a6a3a';
+                    ctx.beginPath();
+                    ctx.moveTo(x * TILE + 8 + sway1, y * TILE + 20);
+                    ctx.lineTo(x * TILE + 16 + sway1, y * TILE + 8);
+                    ctx.lineTo(x * TILE + 24 + sway1, y * TILE + 20);
+                    ctx.fill();
+                } else if (treeType === 2) {
+                    ctx.fillStyle = '#1a3a1a';
+                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                    ctx.fillStyle = '#5a4030';
+                    ctx.fillRect(x * TILE + 13, y * TILE + 20, 5, 12);
+                    const sway2 = sway * 0.9;
+                    ctx.fillStyle = '#2e5e2e';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + sway2, y * TILE + 12, 11, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#4a7a4a';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 13 + sway2 * 0.7, y * TILE + 14, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 20 + sway2 * 0.7, y * TILE + 13, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (treeType === 3) {
+                    ctx.fillStyle = '#1a3a1a';
+                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                    ctx.fillStyle = '#4a3525';
+                    ctx.fillRect(x * TILE + 15, y * TILE + 18, 4, 14);
+                    const sway3 = sway * 0.7;
+                    ctx.fillStyle = '#285028';
+                    ctx.beginPath();
+                    ctx.moveTo(x * TILE + 4 + sway3, y * TILE + 24);
+                    ctx.lineTo(x * TILE + 16 + sway3, y * TILE + 2);
+                    ctx.lineTo(x * TILE + 28 + sway3, y * TILE + 24);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = '#1a3a1a';
+                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                    ctx.fillStyle = '#5a4030';
+                    ctx.fillRect(x * TILE + 14, y * TILE + 22, 5, 10);
+                    const sway4 = sway * 1.1;
+                    ctx.fillStyle = '#2c5c2c';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + sway4, y * TILE + 14, 9, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#3c6c3c';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 12 + sway4 * 0.6, y * TILE + 16, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 20 + sway4 * 0.6, y * TILE + 15, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else if (tile === 6) {
+                const flowerType = (x * 11 + y * 17) % 6;
+                const flowerSway = Math.sin(time * 2 + x * 0.5 + y * 0.3) * 2;
+                ctx.fillStyle = '#1a3a1a';
+                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                if (flowerType === 0) {
+                    ctx.fillStyle = '#2a5a2a';
+                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#f88';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ff0';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (flowerType === 1) {
+                    ctx.fillStyle = '#2a5a2a';
+                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#f8f';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ff0';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (flowerType === 2) {
+                    ctx.fillStyle = '#2a5a2a';
+                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#ff8';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#a50';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (flowerType === 3) {
+                    ctx.fillStyle = '#2a5a2a';
+                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#8ff';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (flowerType === 4) {
+                    ctx.fillStyle = '#2a5a2a';
+                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#8f8';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ff0';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = '#2a5a2a';
+                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#f84';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#f00';
+                    ctx.beginPath();
+                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             } else if (tile === 2) {
                 ctx.fillStyle = '#1a3a1a';
                 ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
