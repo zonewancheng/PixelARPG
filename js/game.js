@@ -5,6 +5,7 @@ let enemies = [];
 let drops = [];
 let particles = [];
 let projectiles = [];
+let damageNumbers = [];
 let gameState = 'playing';
 let inventoryOpen = false;
 let characterOpen = false;
@@ -71,6 +72,7 @@ let currentLanguage = 'zh';
 function initGame() {
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
+    initClouds(canvas.width, canvas.height);
     
     window.boss = null;
     window.player = createPlayer();
@@ -339,6 +341,17 @@ function spawnParticles(x, y, color, count) {
     }
 }
 
+function spawnDamageNumber(x, y, value, isHeal = false) {
+    damageNumbers.push({
+        x: x + (Math.random() - 0.5) * 10,
+        y: y,
+        value: value,
+        isHeal: isHeal,
+        life: 45,
+        vy: -1.5
+    });
+}
+
 function showMessage(msg, duration = 60) {
     message = msg;
     messageTimer = duration;
@@ -373,10 +386,13 @@ function update() {
         if (player.regenTimer >= 60) {
             player.regenTimer = 0;
             if (player.hp < player.maxHp) {
-                player.hp = Math.min(player.maxHp, player.hp + player.hpRegen);
+                const healAmount = player.hpRegen;
+                player.hp = Math.min(player.maxHp, player.hp + healAmount);
+                spawnDamageNumber(player.x + player.w/2, player.y - 10, healAmount, true);
             }
             if (player.mp < player.maxMp) {
-                player.mp = Math.min(player.maxMp, player.mp + player.mpRegen);
+                const mpAmount = player.mpRegen;
+                player.mp = Math.min(player.maxMp, player.mp + mpAmount);
             }
         }
     }
@@ -481,6 +497,7 @@ function update() {
         if (dist < 30 && e.attackCooldown <= 0 && player.invulnerable <= 0 && e.frozen <= 0) {
             const dmg = Math.max(1, e.atk - player.def + Math.floor(Math.random() * 3));
             player.hp -= dmg;
+            spawnDamageNumber(player.x + player.w/2, player.y, dmg);
             player.invulnerable = 30;
             damageFlash = 10;
             spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 5);
@@ -520,6 +537,7 @@ function update() {
         if (dist < 40 && window.boss.attackCooldown <= 0 && player.invulnerable <= 0) {
             const dmg = Math.max(1, window.boss.atk - player.def + Math.floor(Math.random() * 5));
             player.hp -= dmg;
+            spawnDamageNumber(player.x + player.w/2, player.y, dmg);
             player.invulnerable = 20;
             damageFlash = 15;
             spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 10);
@@ -593,6 +611,12 @@ function update() {
         return p.life > 0;
     });
     
+    damageNumbers = damageNumbers.filter(d => {
+        d.y += d.vy;
+        d.life--;
+        return d.life > 0;
+    });
+    
     projectiles = projectiles.filter(p => {
         p.x += p.vx;
         p.y += p.vy;
@@ -604,6 +628,7 @@ function update() {
             const dy = p.y - (e.y + e.h/2);
             if (Math.sqrt(dx*dx + dy*dy) < 20) {
                 e.hp -= p.damage;
+                spawnDamageNumber(e.x + e.w/2, e.y, p.damage);
                 e.aggro = 120;
                 spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f84', 5);
                 hit = true;
@@ -626,6 +651,7 @@ function update() {
             const dy = p.y - (window.boss.y + window.boss.h/2);
             if (Math.sqrt(dx*dx + dy*dy) < 30) {
                 window.boss.hp -= p.damage;
+                spawnDamageNumber(window.boss.x + window.boss.w/2, window.boss.y, p.damage);
                 window.boss.aggro = 120;
                 spawnParticles(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2, '#f84', 10);
                 hit = true;
@@ -685,7 +711,10 @@ function render() {
     drawBoss(ctx, window.boss, drawPixelSprite);
     drawPlayer(ctx, player, drawPixelSprite, player.invulnerable);
     drawPlayerAttack(ctx, player);
+    drawClouds(ctx, canvas.width, canvas.height, player);
+    handleCloudLightning();
     drawParticles(ctx, particles);
+    drawDamageNumbers(ctx, damageNumbers);
     
     if (message) {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
@@ -818,6 +847,7 @@ function attack() {
         if (dist < range && isTargetInDirection(e.x + e.w/2, e.y + e.h/2)) {
             const dmg = Math.max(1, player.atk - e.def + Math.floor(Math.random() * 5));
             e.hp -= dmg;
+            spawnDamageNumber(e.x + e.w/2, e.y, dmg);
             e.vx = dirX * 5;
             e.vy = dirY * 5;
             spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f44', 5);
@@ -1846,6 +1876,77 @@ function recalculateStats() {
     player.maxMp = totalMaxMp;
     player.hpRegen = totalHpRegen;
     player.mpRegen = totalMpRegen;
+}
+
+function handleCloudLightning() {
+    const clouds = getClouds();
+    if (!clouds || !clouds.length) return;
+    
+    const playerCenterX = player.x + player.w / 2;
+    const playerCenterY = player.y + player.h / 2;
+    
+    clouds.forEach(cloud => {
+        if (!cloud || cloud.type !== 'storm') return;
+        if (!cloud.lightningTimer || cloud.lightningTimer !== 1) return;
+        
+        const cloudCenterX = cloud.x;
+        const cloudCenterY = cloud.y;
+        
+        const distToPlayer = Math.hypot(cloudCenterX - playerCenterX, cloudCenterY - playerCenterY);
+        if (distToPlayer < 30) {
+            const damage = 1;
+            player.hp -= damage;
+            spawnDamageNumber(playerCenterX, player.y, damage);
+            if (player.hp <= 0) {
+                player.hp = 0;
+                gameState = 'gameover';
+            }
+        }
+        
+        const enemiesCopy = enemies.slice();
+        enemiesCopy.forEach(enemy => {
+            if (!enemy || enemy.hp <= 0) return;
+            const enemyCenterX = enemy.x + 16;
+            const enemyCenterY = enemy.y + 16;
+            const distToEnemy = Math.hypot(cloudCenterX - enemyCenterX, cloudCenterY - enemyCenterY);
+            if (distToEnemy < 30) {
+                const damage = 2;
+                enemy.hp -= damage;
+                spawnDamageNumber(enemyCenterX, enemy.y, damage);
+                enemy.aggro = 120;
+                spawnParticles(enemy.x + 16, enemy.y + 16, '#ff0', 3);
+            }
+        });
+        
+        if (window.boss && window.boss.hp > 0) {
+            const bossCenterX = window.boss.x + 24;
+            const bossCenterY = window.boss.y + 24;
+            const distToBoss = Math.hypot(cloudCenterX - bossCenterX, cloudCenterY - bossCenterY);
+            if (distToBoss < 40) {
+                const damage = 3;
+                window.boss.hp -= damage;
+                spawnDamageNumber(bossCenterX, window.boss.y, damage);
+                window.boss.aggro = 120;
+                spawnParticles(window.boss.x + 24, window.boss.y + 24, '#ff0', 5);
+                if (window.boss.hp <= 0) {
+                    player.exp += window.boss.exp;
+                    player.gold += window.boss.gold;
+                    spawnDrop(window.boss.x, window.boss.y, true);
+                    showMessage(`BOSS DEFEATED! +${window.boss.exp} EXP!`);
+                    mapLevel++;
+                    levelTransitioning = true;
+                    setTimeout(() => {
+                        generateMap();
+                        spawnEnemies();
+                        player.x = 7 * window.TILE;
+                        player.y = 15 * window.TILE;
+                        levelTransitioning = false;
+                    }, 2000);
+                    window.boss = null;
+                }
+            }
+        }
+    });
 }
 
 window.onload = initGame;

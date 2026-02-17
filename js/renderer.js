@@ -637,3 +637,110 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     const breathe = Math.sin(Date.now() / 300) * 1;
     drawPixelSpriteFn(ctx, player.x, player.y + breathe, player.w, player.h, '#fa0', 'player', player);
 }
+
+let clouds = [];
+function initClouds(canvasWidth, canvasHeight) {
+    clouds = [];
+    const cloudCount = 4 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < cloudCount; i++) {
+        const rand = Math.random();
+        let cloudType = 'white';
+        if (rand < 0.15) cloudType = 'storm';
+        else if (rand < 0.45) cloudType = 'dark';
+        
+        clouds.push({
+            x: Math.random() * canvasWidth * 1.5 - canvasWidth * 0.25,
+            y: 10 + Math.random() * (canvasHeight - 20),
+            size: 14 + Math.random() * 18,
+            speedX: (Math.random() > 0.5 ? 1 : -1) * (0.08 + Math.random() * 0.12),
+            speedY: (Math.random() - 0.5) * 0.05,
+            type: cloudType,
+            phase: Math.random() * Math.PI * 2,
+            wobblePhase: Math.random() * Math.PI * 2,
+            wobbleSpeed: 0.2 + Math.random() * 0.3,
+            lightningTimer: 0,
+            circles: [
+                { ox: -0.4, oy: 0, r: 0.5 },
+                { ox: 0, oy: 0, r: 0.6 },
+                { ox: 0.45, oy: 0, r: 0.5 },
+                { ox: -0.2, oy: -0.25, r: 0.4 },
+                { ox: 0.25, oy: -0.2, r: 0.4 },
+                { ox: -0.55, oy: 0.1, r: 0.35 },
+                { ox: 0.55, oy: 0.1, r: 0.35 }
+            ]
+        });
+    }
+}
+
+function getClouds() {
+    return clouds;
+}
+
+function drawClouds(ctx, canvasWidth, canvasHeight, player) {
+    const time = Date.now() / 1000;
+    clouds.forEach(cloud => {
+        cloud.x += cloud.speedX;
+        cloud.y += cloud.speedY + Math.sin(time * cloud.wobbleSpeed + cloud.wobblePhase) * 0.15;
+        
+        if ((cloud.speedX > 0 && cloud.x > canvasWidth + cloud.size * 2) ||
+            (cloud.speedX < 0 && cloud.x < -cloud.size * 2)) {
+            cloud.x = cloud.speedX > 0 ? -cloud.size * 2 : canvasWidth + cloud.size * 2;
+            cloud.y = 10 + Math.random() * (canvasHeight - 20);
+            const rand = Math.random();
+            if (rand < 0.15) cloud.type = 'storm';
+            else if (rand < 0.45) cloud.type = 'dark';
+            else cloud.type = 'white';
+            cloud.lightningTimer = 0;
+        }
+        if (cloud.y < 5) cloud.y = 5;
+        if (cloud.y > canvasHeight - 5) cloud.y = canvasHeight - 5;
+        
+        const breathe = Math.sin(time * 0.3 + cloud.phase) * 0.08 + 1;
+        
+        if (cloud.type === 'storm') {
+            ctx.fillStyle = '#2a2a2a';
+        } else if (cloud.type === 'dark') {
+            ctx.fillStyle = '#5a5a6a';
+        } else {
+            ctx.fillStyle = '#e8e8f0';
+        }
+        
+        const baseX = cloud.x + Math.sin(time * cloud.wobbleSpeed * 0.7 + cloud.wobblePhase) * 3;
+        const baseY = cloud.y;
+        const size = cloud.size;
+        
+        cloud.circles.forEach(c => {
+            ctx.beginPath();
+            ctx.arc(baseX + c.ox * size, baseY + c.oy * size, c.r * size * breathe, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        
+        if (cloud.type === 'storm') {
+            if (!cloud.lightningTimer) cloud.lightningTimer = 0;
+            cloud.lightningTimer++;
+            if (cloud.lightningTimer > 120) {
+                cloud.lightningTimer = 0;
+            }
+            ctx.font = `${Math.floor(size * 0.55)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⚡', baseX, baseY);
+        }
+    });
+}
+
+function drawDamageNumbers(ctx, damageNumbers) {
+    damageNumbers.forEach(d => {
+        const alpha = Math.min(1, d.life / 15);
+        ctx.globalAlpha = alpha;
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = d.isHeal ? '#4f4' : '#f44';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        const text = d.isHeal ? '+' + d.value : '-' + d.value;
+        ctx.strokeText(text, d.x, d.y);
+        ctx.fillText(text, d.x, d.y);
+    });
+    ctx.globalAlpha = 1;
+}
