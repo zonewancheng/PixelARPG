@@ -2,6 +2,8 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 body {
@@ -13,6 +15,8 @@ body {
     font-family: 'Courier New', monospace;
     overflow: hidden;
     touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #gameContainer {
