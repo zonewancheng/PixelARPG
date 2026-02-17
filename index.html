@@ -43,9 +43,26 @@
                 <button id="shopBtn" class="side-btn">
                     <span class="btn-icon">🏪</span>
                 </button>
+                <button id="bestiaryBtn" class="side-btn">
+                    <span class="btn-icon">📖</span>
+                </button>
             </div>
             
             <div id="inventory"></div>
+            
+            <div id="bestiary-panel">
+                <div id="bestiary-title">
+                    <span>图鉴</span>
+                    <button id="bestiary-close">✕</button>
+                </div>
+                <div id="bestiary-tabs">
+                    <button id="bestiary-tab-monster" class="bestiary-tab active">怪物</button>
+                    <button id="bestiary-tab-skill" class="bestiary-tab">技能</button>
+                    <button id="bestiary-tab-equip" class="bestiary-tab">装备</button>
+                </div>
+                <div id="bestiary-list"></div>
+                <canvas id="bestiary-canvas" width="32" height="32" style="display:none;"></canvas>
+            </div>
             
             <div id="character-panel">
                 <div id="character-title">

@@ -10,6 +10,11 @@ let gameState = 'playing';
 let inventoryOpen = false;
 let characterOpen = false;
 let shopOpen = false;
+let bestiaryOpen = false;
+let bestiaryTab = 'monster';
+let discoveredEnemies = {};
+let discoveredSkills = {};
+let discoveredItems = {};
 let message = '';
 let messageTimer = 0;
 let damageFlash = 0;
@@ -577,6 +582,10 @@ function update() {
                 }
             } else {
                 player.inventory.push(d.item);
+                if (!discoveredItems[d.item.id]) {
+                    discoveredItems[d.item.id] = { count: 0 };
+                }
+                discoveredItems[d.item.id].count++;
                 showMessage(`Got ${d.item.name}!`);
             }
             return false;
@@ -632,18 +641,10 @@ function update() {
                 e.aggro = 120;
                 spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f84', 5);
                 hit = true;
+                if (e.hp <= 0) {
+                    discoverEnemy(e.type, e.name);
+                }
             }
-        });
-        
-        enemies = enemies.filter(e => {
-            if (e.hp <= 0) {
-                player.exp += e.exp;
-                player.gold += e.gold;
-                spawnDrop(e.x, e.y);
-                showMessage(`Defeated ${e.name}! +${e.exp} EXP`);
-                return false;
-            }
-            return true;
         });
         
         if (window.boss) {
@@ -656,6 +657,7 @@ function update() {
                 spawnParticles(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2, '#f84', 10);
                 hit = true;
                 if (window.boss.hp <= 0) {
+                    discoverEnemy(window.boss.type, window.boss.name);
                     player.exp += window.boss.exp;
                     player.gold += window.boss.gold;
                     spawnDrop(window.boss.x, window.boss.y, true);
@@ -852,6 +854,7 @@ function attack() {
             e.vy = dirY * 5;
             spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f44', 5);
             if (e.hp <= 0) {
+                discoverEnemy(e.type, e.name);
                 player.exp += e.exp;
                 player.gold += e.gold;
                 spawnDrop(e.x, e.y);
@@ -871,6 +874,7 @@ function attack() {
             window.boss.vy = dirY * 8;
             spawnParticles(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2, '#f44', 10);
             if (window.boss.hp <= 0) {
+                discoverEnemy(window.boss.type, window.boss.name);
                 player.exp += window.boss.exp;
                 player.gold += window.boss.gold;
                 spawnDrop(window.boss.x, window.boss.y, true);
@@ -967,8 +971,14 @@ function useSkill(index) {
             isLightning: skill.isLightning || false,
             isTornado: skill.isTornado || false,
             isIce: skill.isIce || false,
-            isVine: skill.isVine || false
+            isVine: skill.isVine || false,
+            isFire: skill.id === 'fireball' ? true : false
         });
+        
+        if (!discoveredSkills[skill.id]) {
+            discoveredSkills[skill.id] = { count: 0 };
+        }
+        discoveredSkills[skill.id].count++;
     }
     
     playSound('skill');
@@ -1124,6 +1134,56 @@ function setupUI() {
             e.stopPropagation();
             currentLanguage = currentLanguage === 'zh' ? 'en' : 'zh';
             langBtn.textContent = currentLanguage === 'zh' ? '中' : 'EN';
+        });
+    }
+    
+    const bestiaryBtn = document.getElementById('bestiaryBtn');
+    if (bestiaryBtn) {
+        bestiaryBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (characterOpen) {
+                closeCharacterPanel();
+                openBestiary();
+            } else if (shopOpen) {
+                closeShop();
+                openBestiary();
+            } else if (bestiaryOpen) {
+                closeBestiary();
+            } else {
+                openBestiary();
+            }
+        });
+    }
+    
+    const bestiaryCloseBtn = document.getElementById('bestiary-close');
+    if (bestiaryCloseBtn) {
+        bestiaryCloseBtn.addEventListener('click', closeBestiary);
+    }
+    
+    const bestiaryTabMonster = document.getElementById('bestiary-tab-monster');
+    if (bestiaryTabMonster) {
+        bestiaryTabMonster.addEventListener('click', () => {
+            bestiaryTab = 'monster';
+            updateBestiaryTabs();
+            renderBestiary();
+        });
+    }
+    
+    const bestiaryTabSkill = document.getElementById('bestiary-tab-skill');
+    if (bestiaryTabSkill) {
+        bestiaryTabSkill.addEventListener('click', () => {
+            bestiaryTab = 'skill';
+            updateBestiaryTabs();
+            renderBestiary();
+        });
+    }
+    
+    const bestiaryTabEquip = document.getElementById('bestiary-tab-equip');
+    if (bestiaryTabEquip) {
+        bestiaryTabEquip.addEventListener('click', () => {
+            bestiaryTab = 'equip';
+            updateBestiaryTabs();
+            renderBestiary();
         });
     }
     
@@ -1625,20 +1685,22 @@ function renderShopItems() {
         }
         
         let stats = '';
-        if (item.atk) stats += ` ATK:${item.atk}`;
-        if (item.atkPercent) stats += ` ATK%+${item.atkPercent}%`;
-        if (item.def) stats += ` DEF:${item.def}`;
-        if (item.defPercent) stats += ` DEF%+${item.defPercent}%`;
-        if (item.maxHp) stats += ` HP+${item.maxHp}`;
-        if (item.maxMp) stats += ` MP+${item.maxMp}`;
-        if (item.hpRegen) stats += ` HP回${item.hpRegen}/s`;
-        if (item.mpRegen) stats += ` MP回${item.mpRegen}/s`;
+        if (item.atk) stats += `<div>⚔️${item.atk}</div>`;
+        if (item.atkPercent) stats += `<div>⚔️%+${item.atkPercent}%</div>`;
+        if (item.def) stats += `<div>🛡️${item.def}</div>`;
+        if (item.defPercent) stats += `<div>🛡️%+${item.defPercent}%</div>`;
+        if (item.maxHp) stats += `<div>❤️+${item.maxHp}</div>`;
+        if (item.maxMp) stats += `<div>💙+${item.maxMp}</div>`;
+        if (item.hpRegen) stats += `<div>💚+${item.hpRegen}/s</div>`;
+        if (item.mpRegen) stats += `<div>💙+${item.mpRegen}/s</div>`;
         
-        div.title = `${item.name} (${item.qualityName})${stats}`;
+        const qualityColor = getQualityColor(item.quality);
+        
         div.innerHTML = `
-            <span class="shop-item-icon">${item.icon}</span>
+            <span class="shop-item-icon" style="color:${qualityColor}">${item.icon}</span>
+            <span class="shop-item-name" style="color:${qualityColor}">${item.name}</span>
+            <div class="shop-item-stats">${stats}</div>
             <span class="shop-item-price">💰${item.price}</span>
-            <span class="shop-item-name">${item.name}</span>
         `;
         div.onclick = () => buyItem(index);
         container.appendChild(div);
@@ -1649,6 +1711,215 @@ function closeShop() {
     shopOpen = false;
     inventoryOpen = false;
     document.getElementById('shop-panel').classList.remove('show');
+}
+
+function openBestiary() {
+    bestiaryOpen = true;
+    renderBestiary();
+    document.getElementById('bestiary-panel').classList.add('show');
+}
+
+function closeBestiary() {
+    bestiaryOpen = false;
+    document.getElementById('bestiary-panel').classList.remove('show');
+}
+
+function updateBestiaryTabs() {
+    document.querySelectorAll('.bestiary-tab').forEach(btn => btn.classList.remove('active'));
+    if (bestiaryTab === 'monster') {
+        document.getElementById('bestiary-tab-monster')?.classList.add('active');
+    } else if (bestiaryTab === 'skill') {
+        document.getElementById('bestiary-tab-skill')?.classList.add('active');
+    } else if (bestiaryTab === 'equip') {
+        document.getElementById('bestiary-tab-equip')?.classList.add('active');
+    }
+}
+
+function discoverEnemy(type, name) {
+    if (!discoveredEnemies[type]) {
+        discoveredEnemies[type] = { name: name, count: 0, icon: getEnemyIcon(type) };
+    }
+    discoveredEnemies[type].count++;
+    discoveredEnemies[type].name = name;
+}
+
+function getEnemyIcon(type) {
+    const icons = {
+        'slime': '🟢',
+        'goblin': '👺',
+        'bat': '🦇',
+        'spider': '🕷️',
+        'slime_king': '👑',
+        'goblin_lord': '👹',
+        'orc_king': '👾',
+        'dark_mage': '🧙',
+        'fire_dragon': '🐉',
+        'ice_devil': '❄️',
+        'demon_lord': '😈'
+    };
+    return icons[type] || '👾';
+}
+
+function renderBestiary() {
+    const list = document.getElementById('bestiary-list');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    
+    if (bestiaryTab === 'monster') {
+        renderBestiaryMonsters(list);
+    } else if (bestiaryTab === 'skill') {
+        renderBestiarySkills(list);
+    } else if (bestiaryTab === 'equip') {
+        renderBestiaryItems(list);
+    }
+}
+
+function renderBestiaryMonsters(list) {
+    const allEnemies = [...window.enemyTypes, ...window.bossTypes];
+    const previewCanvas = document.getElementById('bestiary-canvas');
+    const previewCtx = previewCanvas.getContext('2d');
+    
+    allEnemies.forEach(enemy => {
+        const discovered = discoveredEnemies[enemy.type] || { count: 0, name: enemy.name };
+        
+        previewCtx.clearRect(0, 0, 32, 32);
+        drawEnemyPreview(previewCtx, enemy.type, enemy.color);
+        
+        const dataUrl = previewCanvas.toDataURL();
+        
+        const item = document.createElement('div');
+        item.className = 'bestiary-item';
+        
+        item.innerHTML = `
+            <img src="${dataUrl}" class="bestiary-icon" />
+            <span class="bestiary-name">${enemy.name}</span>
+            <span class="bestiary-info">HP:${enemy.hp} ATK:${enemy.atk}</span>
+            <span class="bestiary-count">击杀: ${discovered.count}</span>
+        `;
+        
+        list.appendChild(item);
+    });
+}
+
+function renderBestiarySkills(list) {
+    const allSkills = window.skills;
+    
+    allSkills.forEach(skill => {
+        const discovered = discoveredSkills[skill.id] || { count: 0 };
+        
+        const item = document.createElement('div');
+        item.className = 'bestiary-item';
+        
+        item.innerHTML = `
+            <span class="bestiary-icon">${skill.icon}</span>
+            <span class="bestiary-name">${skill.name}</span>
+            <span class="bestiary-info">${skill.desc}</span>
+            <span class="bestiary-count">使用: ${discovered.count}</span>
+        `;
+        
+        list.appendChild(item);
+    });
+}
+
+function renderBestiaryItems(list) {
+    const allItems = items.filter(i => ['weapon', 'clothes', 'hat', 'boots', 'ring', 'necklace'].includes(i.type));
+    const uniqueItems = [];
+    const seen = new Set();
+    allItems.forEach(item => {
+        if (!seen.has(item.id)) {
+            seen.add(item.id);
+            uniqueItems.push(item);
+        }
+    });
+    
+    uniqueItems.forEach(item => {
+        const discovered = discoveredItems[item.id] || { count: 0 };
+        
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'bestiary-item';
+        
+        const qualityColor = getQualityColor(item.quality);
+        
+        itemDiv.innerHTML = `
+            <span class="bestiary-icon" style="color:${qualityColor}">${item.icon}</span>
+            <span class="bestiary-name" style="color:${qualityColor}">${item.name}</span>
+            <span class="bestiary-info">${item.type}</span>
+            <span class="bestiary-count">获得: ${discovered.count}</span>
+        `;
+        
+        list.appendChild(itemDiv);
+    });
+}
+
+function getQualityColor(quality) {
+    const colors = {
+        'common': '#fff',
+        'uncommon': '#0f0',
+        'rare': '#08f',
+        'epic': '#a0f',
+        'legendary': '#fa0'
+    };
+    return colors[quality] || '#fff';
+}
+
+function drawEnemyPreview(ctx, type, color) {
+    const breathe = Math.sin(Date.now() / 400) * 1;
+    const x = 4, y = 4 + breathe;
+    ctx.fillStyle = color || '#4a4';
+    
+    if (type === 'slime') {
+        ctx.fillRect(x + 4, y + 8, 16, 12);
+        ctx.fillRect(x + 2, y + 12, 20, 8);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x + 6, y + 10, 4, 4);
+        ctx.fillRect(x + 14, y + 10, 4, 4);
+    } else if (type === 'goblin') {
+        ctx.fillRect(x + 6, y + 2, 12, 10);
+        ctx.fillRect(x + 4, y + 10, 16, 14);
+        ctx.fillRect(x + 2, y + 18, 6, 6);
+        ctx.fillRect(x + 16, y + 18, 6, 6);
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(x + 7, y + 6, 3, 3);
+        ctx.fillRect(x + 14, y + 6, 3, 3);
+    } else if (type === 'bat') {
+        ctx.fillRect(x + 8, y + 8, 8, 6);
+        ctx.fillRect(x + 4, y + 6, 6, 4);
+        ctx.fillRect(x + 14, y + 6, 6, 4);
+        ctx.fillRect(x + 2, y + 8, 4, 3);
+        ctx.fillRect(x + 18, y + 8, 4, 3);
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(x + 9, y + 9, 2, 2);
+        ctx.fillRect(x + 13, y + 9, 2, 2);
+    } else if (type === 'spider') {
+        ctx.fillRect(x + 8, y + 4, 8, 8);
+        ctx.fillRect(x + 6, y + 10, 12, 10);
+        ctx.fillRect(x + 2, y + 8, 4, 4);
+        ctx.fillRect(x + 4, y + 14, 3, 8);
+        ctx.fillRect(x + 17, y + 14, 3, 8);
+        ctx.fillRect(x + 18, y + 8, 4, 4);
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(x + 10, y + 6, 2, 2);
+        ctx.fillRect(x + 12, y + 6, 2, 2);
+    } else if (type.includes('king') || type.includes('lord') || type.includes('dragon') || type.includes('mage') || type.includes('devil') || type.includes('demon')) {
+        ctx.fillStyle = color || '#a22';
+        ctx.fillRect(x + 8, y, 16, 8);
+        ctx.fillRect(x + 4, y + 4, 20, 16);
+        ctx.fillRect(x, y + 8, 4, 12);
+        ctx.fillRect(x + 24, y + 8, 4, 12);
+        ctx.fillStyle = '#ff0';
+        ctx.fillRect(x + 6, y + 4, 4, 4);
+        ctx.fillRect(x + 18, y + 4, 4, 4);
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(x + 7, y + 5, 2, 2);
+        ctx.fillRect(x + 19, y + 5, 2, 2);
+    } else {
+        ctx.fillRect(x + 4, y + 2, 16, 12);
+        ctx.fillRect(x + 2, y + 10, 20, 12);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x + 6, y + 6, 4, 4);
+        ctx.fillRect(x + 14, y + 6, 4, 4);
+    }
 }
 
 function buyItem(index) {
@@ -1663,6 +1934,10 @@ function buyItem(index) {
     
     player.gold -= item.price;
     player.inventory.push(item);
+    if (!discoveredItems[item.id]) {
+        discoveredItems[item.id] = { count: 0 };
+    }
+    discoveredItems[item.id].count++;
     shopItems.splice(index, 1);
     
     document.getElementById('shop-gold-value').textContent = player.gold;
@@ -1929,6 +2204,7 @@ function handleCloudLightning() {
                 window.boss.aggro = 120;
                 spawnParticles(window.boss.x + 24, window.boss.y + 24, '#ff0', 5);
                 if (window.boss.hp <= 0) {
+                    discoverEnemy(window.boss.type, window.boss.name);
                     player.exp += window.boss.exp;
                     player.gold += window.boss.gold;
                     spawnDrop(window.boss.x, window.boss.y, true);

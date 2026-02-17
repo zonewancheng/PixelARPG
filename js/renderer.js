@@ -1,3 +1,5 @@
+const GROUND_COLOR = '#1a3a3c';
+
 function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
     const dir = player.dirX > 0 ? 1 : (player.dirX < 0 ? -1 : 1);
     ctx.fillStyle = color;
@@ -154,8 +156,13 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 ctx.fillStyle = '#3a3a5a';
                 ctx.fillRect(x * TILE, y * TILE, TILE, 4);
             } else if (tile === 4) {
-                ctx.fillStyle = '#1a3a1a';
+                ctx.fillStyle = GROUND_COLOR;
                 ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                const grassOffset = Math.sin(time + x * 0.5 + y * 0.3) * 1;
+                ctx.fillStyle = '#3a7a3a';
+                ctx.fillRect(x * TILE + 6, y * TILE + 12 + grassOffset, 2, 8);
+                ctx.fillRect(x * TILE + 14, y * TILE + 10 + grassOffset, 2, 10);
+                ctx.fillRect(x * TILE + 24, y * TILE + 14 + grassOffset, 2, 6);
                 const hillType = (x * 5 + y * 7) % 4;
                 const hillOffset = Math.sin(time * 0.3 + x * 0.2 + y * 0.1) * 1.5;
                 const baseX = x * TILE;
@@ -226,11 +233,15 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
             } else if (tile === 5) {
                 const treeType = (x * 7 + y * 13) % 5;
                 const sway = Math.sin(time * 1.5 + x * 0.7 + y * 0.5) * 1.5;
+                ctx.fillStyle = GROUND_COLOR;
+                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                const grassOffset = Math.sin(time + x * 0.5 + y * 0.3) * 1;
+                ctx.fillStyle = '#3a7a3a';
+                ctx.fillRect(x * TILE + 4, y * TILE + 14 + grassOffset, 2, 8);
+                ctx.fillRect(x * TILE + 26, y * TILE + 12 + grassOffset, 2, 10);
                 if (treeType === 0) {
-                    ctx.fillStyle = '#1a3a1a';
-                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                     ctx.fillStyle = '#5a4030';
-                    ctx.fillRect(x * TILE + 14, y * TILE + 22, 4, 10);
+                    ctx.fillRect(x * TILE + 14 + sway * 0.3, y * TILE + 22, 4, 10);
                     ctx.fillStyle = '#2d5a2d';
                     ctx.beginPath();
                     ctx.arc(x * TILE + 16 + sway, y * TILE + 14, 10, 0, Math.PI * 2);
@@ -240,12 +251,10 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.arc(x * TILE + 14 + sway * 0.8, y * TILE + 16, 7, 0, Math.PI * 2);
                     ctx.fill();
                 } else if (treeType === 1) {
-                    ctx.fillStyle = '#1a3a1a';
-                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                     ctx.fillStyle = '#5a4030';
-                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 3, 12);
+                    ctx.fillRect(x * TILE + 15 + sway * 0.2, y * TILE + 20, 3, 12);
                     const sway1 = sway * 0.8;
-                    ctx.fillStyle = '#2a5a2a';
+                    ctx.fillStyle = '#3a7a3a';
                     ctx.beginPath();
                     ctx.moveTo(x * TILE + 6 + sway1, y * TILE + 24);
                     ctx.lineTo(x * TILE + 16 + sway1, y * TILE + 4);
@@ -258,10 +267,8 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.lineTo(x * TILE + 24 + sway1, y * TILE + 20);
                     ctx.fill();
                 } else if (treeType === 2) {
-                    ctx.fillStyle = '#1a3a1a';
-                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                     ctx.fillStyle = '#5a4030';
-                    ctx.fillRect(x * TILE + 13, y * TILE + 20, 5, 12);
+                    ctx.fillRect(x * TILE + 13 + sway * 0.25, y * TILE + 20, 5, 12);
                     const sway2 = sway * 0.9;
                     ctx.fillStyle = '#2e5e2e';
                     ctx.beginPath();
@@ -275,10 +282,8 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.arc(x * TILE + 20 + sway2 * 0.7, y * TILE + 13, 5, 0, Math.PI * 2);
                     ctx.fill();
                 } else if (treeType === 3) {
-                    ctx.fillStyle = '#1a3a1a';
-                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                     ctx.fillStyle = '#4a3525';
-                    ctx.fillRect(x * TILE + 15, y * TILE + 18, 4, 14);
+                    ctx.fillRect(x * TILE + 15 + sway * 0.3, y * TILE + 18, 4, 14);
                     const sway3 = sway * 0.7;
                     ctx.fillStyle = '#285028';
                     ctx.beginPath();
@@ -287,10 +292,8 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.lineTo(x * TILE + 28 + sway3, y * TILE + 24);
                     ctx.fill();
                 } else {
-                    ctx.fillStyle = '#1a3a1a';
-                    ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                     ctx.fillStyle = '#5a4030';
-                    ctx.fillRect(x * TILE + 14, y * TILE + 22, 5, 10);
+                    ctx.fillRect(x * TILE + 14 + sway * 0.35, y * TILE + 22, 5, 10);
                     const sway4 = sway * 1.1;
                     ctx.fillStyle = '#2c5c2c';
                     ctx.beginPath();
@@ -307,11 +310,11 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
             } else if (tile === 6) {
                 const flowerType = (x * 11 + y * 17) % 6;
                 const flowerSway = Math.sin(time * 2 + x * 0.5 + y * 0.3) * 2;
-                ctx.fillStyle = '#1a3a1a';
+                ctx.fillStyle = GROUND_COLOR;
                 ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                 if (flowerType === 0) {
-                    ctx.fillStyle = '#2a5a2a';
-                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#3a7a3a';
+                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
                     ctx.fillStyle = '#f88';
                     ctx.beginPath();
                     ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
@@ -321,8 +324,8 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
                     ctx.fill();
                 } else if (flowerType === 1) {
-                    ctx.fillStyle = '#2a5a2a';
-                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#3a7a3a';
+                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
                     ctx.fillStyle = '#f8f';
                     ctx.beginPath();
                     ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
@@ -332,20 +335,21 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
                     ctx.fill();
                 } else if (flowerType === 2) {
-                    ctx.fillStyle = '#2a5a2a';
-                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#3a7a3a';
+                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
                     ctx.fillStyle = '#ff8';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#a50';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
-                    ctx.fill();
                 } else if (flowerType === 3) {
-                    ctx.fillStyle = '#2a5a2a';
-                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#3a7a3a';
+                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
                     ctx.fillStyle = '#8ff';
+                } else if (flowerType === 4) {
+                    ctx.fillStyle = '#3a7a3a';
+                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#8f8';
+                } else {
+                    ctx.fillStyle = '#3a7a3a';
+                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
+                    ctx.fillStyle = '#8cf';
                     ctx.beginPath();
                     ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
                     ctx.fill();
@@ -353,34 +357,12 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.beginPath();
                     ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
                     ctx.fill();
-                } else if (flowerType === 4) {
-                    ctx.fillStyle = '#2a5a2a';
-                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
-                    ctx.fillStyle = '#8f8';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#ff0';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
-                    ctx.fill();
-                } else {
-                    ctx.fillStyle = '#2a5a2a';
-                    ctx.fillRect(x * TILE + 15, y * TILE + 20, 2, 10);
-                    ctx.fillStyle = '#f84';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#f00';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
-                    ctx.fill();
                 }
             } else if (tile === 2) {
-                ctx.fillStyle = '#1a3a1a';
+                ctx.fillStyle = GROUND_COLOR;
                 ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                 const grassOffset = Math.sin(time + x * 0.5 + y * 0.3) * 1;
-                ctx.fillStyle = '#2a5a2a';
+                ctx.fillStyle = '#3a7a3a';
                 ctx.fillRect(x * TILE + 6, y * TILE + 10 + grassOffset, 3, 12);
                 ctx.fillRect(x * TILE + 14, y * TILE + 8 + grassOffset, 3, 14);
                 ctx.fillRect(x * TILE + 24, y * TILE + 12 + grassOffset, 3, 10);
@@ -393,10 +375,10 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 ctx.fillRect(x * TILE + 16 - waveOffset, y * TILE + 16, 10, 2);
                 ctx.fillRect(x * TILE + 8, y * TILE + 24, 6, 2);
             } else {
-                ctx.fillStyle = '#1a3a2a';
+                ctx.fillStyle = GROUND_COLOR;
                 ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
                 if ((x + y) % 5 === 0) {
-                    ctx.fillStyle = '#2a4a2a';
+                    ctx.fillStyle = '#3a7a3a';
                     ctx.fillRect(x * TILE + 10, y * TILE + 12, 4, 4);
                 }
             }
@@ -506,6 +488,32 @@ function drawProjectiles(ctx, projectiles) {
             ctx.beginPath();
             ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
             ctx.fill();
+        } else if (p.isFire) {
+            const time = Date.now() / 50;
+            ctx.fillStyle = '#f00';
+            ctx.beginPath();
+            ctx.arc(p.x - p.vx * 2, p.y, size * 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, size * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(p.x - size * 0.2, p.y - size * 0.2, size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = particleColor;
+            ctx.globalAlpha = 0.6;
+            for (let i = 0; i < 3; i++) {
+                const ox = Math.sin(time + i * 2) * 3;
+                const oy = -size - i * 4;
+                ctx.beginPath();
+                ctx.moveTo(p.x + ox - 3, p.y + oy);
+                ctx.lineTo(p.x + ox, p.y + oy - 8 - i * 2);
+                ctx.lineTo(p.x + ox + 3, p.y + oy);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
         } else {
             ctx.fillStyle = color;
             ctx.beginPath();

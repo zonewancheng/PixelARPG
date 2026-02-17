@@ -119,7 +119,7 @@ window.baseItems = baseItems;
 
 window.skills = [
     { id: 'slash', name: '斩击', icon: '⚔️', mp: 0, cd: 0, damage: 1.2, range: 50, type: 'single', desc: '物理攻击' },
-    { id: 'fireball', name: '火球', icon: '🔥', mp: 15, cd: 60, damage: 1.8, range: 150, type: 'projectile', desc: '火焰魔法攻击', projectileColor: '#f80', particleColor: '#ff4', size: 14, speed: 6 },
+    { id: 'fireball', name: '火球', icon: '🔥', mp: 15, cd: 60, damage: 1.8, range: 150, type: 'projectile', desc: '火焰魔法攻击', projectileColor: '#fa0', particleColor: '#fd4', size: 14, speed: 6, isFire: true },
     { id: 'thunder', name: '雷电', icon: '⚡', mp: 20, cd: 80, damage: 1.5, range: 180, type: 'projectile', desc: '雷电魔法攻击', projectileColor: '#0ff', particleColor: '#ff0', size: 10, speed: 8, isLightning: true },
     { id: 'vine', name: '藤蔓', icon: '🌿', mp: 15, cd: 70, damage: 1.0, range: 140, type: 'projectile', desc: '藤蔓魔法攻击', projectileColor: '#0f0', particleColor: '#4f4', size: 12, speed: 5, isVine: true },
     { id: 'tornado', name: '龙卷', icon: '🌪️', mp: 25, cd: 100, damage: 0.8, range: 160, type: 'projectile', desc: '龙卷风攻击', projectileColor: '#aaa', particleColor: '#ccc', size: 16, speed: 4, isTornado: true },
@@ -134,11 +134,11 @@ window.enemyTypes = [
 ];
 
 window.bossTypes = [
-    { name: '史莱姆王', type: 'boss', hp: 80, atk: 12, def: 2, exp: 40, gold: 80, color: '#4a4', size: 40 },
-    { name: '哥布林领主', type: 'boss', hp: 120, atk: 18, def: 4, exp: 60, gold: 120, color: '#4a4', size: 36 },
-    { name: 'orc王', type: 'boss', hp: 180, atk: 25, def: 8, exp: 100, gold: 180, color: '#484', size: 44 },
-    { name: '黑暗法师', type: 'boss', hp: 150, atk: 35, def: 5, exp: 150, gold: 250, color: '#848', size: 32 },
-    { name: '火龙', type: 'boss', hp: 300, atk: 40, def: 15, exp: 300, gold: 500, color: '#a44', size: 56 },
-    { name: '冰魔', hp: 350, atk: 45, def: 18, exp: 400, gold: 600, color: '#aaf', size: 48 },
-    { name: '恶魔领主', hp: 500, atk: 60, def: 25, exp: 600, gold: 1000, color: '#a2a', size: 52 }
+    { name: '史莱姆王', type: 'slime_king', hp: 80, atk: 12, def: 2, exp: 40, gold: 80, color: '#4a4', size: 40 },
+    { name: '哥布林领主', type: 'goblin_lord', hp: 120, atk: 18, def: 4, exp: 60, gold: 120, color: '#4a4', size: 36 },
+    { name: 'orc王', type: 'orc_king', hp: 180, atk: 25, def: 8, exp: 100, gold: 180, color: '#484', size: 44 },
+    { name: '黑暗法师', type: 'dark_mage', hp: 150, atk: 35, def: 5, exp: 150, gold: 250, color: '#848', size: 32 },
+    { name: '火龙', type: 'fire_dragon', hp: 300, atk: 40, def: 15, exp: 300, gold: 500, color: '#a44', size: 56 },
+    { name: '冰魔', type: 'ice_devil', hp: 350, atk: 45, def: 18, exp: 400, gold: 600, color: '#aaf', size: 48 },
+    { name: '恶魔领主', type: 'demon_lord', hp: 500, atk: 60, def: 25, exp: 600, gold: 1000, color: '#a2a', size: 52 }
 ];
