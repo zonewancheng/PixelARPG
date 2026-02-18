@@ -190,6 +190,7 @@ window.RenderUtils = {
     /**
      * 渲染怪物图标（与游戏渲染一致）
      * 直接使用enemies.js中的渲染函数
+     * 返回canvas对象，用于canvas绘制
      */
     renderMonsterIcon: function(enemyType, size = 32) {
         if (window.renderEnemyIcon) {
@@ -203,6 +204,14 @@ window.RenderUtils = {
         ctx.fillStyle = enemyType.color || '#4a4';
         ctx.fillRect(size*0.25, size*0.2, size*0.5, size*0.5);
         ctx.fillRect(size*0.15, size*0.5, size*0.7, size*0.35);
+        return canvas;
+    },
+    
+    /**
+     * 获取怪物图标URL（用于HTML img标签）
+     */
+    renderMonsterIconUrl: function(enemyType, size = 32) {
+        const canvas = this.renderMonsterIcon(enemyType, size);
         return canvas.toDataURL();
     },
 
@@ -212,7 +221,7 @@ window.RenderUtils = {
     getBestiaryMonsterHtml: function(enemy, discovered = 0) {
         const locked = !discovered || discovered === 0;
         const stats = this.getEnemyStatsText(enemy);
-        const iconUrl = this.renderMonsterIcon(enemy, 32);
+        const iconUrl = this.renderMonsterIconUrl(enemy, 32);
         
         let skillsHtml = '';
         if (enemy.skills && enemy.skills.length > 0) {

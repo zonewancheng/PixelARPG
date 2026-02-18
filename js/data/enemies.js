@@ -905,6 +905,6 @@ window.renderEnemyIcon = function(enemyType, size = 32) {
         ctx.fillRect(x + w*0.58, y + h*0.35, w*0.12, h*0.12);
     }
     
-    return canvas.toDataURL();
+    return canvas;
 };
 

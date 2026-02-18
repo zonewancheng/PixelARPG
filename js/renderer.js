@@ -834,8 +834,23 @@ function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
     const time = Date.now();
     enemies.forEach((e, i) => {
         const breathe = Math.sin(time / 400 + i) * 1;
-        const color = e.color || '#4a4';
-        drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
+        
+        // 使用详细的怪物图标
+        if (window.renderEnemyIcon) {
+            const enemyType = window.getEnemyByType(e.type);
+            if (enemyType) {
+                const iconCanvas = window.renderEnemyIcon(enemyType, e.w);
+                ctx.drawImage(iconCanvas, e.x, e.y + breathe, e.w, e.h);
+            } else {
+                // 备用：简单渲染
+                const color = e.color || '#4a4';
+                drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
+            }
+        } else {
+            // 备用：简单渲染
+            const color = e.color || '#4a4';
+            drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
+        }
         
         const hpPercent = Math.max(0, e.hp / e.maxHp);
         ctx.fillStyle = '#300';
@@ -855,7 +870,21 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
     if (!boss) return;
     const time = Date.now();
     const breathe = Math.sin(time / 400 + 100) * 2;
-    drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
+    
+    // 使用详细的Boss图标
+    if (window.renderEnemyIcon) {
+        const bossType = { 
+            render: boss.render, 
+            color: boss.color || '#a22',
+            type: 'boss'
+        };
+        const iconCanvas = window.renderEnemyIcon(bossType, boss.w);
+        ctx.drawImage(iconCanvas, boss.x, boss.y + breathe, boss.w, boss.h);
+    } else {
+        // 备用：简单渲染
+        drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
+    }
+    
     const hpPercent = Math.min(1, Math.max(0, boss.hp / boss.maxHp));
     ctx.fillStyle = '#300';
     ctx.fillRect(boss.x, boss.y - 16, boss.w, 8);
