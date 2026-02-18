@@ -218,6 +218,23 @@ function generateMap() {
     map[15][8] = 0;
 }
 
+/**
+ * 获取敌人的攻击类型
+ */
+function getEnemyAttackType(enemyType) {
+    const attackTypes = {
+        'slime': 'bite',
+        'goblin': 'claw',
+        'bat': 'claw',
+        'spider': 'bite',
+        'skeleton': 'claw',
+        'wolf': 'claw',
+        'snake': 'stab',
+        'scorpion': 'stab'
+    };
+    return attackTypes[enemyType] || 'claw';
+}
+
 function spawnEnemies() {
     enemies = [];
     const count = Math.min(3 + Math.floor(mapLevel * 0.5), 8);
@@ -244,6 +261,9 @@ function spawnEnemies() {
             render: et.render,
             vx: 0, vy: 0,
             attackCooldown: 0,
+            isAttacking: false,
+            attackProgress: 0,
+            attackType: getEnemyAttackType(et.type),
             aggro: 30,
             exp: et.exp + mapLevel * 2,
             gold: et.gold + mapLevel,
@@ -666,12 +686,26 @@ function update() {
             e.y = Math.max(window.TILE, Math.min((window.MAP_H - 1) * window.TILE - 10, e.y));
         }
         
+        // 更新攻击动画
+        if (e.isAttacking) {
+            e.attackProgress += 0.1;
+            if (e.attackProgress >= 1) {
+                e.isAttacking = false;
+                e.attackProgress = 0;
+            }
+        }
+        
+        // 敌人攻击逻辑
         if (dist < 30 && e.attackCooldown <= 0 && player.invulnerable <= 0 && e.frozen <= 0) {
+            // 触发攻击动画
+            e.isAttacking = true;
+            e.attackProgress = 0;
+            
             const dmg = Math.max(1, e.atk - player.def + Math.floor(Math.random() * 3));
             player.hp -= dmg;
             player.invulnerable = 30;
             damageFlash = 10;
-            spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 5);
+            spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 8);
             spawnDamageNumber(player.x + player.w/2, player.y, dmg);
             if (player.hp <= 0) {
                 gameState = 'gameover';
@@ -951,6 +985,7 @@ function render() {
     drawDrops(ctx, drops);
     drawProjectiles(ctx, projectiles);
     drawEnemies(ctx, enemies, drawPixelSprite);
+    drawEnemiesAttack(ctx, enemies);
     drawBoss(ctx, window.boss, drawPixelSprite);
     drawPlayer(ctx, player, drawPixelSprite, player.invulnerable);
     drawPlayerAttack(ctx, player);
