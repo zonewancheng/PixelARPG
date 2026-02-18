@@ -1305,6 +1305,14 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
     ctx.fillRect(boss.x, boss.y - 16, boss.w, 8);
     ctx.fillStyle = '#f00';
     ctx.fillRect(boss.x, boss.y - 16, boss.w * hpPercent, 8);
+    
+    // Boss名称显示
+    if (boss.name) {
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = boss.color || '#fff';
+        ctx.fillText(boss.name, boss.x + boss.w / 2, boss.y - 22);
+    }
 }
 
 // ===== 玩家攻击绘制 =====

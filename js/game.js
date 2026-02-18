@@ -69,6 +69,18 @@ let levelTransitioning = false;
 let shopItems = [];
 let currentLanguage = 'zh';
 
+// 全局音频上下文（解决浏览器自动播放限制）
+let globalAudioCtx = null;
+function getAudioContext() {
+    if (!globalAudioCtx) {
+        globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (globalAudioCtx.state === 'suspended') {
+        globalAudioCtx.resume();
+    }
+    return globalAudioCtx;
+}
+
 function initGame() {
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
@@ -1175,6 +1187,13 @@ function updateUI() {
 }
 
 function setupInput() {
+    // 首次用户交互时恢复音频上下文
+    const resumeAudio = () => {
+        getAudioContext();
+    };
+    document.addEventListener('click', resumeAudio, { once: true });
+    document.addEventListener('keydown', resumeAudio, { once: true });
+    
     document.addEventListener('keydown', e => {
         keys[e.key] = true;
         if (gameState === 'gameover') {
@@ -1734,7 +1753,7 @@ async function loadGame() {
 
 function playSound(type) {
     try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioCtx = getAudioContext();
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         
