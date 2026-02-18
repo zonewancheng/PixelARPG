@@ -95,6 +95,11 @@ function initGame() {
     canvas.style.height = baseHeight + 'px';
     ctx.scale(dpr, dpr);
     
+    // 根据画布大小自动计算地图参数
+    if (window.initMapSize) {
+        window.initMapSize(baseWidth, baseHeight);
+    }
+    
     window.boss = null;
     window.player = createPlayer();
     window.playerSkills = window.skills.slice(0, 7);

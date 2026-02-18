@@ -1319,7 +1319,7 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
 
 /**
  * 绘制玩家攻击效果
- * 月牙形状的斩击效果，根据武器颜色变化
+ * 月牙形状的斩击效果，刃向外，凹处对着角色
  */
 function drawPlayerAttack(ctx, player) {
     if (player.attacking <= 0) return;
@@ -1333,82 +1333,99 @@ function drawPlayerAttack(ctx, player) {
     // 根据武器颜色设置效果参数
     let slashColor = '#fff';
     let slashGlow = 'rgba(255, 255, 255, 0.5)';
-    let slashSize = 1;
     
     if (player.weapon && player.weapon.color) {
-        // 使用武器的品质颜色
         slashColor = player.weapon.color;
         slashGlow = player.weapon.color + '80';
-        slashSize = 1.0;
     }
     
-    // 计算攻击角度
+    // 计算攻击方向角度（角色朝向）
     let attackAngle = 0;
     if (dirX > 0) attackAngle = 0;
     else if (dirX < 0) attackAngle = Math.PI;
     else if (dirY < 0) attackAngle = -Math.PI/2;
     else if (dirY > 0) attackAngle = Math.PI/2;
     
-    const swingAngle = attackAngle + (attackProgress - 0.5) * Math.PI * 0.8;
+    // 挥砍进度对应的角度
+    const swingOffset = (attackProgress - 0.5) * Math.PI * 0.7;
+    const currentAngle = attackAngle + swingOffset;
     
     ctx.save();
     ctx.translate(baseX, baseY);
-    ctx.rotate(swingAngle);
     
-    // 外层发光月牙
+    // 月牙斩击效果 - 从内向外扩散的月牙
+    // 凹处对着角色(中心)，刃向外
+    const crescentRadius = 28 + attackProgress * 15; // 逐渐扩大
+    const crescentThickness = 8 * (1 - attackProgress * 0.3); // 逐渐变细
+    
+    // 外层发光（刃向外）
     ctx.shadowColor = slashColor;
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 15;
     ctx.fillStyle = slashGlow;
-    ctx.globalAlpha = 0.4 * (1 - attackProgress * 0.3);
+    ctx.globalAlpha = 0.5 * (1 - attackProgress * 0.4);
+    
     ctx.beginPath();
-    ctx.ellipse(30, 0, 28, 12, 0, 0, Math.PI * 2);
+    // 外弧（刃向外）
+    ctx.arc(0, 0, crescentRadius + crescentThickness, currentAngle - 0.6, currentAngle + 0.6);
+    // 内弧（凹处向内）
+    ctx.arc(0, 0, crescentRadius - crescentThickness * 0.5, currentAngle + 0.5, currentAngle - 0.5, true);
+    ctx.closePath();
     ctx.fill();
     
-    // 主月牙形状
-    ctx.shadowBlur = 10;
+    // 主月牙（刃部更亮）
+    ctx.shadowBlur = 8;
     ctx.fillStyle = slashColor;
-    ctx.globalAlpha = 0.85;
+    ctx.globalAlpha = 0.9 * (1 - attackProgress * 0.3);
+    
     ctx.beginPath();
-    ctx.ellipse(28, 0, 22, 8, 0, 0, Math.PI * 2);
+    ctx.arc(0, 0, crescentRadius + crescentThickness * 0.5, currentAngle - 0.5, currentAngle + 0.5);
+    ctx.arc(0, 0, crescentRadius - crescentThickness * 0.8, currentAngle + 0.4, currentAngle - 0.4, true);
+    ctx.closePath();
     ctx.fill();
     
-    // 内层亮色月牙
+    // 内层亮边（刃的边缘更亮）
     ctx.fillStyle = '#fff';
-    ctx.globalAlpha = 0.6 * (1 - attackProgress * 0.5);
+    ctx.globalAlpha = 0.7 * (1 - attackProgress * 0.5);
+    
     ctx.beginPath();
-    ctx.ellipse(26, -2, 14, 4, 0, 0, Math.PI * 2);
+    ctx.arc(0, 0, crescentRadius + crescentThickness * 0.3, currentAngle - 0.3, currentAngle + 0.3);
+    ctx.arc(0, 0, crescentRadius - crescentThickness * 0.5, currentAngle + 0.25, currentAngle - 0.25, true);
+    ctx.closePath();
     ctx.fill();
     
     ctx.shadowBlur = 0;
     
-    // 月牙斩击轨迹（多个残影）
-    const trailCount = 4;
+    // 攻击轨迹残影
+    const trailCount = 3;
     for (let i = 1; i <= trailCount; i++) {
-        const trailProgress = attackProgress - i * 0.08;
+        const trailProgress = attackProgress - i * 0.1;
         if (trailProgress > 0) {
-            ctx.save();
-            ctx.rotate(-i * 0.12);
+            const trailAngle = attackAngle + (trailProgress - 0.5) * Math.PI * 0.7;
+            const trailRadius = 25 + trailProgress * 10;
+            
             ctx.fillStyle = slashColor;
-            ctx.globalAlpha = 0.25 * (1 - i * 0.2) * trailProgress;
+            ctx.globalAlpha = 0.3 * (1 - i * 0.25) * trailProgress;
+            
             ctx.beginPath();
-            ctx.ellipse(24 - i * 3, 0, 18 - i * 2, 6 - i, 0, 0, Math.PI * 2);
+            ctx.arc(0, 0, trailRadius + 4, trailAngle - 0.4, trailAngle + 0.4);
+            ctx.arc(0, 0, trailRadius - 3, trailAngle + 0.3, trailAngle - 0.3, true);
+            ctx.closePath();
             ctx.fill();
-            ctx.restore();
         }
     }
     
-    // 攻击终点粒子效果
-    const endX = Math.cos(attackAngle + 0.4) * 35;
-    const endY = Math.sin(attackAngle + 0.4) * 35;
+    // 攻击终点的火花粒子
+    const endX = Math.cos(currentAngle) * (crescentRadius + 10);
+    const endY = Math.sin(currentAngle) * (crescentRadius + 10);
     
-    if (attackProgress > 0.6) {
-        ctx.globalAlpha = (attackProgress - 0.6) * 2;
-        for (let i = 0; i < 6; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * 15;
+    if (attackProgress > 0.5) {
+        ctx.globalAlpha = (attackProgress - 0.5) * 1.5;
+        for (let i = 0; i < 8; i++) {
+            const angle = currentAngle + (Math.random() - 0.5) * 1.2;
+            const dist = Math.random() * 12;
             ctx.fillStyle = i % 2 === 0 ? '#fff' : slashColor;
             ctx.beginPath();
-            ctx.arc(endX + Math.cos(angle) * dist, endY + Math.sin(angle) * dist, 1.5 + Math.random(), 0, Math.PI * 2);
+            ctx.arc(endX + Math.cos(angle) * dist, endY + Math.sin(angle) * dist, 1 + Math.random() * 1.5, 0, Math.PI * 2);
             ctx.fill();
         }
     }
