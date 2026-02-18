@@ -13,21 +13,38 @@
         <canvas id="game" width="480" height="640"></canvas>
         <div id="ui">
             <div id="player-info">
-                <button id="characterBtn" class="info-avatar">🧙</button>
+                <div class="info-avatar-wrapper">
+                    <button id="characterBtn" class="info-avatar">🧙</button>
+                    <div class="avatar-ring"></div>
+                </div>
                 <div class="info-content">
-                    <div class="info-lv-gold">
-                        <span class="info-level">Lv.<span id="level">1</span></span>
-                        <span class="info-gold">💰<span id="gold">0</span></span>
-                    </div>
-                    <div class="info-bars-compact">
-                        <div class="bar-row">
-                            <div class="bar hp-bar" id="hp-bar"></div>
+                    <div class="info-header">
+                        <div class="info-level">
+                            <span class="level-icon">★</span>
+                            <span>Lv.</span>
+                            <span id="level">1</span>
                         </div>
-                        <div class="bar-row">
-                            <div class="bar mp-bar" id="mp-bar"></div>
+                        <div class="info-gold">
+                            <span class="gold-icon">⬡</span>
+                            <span id="gold">0</span>
+                        </div>
+                    </div>
+                    <div class="info-bars">
+                        <div class="bar-item">
+                            <div class="bar-label">HP</div>
+                            <div class="bar-track">
+                                <div class="bar hp-bar" id="hp-bar"></div>
+                            </div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">MP</div>
+                            <div class="bar-track">
+                                <div class="bar mp-bar" id="mp-bar"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="info-decoration"></div>
             </div>
             
             <div id="game-buttons">
