@@ -397,15 +397,15 @@ function spawnDrop(x, y, isBoss = false) {
     const level = mapLevel + (isBoss ? 3 : 0);
     const equipTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
     
-    if (rand < 0.2) {
+    if (rand < 0.25) {
         item = window.items.find(i => i.id === 'potion');
-    } else if (rand < 0.28) {
+    } else if (rand < 0.35) {
         item = window.items.find(i => i.id === 'potion2');
-    } else if (rand < 0.34) {
+    } else if (rand < 0.43) {
         item = window.items.find(i => i.id === 'mpotion');
-    } else if (rand < 0.4) {
+    } else if (rand < 0.50) {
         item = window.items.find(i => i.id === 'mpotion2');
-    } else if (rand < 0.45) {
+    } else if (rand < 0.60) {
         item = window.items.find(i => i.id === 'gold');
     } else {
         const type = equipTypes[Math.floor(Math.random() * equipTypes.length)];
@@ -414,23 +414,23 @@ function spawnDrop(x, y, isBoss = false) {
     }
     drops.push({ x: x + 10, y: y + 10, item: item, life: 1800 });
     
-    const extraDrops = isBoss ? 5 : 2;
+    const extraDrops = isBoss ? 3 : 1;
     for (let i = 0; i < extraDrops; i++) {
         const rand2 = Math.random();
         let item2;
         const equipTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
         
-        if (rand2 < 0.2) {
+        if (rand2 < 0.25) {
             item2 = window.items.find(i => i.id === 'potion');
-        } else if (rand2 < 0.3) {
-            item2 = window.items.find(i => i.id === 'potion2');
         } else if (rand2 < 0.38) {
+            item2 = window.items.find(i => i.id === 'potion2');
+        } else if (rand2 < 0.48) {
             item2 = window.items.find(i => i.id === 'mpotion');
-        } else if (rand2 < 0.45) {
+        } else if (rand2 < 0.56) {
             item2 = window.items.find(i => i.id === 'mpotion2');
-        } else if (rand2 < 0.5) {
+        } else if (rand2 < 0.64) {
             item2 = window.items.find(i => i.id === 'gold');
-        } else if (rand2 < 0.6) {
+        } else if (rand2 < 0.72) {
             item2 = window.generateItemByQuality('uncommon', 'weapon', level);
             if (item2 && item2.baseId) window.discoverItem(item2.baseId);
         } else if (rand2 < 0.7) {
@@ -994,7 +994,7 @@ function update() {
         
         enemies = enemies.filter(e => {
             if (e.hp <= 0) {
-                player.exp += e.exp;
+                player.exp += Math.floor(e.exp * 1.5);
                 player.gold += e.gold;
                 spawnDrop(e.x, e.y);
                 window.discoverEnemy?.(e.type, e.name);
@@ -1014,11 +1014,11 @@ function update() {
                 spawnDamageNumber(window.boss.x + window.boss.w/2, window.boss.y, p.damage);
                 hit = true;
                 if (window.boss.hp <= 0) {
-                    player.exp += window.boss.exp;
+                    player.exp += Math.floor(window.boss.exp * 1.5);
                     player.gold += window.boss.gold;
                     spawnDrop(window.boss.x, window.boss.y, true);
                     window.discoverEnemy?.(window.boss.render, window.boss.name);
-                    showMessage(`BOSS DEFEATED! +${window.boss.exp} EXP!`);
+                    showMessage(`BOSS DEFEATED! +${Math.floor(window.boss.exp * 1.5)} EXP!`);
                     mapLevel++;
                     levelTransitioning = true;
                     setTimeout(() => {
@@ -1056,16 +1056,16 @@ function update() {
         return p.life > 0 && !hit;
     });
     
-    if (player.exp >= player.level * 50) {
+    if (player.exp >= player.level * 120) {
         player.level++;
-        player.maxHp += 30;
+        player.maxHp += 25;
         player.hp = player.maxHp;
-        player.maxMp += 15;
+        player.maxMp += 12;
         player.mp = player.maxMp;
-        player.atk += 5;
-        player.def += 3;
-        player.hpRegen += 0.5;
-        player.mpRegen += 0.3;
+        player.atk += 4;
+        player.def += 2;
+        player.hpRegen += 0.3;
+        player.mpRegen += 0.2;
         player.invulnerable = 60;
         showMessage(`LEVEL UP! Now level ${player.level}! (+HP +MP +ATK +DEF)`);
         playSound('levelup');
@@ -1253,7 +1253,7 @@ function attack() {
             spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f44', 5);
             spawnDamageNumber(e.x + e.w/2, e.y, dmg);
             if (e.hp <= 0) {
-                player.exp += e.exp;
+                player.exp += Math.floor(e.exp * 1.5);
                 player.gold += e.gold;
                 spawnDrop(e.x, e.y);
                 window.discoverEnemy?.(e.type, e.name);
@@ -1274,11 +1274,11 @@ function attack() {
             spawnParticles(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2, '#f44', 10);
             spawnDamageNumber(window.boss.x + window.boss.w/2, window.boss.y, dmg);
             if (window.boss.hp <= 0) {
-                player.exp += window.boss.exp;
+                player.exp += Math.floor(window.boss.exp * 1.5);
                 player.gold += window.boss.gold;
                 spawnDrop(window.boss.x, window.boss.y, true);
                 window.discoverEnemy?.(window.boss.render, window.boss.name);
-                showMessage(`BOSS DEFEATED! +${window.boss.exp} EXP!`);
+                showMessage(`BOSS DEFEATED! +${Math.floor(window.boss.exp * 1.5)} EXP!`);
                 mapLevel++;
                 levelTransitioning = true;
                 setTimeout(() => {
