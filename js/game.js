@@ -330,13 +330,28 @@ function spawnEnemies() {
 function spawnBoss() {
     window.bosses = [];
     
-    // 根据地图大小决定生成几个boss
-    const mapSize = window.MAP_W * window.MAP_H;
-    const bossCount = Math.min(Math.floor(mapSize / 300) + 1, 3); // 最多3个boss
+    // 决定生成几个boss：40%概率1个，50%概率2个，10%概率3个
+    const rand = Math.random();
+    let bossCount;
+    if (rand < 0.40) {
+        bossCount = 1;
+    } else if (rand < 0.90) {
+        bossCount = 2;
+    } else {
+        bossCount = 3;
+    }
+    
+    // 记录已使用的boss类型索引，确保不重复
+    const usedBossIndices = [];
     
     for (let i = 0; i < bossCount; i++) {
-        // 随机选择一个Boss
-        const idx = Math.floor(Math.random() * window.bossTypes.length);
+        // 随机选择一个Boss，确保不重复
+        let idx;
+        do {
+            idx = Math.floor(Math.random() * window.bossTypes.length);
+        } while (usedBossIndices.includes(idx));
+        usedBossIndices.push(idx);
+        
         const bossType = window.bossTypes[idx];
         
         // 使用Boss自带的技能（从玩家技能中获取）
@@ -464,20 +479,22 @@ function bossUseSkill(skill) {
 
 function spawnDrop(x, y, isBoss = false) {
     if (!window.discoveredItems) window.discoveredItems = {};
-    
+
     const rand = Math.random();
     let item;
     const level = mapLevel + (isBoss ? 3 : 0);
     const equipTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
-    
+    // 50%几率是背包版药水
+    const inventoryPotion = Math.random() < 0.5 ? '_inv' : '';
+
     if (rand < 0.25) {
-        item = window.items.find(i => i.id === 'potion');
+        item = window.items.find(i => i.id === 'potion' + inventoryPotion);
     } else if (rand < 0.35) {
-        item = window.items.find(i => i.id === 'potion2');
+        item = window.items.find(i => i.id === 'potion2' + inventoryPotion);
     } else if (rand < 0.43) {
-        item = window.items.find(i => i.id === 'mpotion');
+        item = window.items.find(i => i.id === 'mpotion' + inventoryPotion);
     } else if (rand < 0.50) {
-        item = window.items.find(i => i.id === 'mpotion2');
+        item = window.items.find(i => i.id === 'mpotion2' + inventoryPotion);
     } else if (rand < 0.60) {
         item = window.items.find(i => i.id === 'gold');
     } else {
@@ -486,21 +503,23 @@ function spawnDrop(x, y, isBoss = false) {
         if (item && item.baseId) window.discoverItem(item.baseId);
     }
     drops.push({ x: x + 10, y: y + 10, item: item, life: 1800 });
-    
+
     const extraDrops = isBoss ? 3 : 1;
     for (let i = 0; i < extraDrops; i++) {
         const rand2 = Math.random();
         let item2;
         const equipTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
-        
+        // 50%几率是背包版药水
+        const inventoryPotion2 = Math.random() < 0.5 ? '_inv' : '';
+
         if (rand2 < 0.25) {
-            item2 = window.items.find(i => i.id === 'potion');
+            item2 = window.items.find(i => i.id === 'potion' + inventoryPotion2);
         } else if (rand2 < 0.38) {
-            item2 = window.items.find(i => i.id === 'potion2');
+            item2 = window.items.find(i => i.id === 'potion2' + inventoryPotion2);
         } else if (rand2 < 0.48) {
-            item2 = window.items.find(i => i.id === 'mpotion');
+            item2 = window.items.find(i => i.id === 'mpotion' + inventoryPotion2);
         } else if (rand2 < 0.56) {
-            item2 = window.items.find(i => i.id === 'mpotion2');
+            item2 = window.items.find(i => i.id === 'mpotion2' + inventoryPotion2);
         } else if (rand2 < 0.64) {
             item2 = window.items.find(i => i.id === 'gold');
         } else if (rand2 < 0.72) {
@@ -984,35 +1003,39 @@ function update() {
             d.y += dy * 0.15;
         }
         
-        if (dist < 20) {
-            if (d.item.type === 'treasure') {
-                player.gold += d.item.value;
-                showMessage(`+${d.item.value} Gold!`);
-            } else if (d.item.type === 'consumable') {
-                // 药水视觉效果
-                const isHealPotion = d.item.heal > 0;
-                const isManaPotion = d.item.mp > 0;
-                
-                if (isHealPotion) {
-                    player.hp = Math.min(player.maxHp, player.hp + d.item.heal);
-                    spawnDamageNumber(player.x + player.w/2, player.y, d.item.heal, true);
-                    showMessage(`+${d.item.heal} HP!`);
-                    // 生命药水特效 - 红色粒子
-                    spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'heal');
+            if (dist < 20) {
+                if (d.item.type === 'treasure') {
+                    player.gold += d.item.value;
+                    showMessage(`+${d.item.value} Gold!`);
+                } else if (d.item.type === 'consumable') {
+                    // 药水直接使用
+                    const isHealPotion = d.item.heal > 0;
+                    const isManaPotion = d.item.mp > 0;
+                    
+                    if (isHealPotion) {
+                        player.hp = Math.min(player.maxHp, player.hp + d.item.heal);
+                        spawnDamageNumber(player.x + player.w/2, player.y, d.item.heal, true);
+                        showMessage(`+${d.item.heal} HP!`);
+                        // 生命药水特效 - 红色粒子
+                        spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'heal');
+                    }
+                    if (isManaPotion) {
+                        player.mp = Math.min(player.maxMp, player.mp + d.item.mp);
+                        spawnDamageNumber(player.x + player.w/2, player.y - 15, d.item.mp, true);
+                        showMessage(`+${d.item.mp} MP!`);
+                        // 魔法药水特效 - 蓝色粒子
+                        spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'mana');
+                    }
+                } else if (d.item.type === 'consumable_inventory') {
+                    // 药水进入背包
+                    player.inventory.push(d.item);
+                    showMessage(`获得 ${d.item.name} (背包)!`);
+                } else {
+                    player.inventory.push(d.item);
+                    showMessage(`Got ${d.item.name}!`);
                 }
-                if (isManaPotion) {
-                    player.mp = Math.min(player.maxMp, player.mp + d.item.mp);
-                    spawnDamageNumber(player.x + player.w/2, player.y - 15, d.item.mp, true);
-                    showMessage(`+${d.item.mp} MP!`);
-                    // 魔法药水特效 - 蓝色粒子
-                    spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'mana');
-                }
-            } else {
-                player.inventory.push(d.item);
-                showMessage(`Got ${d.item.name}!`);
+                return false;
             }
-            return false;
-        }
         
         if (d.life < 600 && d.life % 30 === 0) {
             d.y += Math.sin(Date.now() / 200 + d.x) * 0.3;
@@ -2470,8 +2493,8 @@ function useItem(index) {
     const player = window.player;
     const item = player.inventory[index];
     if (!item) return;
-    
-    if (item.type === 'consumable') {
+
+    if (item.type === 'consumable' || item.type === 'consumable_inventory') {
         if (item.heal) {
             player.hp = Math.min(player.maxHp, player.hp + item.heal);
             spawnDamageNumber(player.x + player.w/2, player.y, item.heal, true);

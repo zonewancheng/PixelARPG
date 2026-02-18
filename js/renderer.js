@@ -1938,24 +1938,29 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     
     drawPixelSpriteFn(ctx, player.x, player.y + breathe, player.w, player.h, '#ff6', 'player', player);
     
-    // 玩家标识 - 朝下的发光三角形，与头顶有更多距离
+    // 玩家标识 - 朝下的发光三角形，与头顶有更多距离，带闪烁效果
     const markerY = player.y - 18 + breathe;
     const centerX = player.x + player.w / 2;
-
-    // 发光效果 - 更鲜艳
+    
+    // 计算闪烁效果（使用正弦波）
+    const flashTime = Date.now() / 300;
+    const flashAlpha = 0.5 + Math.sin(flashTime) * 0.5; // 0到1之间闪烁
+    const shadowBlur = 8 + Math.sin(flashTime * 2) * 6; // 8到14之间变化
+    
+    // 发光效果 - 动态闪烁
     ctx.shadowColor = '#0ff';
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = '#0ff';
+    ctx.shadowBlur = shadowBlur;
+    ctx.fillStyle = `rgba(0, 255, 255, ${0.7 + flashAlpha * 0.3})`;
     ctx.beginPath();
     ctx.moveTo(centerX, markerY + 8);  // 朝下
     ctx.lineTo(centerX - 6, markerY - 2);
     ctx.lineTo(centerX + 6, markerY - 2);
     ctx.closePath();
     ctx.fill();
-
-    // 内部高光
+    
+    // 内部高光 - 反向闪烁
     ctx.shadowBlur = 0;
-    ctx.fillStyle = '#aff';
+    ctx.fillStyle = `rgba(170, 255, 255, ${0.6 + (1 - flashAlpha) * 0.4})`;
     ctx.beginPath();
     ctx.moveTo(centerX, markerY + 5);
     ctx.lineTo(centerX - 3, markerY - 1);

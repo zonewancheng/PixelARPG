@@ -36,6 +36,10 @@ window.BASE_ITEMS = [
     { id: 'potion2', name: '超级药水', type: 'consumable', heal: 80, icon: '⚗️', price: 50 },
     { id: 'mpotion', name: '魔法药水', type: 'consumable', mp: 20, icon: '💧', price: 15 },
     { id: 'mpotion2', name: '超级魔法药水', type: 'consumable', mp: 50, icon: '🧿', price: 40 },
+    { id: 'potion_inv', name: '生命药水', type: 'consumable_inventory', heal: 30, icon: '🧪', price: 20 },
+    { id: 'potion2_inv', name: '超级药水', type: 'consumable_inventory', heal: 80, icon: '⚗️', price: 50 },
+    { id: 'mpotion_inv', name: '魔法药水', type: 'consumable_inventory', mp: 20, icon: '💧', price: 15 },
+    { id: 'mpotion2_inv', name: '超级魔法药水', type: 'consumable_inventory', mp: 50, icon: '🧿', price: 40 },
     { id: 'gold', name: '金币', type: 'treasure', value: 10, icon: '💰' }
 ];
 
@@ -421,16 +425,11 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
             ctx.rotate(Math.PI); // 垂直朝下
         }
 
-        // 移除发光效果，改为描边
+        // 移除发光效果
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1.0;
 
-        // 绘制武器描边
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(-wSize/2 - 1, -wSize/2 - 1, wSize + 2, wSize + 2);
-
-        // 绘制武器
+        // 绘制武器（移除描边）
         ctx.drawImage(wCanvas, -wSize/2, -wSize/2);
 
         ctx.restore();
