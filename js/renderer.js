@@ -836,11 +836,21 @@ function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
         const breathe = Math.sin(time / 400 + i) * 1;
         
         // 使用详细的怪物图标
-        if (window.renderEnemyIcon) {
+        if (window.renderEnemyIcon && window.getEnemyByType) {
             const enemyType = window.getEnemyByType(e.type);
             if (enemyType) {
-                const iconCanvas = window.renderEnemyIcon(enemyType, e.w);
-                ctx.drawImage(iconCanvas, e.x, e.y + breathe, e.w, e.h);
+                try {
+                    const iconCanvas = window.renderEnemyIcon(enemyType, e.w);
+                    if (iconCanvas && iconCanvas.tagName === 'CANVAS') {
+                        ctx.drawImage(iconCanvas, e.x, e.y + breathe, e.w, e.h);
+                    } else {
+                        throw new Error('Invalid canvas');
+                    }
+                } catch (err) {
+                    // 备用：简单渲染
+                    const color = e.color || '#4a4';
+                    drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
+                }
             } else {
                 // 备用：简单渲染
                 const color = e.color || '#4a4';
@@ -873,13 +883,22 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
     
     // 使用详细的Boss图标
     if (window.renderEnemyIcon) {
-        const bossType = { 
-            render: boss.render, 
-            color: boss.color || '#a22',
-            type: 'boss'
-        };
-        const iconCanvas = window.renderEnemyIcon(bossType, boss.w);
-        ctx.drawImage(iconCanvas, boss.x, boss.y + breathe, boss.w, boss.h);
+        try {
+            const bossType = { 
+                render: boss.render, 
+                color: boss.color || '#a22',
+                type: 'boss'
+            };
+            const iconCanvas = window.renderEnemyIcon(bossType, boss.w);
+            if (iconCanvas && iconCanvas.tagName === 'CANVAS') {
+                ctx.drawImage(iconCanvas, boss.x, boss.y + breathe, boss.w, boss.h);
+            } else {
+                throw new Error('Invalid canvas');
+            }
+        } catch (err) {
+            // 备用：简单渲染
+            drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
+        }
     } else {
         // 备用：简单渲染
         drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
