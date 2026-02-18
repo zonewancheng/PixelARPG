@@ -1406,9 +1406,9 @@ function attack() {
 
     player.attacking = 20;
 
-    // 使用玩家当前朝向，移除自动索敌
-    let dirX = player.dirX || 1;
-    let dirY = player.dirY || 0;
+    // 使用玩家当前朝向，移除自动索敌（使用 ?? 避免将 0 视为假值）
+    let dirX = player.dirX ?? 1;
+    let dirY = player.dirY ?? 0;
 
     const px = player.x + player.w/2;
     const py = player.y + player.h/2;
@@ -1424,7 +1424,11 @@ function attack() {
         const targetDirY = dy / targetDist;
 
         const dot = dirX * targetDirX + dirY * targetDirY;
-        return dot > 0.5;
+        // 近距离使用更宽松的角度检查（180度范围内都可攻击）
+        if (targetDist < 30) {
+            return dot > -0.5; // 120度范围内
+        }
+        return dot > 0.5; // 远距离保持60度
     }
     
     enemies.forEach(e => {
@@ -1591,9 +1595,9 @@ function useSkill(index) {
         return;
     }
 
-    // 技能释放方向使用玩家当前朝向
-    let dirX = player.dirX || 1;
-    let dirY = player.dirY || 0;
+    // 技能释放方向使用玩家当前朝向（使用 ?? 避免将 0 视为假值）
+    let dirX = player.dirX ?? 1;
+    let dirY = player.dirY ?? 0;
 
     player.mp -= skill.mp;
     window.skillCooldowns[skill.id] = skill.cd;
