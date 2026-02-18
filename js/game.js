@@ -1064,13 +1064,23 @@ function update() {
                     showMessage(`BOSS DEFEATED! +${Math.floor(window.boss.exp * 1.5)} EXP!`);
                     mapLevel++;
                     levelTransitioning = true;
+                    
+                    // 10秒后进入下一关
+                    let countdown = 10;
+                    const countdownMsg = setInterval(() => {
+                        showMessage(`Next level in ${countdown}s...`);
+                        countdown--;
+                        if (countdown <= 0) clearInterval(countdownMsg);
+                    }, 1000);
+                    
                     setTimeout(() => {
                         generateMap();
                         spawnEnemies();
                         player.x = 7 * window.TILE;
                         player.y = 15 * window.TILE;
                         levelTransitioning = false;
-                    }, 2000);
+                        showMessage(`Level ${mapLevel}!`);
+                    }, 10000);
                     window.boss = null;
                 }
             }
@@ -1302,25 +1312,23 @@ function attack() {
     
     player.attacking = 20;
     
-    // 摇杆模式下自动锁定最近敌人（仅当玩家没有明确方向时）
+    // 摇杆模式下总是自动锁定最近敌人
     let dirX = player.dirX;
     let dirY = player.dirY;
     
     if (window.controlMode === 'joystick') {
-        if (dirX === 0 && dirY === 0) {
-            const target = getAutoTarget();
-            if (target) {
-                const targetX = target.x + (target.w || 0) / 2;
-                const targetY = target.y + (target.h || 0) / 2;
-                const baseX = player.x + player.w / 2;
-                const baseY = player.y + player.h / 2;
-                const dx = targetX - baseX;
-                const dy = targetY - baseY;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist > 0) {
-                    dirX = dx / dist;
-                    dirY = dy / dist;
-                }
+        const target = getAutoTarget();
+        if (target) {
+            const targetX = target.x + (target.w || 0) / 2;
+            const targetY = target.y + (target.h || 0) / 2;
+            const baseX = player.x + player.w / 2;
+            const baseY = player.y + player.h / 2;
+            const dx = targetX - baseX;
+            const dy = targetY - baseY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+                dirX = dx / dist;
+                dirY = dy / dist;
             }
         }
     }
@@ -1332,13 +1340,14 @@ function attack() {
     function isTargetInDirection(targetX, targetY) {
         const dx = targetX - px;
         const dy = targetY - py;
-        if (dirX !== 0 && Math.abs(dy) < 50) {
-            return (dirX > 0 && dx > -10) || (dirX < 0 && dx < 10);
-        }
-        if (dirY !== 0 && Math.abs(dx) < 50) {
-            return (dirY > 0 && dy > -10) || (dirY < 0 && dy < 10);
-        }
-        return true;
+        const targetDist = Math.sqrt(dx*dx + dy*dy);
+        if (targetDist === 0) return true;
+        
+        const targetDirX = dx / targetDist;
+        const targetDirY = dy / targetDist;
+        
+        const dot = dirX * targetDirX + dirY * targetDirY;
+        return dot > 0.5;
     }
     
     enemies.forEach(e => {
@@ -1381,13 +1390,23 @@ function attack() {
                 showMessage(`BOSS DEFEATED! +${Math.floor(window.boss.exp * 1.5)} EXP!`);
                 mapLevel++;
                 levelTransitioning = true;
+                
+                // 10秒后进入下一关
+                let countdown = 10;
+                const countdownMsg = setInterval(() => {
+                    showMessage(`Next level in ${countdown}s...`);
+                    countdown--;
+                    if (countdown <= 0) clearInterval(countdownMsg);
+                }, 1000);
+                
                 setTimeout(() => {
                     generateMap();
                     spawnEnemies();
                     player.x = 7 * window.TILE;
                     player.y = 15 * window.TILE;
                     levelTransitioning = false;
-                }, 2000);
+                    showMessage(`Level ${mapLevel}!`);
+                }, 10000);
                 window.boss = null;
             }
         }
@@ -1495,26 +1514,23 @@ function useSkill(index) {
         return;
     }
     
-    // 摇杆模式下自动锁定最近敌人（仅当玩家没有明确方向时）
+    // 摇杆模式下总是自动锁定最近敌人
     let dirX = player.dirX;
     let dirY = player.dirY;
     
     if (window.controlMode === 'joystick') {
-        // 只有当玩家没有明确方向时才自动锁定
-        if (dirX === 0 && dirY === 0) {
-            const target = getAutoTarget();
-            if (target) {
-                const targetX = target.x + (target.w || 0) / 2;
-                const targetY = target.y + (target.h || 0) / 2;
-                const baseX = player.x + player.w / 2;
-                const baseY = player.y + player.h / 2;
-                const dx = targetX - baseX;
-                const dy = targetY - baseY;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist > 0) {
-                    dirX = dx / dist;
-                    dirY = dy / dist;
-                }
+        const target = getAutoTarget();
+        if (target) {
+            const targetX = target.x + (target.w || 0) / 2;
+            const targetY = target.y + (target.h || 0) / 2;
+            const baseX = player.x + player.w / 2;
+            const baseY = player.y + player.h / 2;
+            const dx = targetX - baseX;
+            const dy = targetY - baseY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+                dirX = dx / dist;
+                dirY = dy / dist;
             }
         }
     }
@@ -1529,13 +1545,18 @@ function useSkill(index) {
     function isTargetInDirection(targetX, targetY) {
         const dx = targetX - baseX;
         const dy = targetY - baseY;
-        if (dirX !== 0 && Math.abs(dy) < 50) {
-            return (dirX > 0 && dx > -10) || (dirX < 0 && dx < 10);
-        }
-        if (dirY !== 0 && Math.abs(dx) < 50) {
-            return (dirY > 0 && dy > -10) || (dirY < 0 && dy < 10);
-        }
-        return true;
+        const targetDist = Math.sqrt(dx*dx + dy*dy);
+        if (targetDist === 0) return true;
+        
+        // 归一化目标方向
+        const targetDirX = dx / targetDist;
+        const targetDirY = dy / targetDist;
+        
+        // 计算与释放方向的点积
+        const dot = dirX * targetDirX + dirY * targetDirY;
+        
+        // 如果点积大于0.5（即角度小于60度），认为在方向上
+        return dot > 0.5;
     }
     
     if (skill.type === 'single') {

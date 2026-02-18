@@ -333,8 +333,9 @@ function drawTreeShadow(ctx, baseX, baseY, size, shadowDir) {
 
 function drawFlowerShadow(ctx, baseX, baseY, shadowDir) {
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    const TILE = window.TILE || 32;
     ctx.beginPath();
-    ctx.ellipse(baseX + 16 + shadowDir.x * 0.5, baseY + 28 + shadowDir.y * 0.5, 6, 3, 0, 0, Math.PI * 2);
+    ctx.ellipse(baseX + TILE * 0.5 + shadowDir.x * 0.5, baseY + TILE * 0.88 + shadowDir.y * 0.5, TILE * 0.19, TILE * 0.09, 0, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -447,7 +448,7 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 // 小山主体
                 if (hillType === 0) {
                     // 圆润山丘
-                    const grad = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY - 4);
+                    const grad = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY - TILE * 0.12);
                     grad.addColorStop(0, '#1d4a1d');
                     grad.addColorStop(0.4, '#3a6a3a');
                     grad.addColorStop(0.8, '#5a9a5a');
@@ -455,21 +456,21 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.fillStyle = grad;
                     ctx.beginPath();
                     ctx.moveTo(baseX, baseY + TILE);
-                    ctx.quadraticCurveTo(baseX + TILE * 0.3, baseY + 4 + hillSway, baseX + TILE * 0.5, baseY - 4 + hillSway);
-                    ctx.quadraticCurveTo(baseX + TILE * 0.7, baseY + 4 + hillSway, baseX + TILE, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.3, baseY + TILE * 0.12 + hillSway, baseX + TILE * 0.5, baseY - TILE * 0.12 + hillSway);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.7, baseY + TILE * 0.12 + hillSway, baseX + TILE, baseY + TILE);
                     ctx.fill();
                     
                     // 山丘侧面阴影
                     ctx.fillStyle = 'rgba(0,0,0,0.15)';
                     ctx.beginPath();
                     ctx.moveTo(baseX + TILE * 0.7, baseY + TILE);
-                    ctx.quadraticCurveTo(baseX + TILE * 0.85, baseY + 8 + hillSway, baseX + TILE, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.85, baseY + TILE * 0.25 + hillSway, baseX + TILE, baseY + TILE);
                     ctx.fill();
                     
                     // 山顶光照
                     ctx.fillStyle = 'rgba(255,255,255,0.1)';
                     ctx.beginPath();
-                    ctx.ellipse(baseX + TILE * 0.5, baseY + 2 + hillSway * 0.5, 8, 4, 0, 0, Math.PI*2);
+                    ctx.ellipse(baseX + TILE * 0.5, baseY + TILE * 0.06 + hillSway * 0.5, TILE * 0.25, TILE * 0.12, 0, 0, Math.PI*2);
                     ctx.fill();
                     
                 } else if (hillType === 1) {
@@ -490,10 +491,10 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     // 岩石纹理
                     ctx.fillStyle = '#5a8a5a';
                     ctx.beginPath();
-                    ctx.ellipse(baseX + TILE * 0.5, baseY + 10 + hillSway, 4, 2, 0, 0, Math.PI*2);
+                    ctx.ellipse(baseX + TILE * 0.5, baseY + TILE * 0.31 + hillSway, TILE * 0.125, TILE * 0.06, 0, 0, Math.PI*2);
                     ctx.fill();
                     ctx.beginPath();
-                    ctx.ellipse(baseX + TILE * 0.4, baseY + 16 + hillSway, 3, 1.5, 0, 0, Math.PI*2);
+                    ctx.ellipse(baseX + TILE * 0.4, baseY + TILE * 0.5 + hillSway, TILE * 0.09, TILE * 0.05, 0, 0, Math.PI*2);
                     ctx.fill();
                     
                 } else if (hillType === 2) {
@@ -519,10 +520,10 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     // 草皮细节
                     ctx.fillStyle = '#8aca8a';
                     for (let i = 0; i < 5; i++) {
-                        const gx = baseX + 8 + i * 5;
-                        const gy = baseY + 20 + Math.sin(time + i) * 0.5;
+                        const gx = baseX + TILE * 0.25 + i * TILE * 0.16;
+                        const gy = baseY + TILE * 0.62 + Math.sin(time + i) * 0.5;
                         ctx.beginPath();
-                        ctx.ellipse(gx, gy, 2, 1, 0, 0, Math.PI*2);
+                        ctx.ellipse(gx, gy, TILE * 0.06, TILE * 0.03, 0, 0, Math.PI*2);
                         ctx.fill();
                     }
                     
@@ -551,110 +552,122 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 const grassOffset = Math.sin(time + x * 0.5) * 0.5;
                 ctx.fillStyle = '#1d4a1d';
                 for (let i = 0; i < 4; i++) {
-                    ctx.fillRect(baseX + 4 + i * 8, baseY + TILE - 6 + grassOffset, 2, 4);
+                    ctx.fillRect(baseX + TILE * 0.12 + i * TILE * 0.25, baseY + TILE - TILE * 0.19 + grassOffset, TILE * 0.06, TILE * 0.12);
                 }
             } else if (tile === 5) {
                 const treeType = (x * 7 + y * 13) % 5;
-                const sway = Math.sin(time * 1.5 + x * 0.7 + y * 0.5) * 1.5;
+                const sway = Math.sin(time * 1.5 + x * 0.7 + y * 0.5) * (TILE / 24);
                 
                 ctx.fillStyle = GROUND_COLOR;
                 ctx.fillRect(baseX, baseY, TILE, TILE);
-                const grassOffset = Math.sin(time + x * 0.5 + y * 0.3) * 1;
-                ctx.fillStyle = '#3a7a3a';
-                ctx.fillRect(baseX + 4, baseY + 14 + grassOffset, 2, 8);
-                ctx.fillRect(baseX + 26, baseY + 12 + grassOffset, 2, 10);
+                
+                // 根据TILE大小动态计算偏移量
+                const treeScale = TILE / 32;
+                const trunkX = baseX + TILE * 0.45;
+                const trunkY = baseY + TILE * 0.6;
+                const foliageX = baseX + TILE * 0.5;
+                const foliageY = baseY + TILE * 0.45;
+                const foliageSize = TILE * 0.4;
                 
                 drawTreeShadow(ctx, baseX, baseY, TILE, shadowDir);
                 
                 if (treeType === 0) {
-                    drawTreeTrunk(ctx, baseX + 14, baseY + 20, 4, 12, '#4a3525', sway);
-                    drawFoliageLayer(ctx, baseX + 16, baseY + 16, 11, '#2d6a2d', '#1d4a1d', sway);
-                    drawFoliageLayer(ctx, baseX + 14, baseY + 18, 8, '#3d7a3d', '#2d5a2d', sway * 0.8);
-                    drawFoliageLayer(ctx, baseX + 18, baseY + 17, 6, '#4d8a4d', '#3d6a3d', sway * 0.9);
+                    drawTreeTrunk(ctx, trunkX - 2 * treeScale, trunkY, 4 * treeScale, 12 * treeScale, '#4a3525', sway);
+                    drawFoliageLayer(ctx, foliageX, foliageY, 11 * treeScale, '#2d6a2d', '#1d4a1d', sway);
+                    drawFoliageLayer(ctx, foliageX - 2 * treeScale, foliageY + 2 * treeScale, 8 * treeScale, '#3d7a3d', '#2d5a2d', sway * 0.8);
+                    drawFoliageLayer(ctx, foliageX + 2 * treeScale, foliageY + 1 * treeScale, 6 * treeScale, '#4d8a4d', '#3d6a3d', sway * 0.9);
                 } else if (treeType === 1) {
-                    drawTreeTrunk(ctx, baseX + 15, baseY + 18, 3, 14, '#4a3525', sway);
                     const sway1 = sway * 0.8;
+                    const treeScale = TILE / 32;
                     ctx.fillStyle = '#1d4a1d';
                     ctx.beginPath();
-                    ctx.moveTo(baseX + 5 + sway1, baseY + 26);
-                    ctx.lineTo(baseX + 16 + sway1, baseY + 2);
-                    ctx.lineTo(baseX + 27 + sway1, baseY + 26);
+                    ctx.moveTo(baseX + TILE * 0.15 + sway1, baseY + TILE);
+                    ctx.lineTo(baseX + TILE * 0.5 + sway1, baseY + TILE * 0.1);
+                    ctx.lineTo(baseX + TILE * 0.85 + sway1, baseY + TILE);
                     ctx.fill();
                     ctx.fillStyle = '#2d5a2d';
                     ctx.beginPath();
-                    ctx.moveTo(baseX + 7 + sway1, baseY + 24);
-                    ctx.lineTo(baseX + 16 + sway1, baseY + 6);
-                    ctx.lineTo(baseX + 25 + sway1, baseY + 24);
+                    ctx.moveTo(baseX + TILE * 0.2 + sway1, baseY + TILE * 0.95);
+                    ctx.lineTo(baseX + TILE * 0.5 + sway1, baseY + TILE * 0.2);
+                    ctx.lineTo(baseX + TILE * 0.8 + sway1, baseY + TILE * 0.95);
                     ctx.fill();
                     ctx.fillStyle = '#3d6a3d';
                     ctx.beginPath();
-                    ctx.moveTo(baseX + 9 + sway1, baseY + 22);
-                    ctx.lineTo(baseX + 16 + sway1, baseY + 10);
-                    ctx.lineTo(baseX + 23 + sway1, baseY + 22);
+                    ctx.moveTo(baseX + TILE * 0.28 + sway1, baseY + TILE * 0.85);
+                    ctx.lineTo(baseX + TILE * 0.5 + sway1, baseY + TILE * 0.35);
+                    ctx.lineTo(baseX + TILE * 0.72 + sway1, baseY + TILE * 0.85);
                     ctx.fill();
                     ctx.fillStyle = '#4d8a4d';
                     ctx.beginPath();
-                    ctx.moveTo(baseX + 11 + sway1, baseY + 20);
-                    ctx.lineTo(baseX + 16 + sway1, baseY + 14);
-                    ctx.lineTo(baseX + 21 + sway1, baseY + 20);
+                    ctx.moveTo(baseX + TILE * 0.35 + sway1, baseY + TILE * 0.75);
+                    ctx.lineTo(baseX + TILE * 0.5 + sway1, baseY + TILE * 0.5);
+                    ctx.lineTo(baseX + TILE * 0.65 + sway1, baseY + TILE * 0.75);
                     ctx.fill();
                 } else if (treeType === 2) {
-                    drawTreeTrunk(ctx, baseX + 13, baseY + 18, 5, 14, '#4a3525', sway);
+                    const treeScale = TILE / 32;
+                    drawTreeTrunk(ctx, baseX + TILE * 0.4, baseY + TILE * 0.55, 5 * treeScale, 14 * treeScale, '#4a3525', sway);
                     const sway2 = sway * 0.9;
-                    drawFoliageLayer(ctx, baseX + 16, baseY + 14, 13, '#1d5a1d', '#0d3a0d', sway2);
-                    drawFoliageLayer(ctx, baseX + 12, baseY + 16, 9, '#2d6a2d', '#1d4a1d', sway2 * 0.7);
-                    drawFoliageLayer(ctx, baseX + 20, baseY + 15, 7, '#3d7a3d', '#2d5a2d', sway2 * 0.8);
-                    drawFoliageLayer(ctx, baseX + 14, baseY + 10, 6, '#4d8a4d', '#3d6a3d', sway2 * 0.6);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.5, baseY + TILE * 0.4, 13 * treeScale, '#1d5a1d', '#0d3a0d', sway2);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.35, baseY + TILE * 0.45, 9 * treeScale, '#2d6a2d', '#1d4a1d', sway2 * 0.7);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.6, baseY + TILE * 0.42, 7 * treeScale, '#3d7a3d', '#2d5a2d', sway2 * 0.8);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.42, baseY + TILE * 0.25, 6 * treeScale, '#4d8a4d', '#3d6a3d', sway2 * 0.6);
                 } else if (treeType === 3) {
-                    drawTreeTrunk(ctx, baseX + 15, baseY + 16, 4, 16, '#3a2515', sway);
+                    const treeScale = TILE / 32;
+                    drawTreeTrunk(ctx, baseX + TILE * 0.45, baseY + TILE * 0.45, 4 * treeScale, 16 * treeScale, '#3a2515', sway);
                     const sway3 = sway * 0.7;
                     ctx.fillStyle = '#0d3a0d';
                     ctx.beginPath();
-                    ctx.moveTo(baseX + 3 + sway3, baseY + 28);
-                    ctx.lineTo(baseX + 16 + sway3, baseY);
-                    ctx.lineTo(baseX + 29 + sway3, baseY + 28);
+                    ctx.moveTo(baseX + TILE * 0.1 + sway3, baseY + TILE);
+                    ctx.lineTo(baseX + TILE * 0.5 + sway3, baseY);
+                    ctx.lineTo(baseX + TILE * 0.9 + sway3, baseY + TILE);
                     ctx.fill();
                     ctx.fillStyle = '#1d4a1d';
                     ctx.beginPath();
-                    ctx.moveTo(baseX + 5 + sway3, baseY + 26);
-                    ctx.lineTo(baseX + 16 + sway3, baseY + 4);
-                    ctx.lineTo(baseX + 27 + sway3, baseY + 26);
+                    ctx.moveTo(baseX + TILE * 0.15 + sway3, baseY + TILE * 0.95);
+                    ctx.lineTo(baseX + TILE * 0.5 + sway3, baseY + TILE * 0.1);
+                    ctx.lineTo(baseX + TILE * 0.85 + sway3, baseY + TILE * 0.95);
                     ctx.fill();
                     ctx.fillStyle = '#2d5a2d';
                     ctx.beginPath();
-                    ctx.moveTo(baseX + 7 + sway3, baseY + 24);
-                    ctx.lineTo(baseX + 16 + sway3, baseY + 8);
-                    ctx.lineTo(baseX + 25 + sway3, baseY + 24);
+                    ctx.moveTo(baseX + TILE * 0.2 + sway3, baseY + TILE * 0.9);
+                    ctx.lineTo(baseX + TILE * 0.5 + sway3, baseY + TILE * 0.2);
+                    ctx.lineTo(baseX + TILE * 0.8 + sway3, baseY + TILE * 0.9);
                     ctx.fill();
                 } else {
-                    drawTreeTrunk(ctx, baseX + 14, baseY + 20, 5, 12, '#4a3525', sway);
+                    const treeScale = TILE / 32;
+                    drawTreeTrunk(ctx, baseX + TILE * 0.42, baseY + TILE * 0.6, 5 * treeScale, 12 * treeScale, '#4a3525', sway);
                     const sway4 = sway * 1.1;
-                    drawFoliageLayer(ctx, baseX + 16, baseY + 16, 10, '#1d5a1d', '#0d3a0d', sway4);
-                    drawFoliageLayer(ctx, baseX + 12, baseY + 18, 7, '#2d6a2d', '#1d4a1d', sway4 * 0.6);
-                    drawFoliageLayer(ctx, baseX + 20, baseY + 17, 5, '#3d7a3d', '#2d5a2d', sway4 * 0.7);
-                    drawFoliageLayer(ctx, baseX + 16, baseY + 12, 6, '#4d8a4d', '#3d6a3d', sway4 * 0.5);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.48, baseY + TILE * 0.45, 10 * treeScale, '#1d5a1d', '#0d3a0d', sway4);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.35, baseY + TILE * 0.5, 7 * treeScale, '#2d6a2d', '#1d4a1d', sway4 * 0.6);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.58, baseY + TILE * 0.47, 5 * treeScale, '#3d7a3d', '#2d5a2d', sway4 * 0.7);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.48, baseY + TILE * 0.32, 6 * treeScale, '#4d8a4d', '#3d6a3d', sway4 * 0.5);
                 }
             } else if (tile === 6) {
                 const flowerType = (x * 11 + y * 17) % 6;
-                const flowerSway = Math.sin(time * 2 + x * 0.5 + y * 0.3) * 2;
+                const flowerSway = Math.sin(time * 2 + x * 0.5 + y * 0.3) * (TILE / 16);
                 
                 ctx.fillStyle = GROUND_COLOR;
                 ctx.fillRect(baseX, baseY, TILE, TILE);
                 
                 drawFlowerShadow(ctx, baseX, baseY, shadowDir);
                 
+                // 使用TILE相对位置
+                const flowerX = baseX + TILE * 0.5;
+                const flowerY = baseY + TILE * 0.65;
+                const flowerSize = TILE * 0.16;
+                
                 if (flowerType === 0) {
-                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 5, '#ff6b6b', '#ffd93d', flowerSway);
+                    drawFlowerPetal(ctx, flowerX, flowerY, flowerSize, '#ff6b6b', '#ffd93d', flowerSway);
                 } else if (flowerType === 1) {
-                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 5, '#ff6bff', '#ffd93d', flowerSway);
+                    drawFlowerPetal(ctx, flowerX, flowerY, flowerSize, '#ff6bff', '#ffd93d', flowerSway);
                 } else if (flowerType === 2) {
-                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 6, '#ffd93d', '#ff8c42', flowerSway);
+                    drawFlowerPetal(ctx, flowerX, flowerY, flowerSize * 1.2, '#ffd93d', '#ff8c42', flowerSway);
                 } else if (flowerType === 3) {
-                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 5, '#4ecdc4', '#ffd93d', flowerSway);
+                    drawFlowerPetal(ctx, flowerX, flowerY, flowerSize, '#4ecdc4', '#ffd93d', flowerSway);
                 } else if (flowerType === 4) {
-                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 4, '#95e1d3', '#ffd93d', flowerSway);
+                    drawFlowerPetal(ctx, flowerX, flowerY, flowerSize * 0.8, '#95e1d3', '#ffd93d', flowerSway);
                 } else {
-                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 5, '#a8e6cf', '#ff8b94', flowerSway);
+                    drawFlowerPetal(ctx, flowerX, flowerY, flowerSize, '#a8e6cf', '#ff8b94', flowerSway);
                 }
             } else if (tile === 2) {
                 // 重新设计的草丛 - 多层草丛带动态阴影
@@ -668,7 +681,7 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 ctx.fill();
                 
                 const grassType = (x * 3 + y * 5) % 4;
-                const grassSway = Math.sin(time * 1.2 + x * 0.4 + y * 0.6) * 1.5;
+                const grassSway = Math.sin(time * 1.2 + x * 0.4 + y * 0.6) * (TILE / 24);
                 
                 // 草丛底座
                 ctx.fillStyle = '#2d5a2d';
@@ -691,43 +704,44 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.restore();
                 };
                 
+                // 使用TILE相对位置
                 if (grassType === 0) {
                     // 三叶草型
-                    drawGrassBlade(baseX + 8, baseY + 16, 4, 12, -0.3, '#4a8a4a');
-                    drawGrassBlade(baseX + 16, baseY + 18, 4, 14, 0, '#3d7a3d');
-                    drawGrassBlade(baseX + 24, baseY + 16, 4, 10, 0.3, '#4a8a4a');
-                    drawGrassBlade(baseX + 12, baseY + 20, 3, 8, -0.5, '#5a9a5a');
-                    drawGrassBlade(baseX + 20, baseY + 19, 3, 9, 0.4, '#5a9a5a');
+                    drawGrassBlade(baseX + TILE * 0.25, baseY + TILE * 0.5, TILE * 0.125, TILE * 0.375, -0.3, '#4a8a4a');
+                    drawGrassBlade(baseX + TILE * 0.5, baseY + TILE * 0.56, TILE * 0.125, TILE * 0.44, 0, '#3d7a3d');
+                    drawGrassBlade(baseX + TILE * 0.75, baseY + TILE * 0.5, TILE * 0.125, TILE * 0.31, 0.3, '#4a8a4a');
+                    drawGrassBlade(baseX + TILE * 0.38, baseY + TILE * 0.62, TILE * 0.09, TILE * 0.25, -0.5, '#5a9a5a');
+                    drawGrassBlade(baseX + TILE * 0.62, baseY + TILE * 0.6, TILE * 0.09, TILE * 0.28, 0.4, '#5a9a5a');
                 } else if (grassType === 1) {
                     // 茂密型
                     for (let i = 0; i < 7; i++) {
-                        const gx = baseX + 6 + (i % 4) * 7 + Math.sin(time + i) * 0.5;
-                        const gy = baseY + 14 + Math.floor(i / 4) * 6;
-                        const gh = 10 + Math.sin(time * 0.8 + i * 0.5) * 3;
+                        const gx = baseX + TILE * 0.19 + (i % 4) * TILE * 0.22 + Math.sin(time + i) * 0.5;
+                        const gy = baseY + TILE * 0.44 + Math.floor(i / 4) * TILE * 0.19;
+                        const gh = TILE * 0.31 + Math.sin(time * 0.8 + i * 0.5) * 3;
                         const angle = (i % 2 === 0 ? -0.2 : 0.2) + grassSway * 0.015;
-                        drawGrassBlade(gx, gy, 3, gh, angle, i % 3 === 0 ? '#5a9a5a' : '#4a8a4a');
+                        drawGrassBlade(gx, gy, TILE * 0.09, gh, angle, i % 3 === 0 ? '#5a9a5a' : '#4a8a4a');
                     }
                 } else if (grassType === 2) {
                     // 芦苇型
                     for (let i = 0; i < 5; i++) {
-                        const gx = baseX + 10 + i * 3;
-                        const gy = baseY + 16 + i * 2;
-                        const gh = 14 + i;
-                        drawGrassBlade(gx, gy, 2, gh, (i - 2) * 0.15 + grassSway * 0.02, i % 2 === 0 ? '#6aaa6a' : '#4a8a4a');
+                        const gx = baseX + TILE * 0.31 + i * TILE * 0.09;
+                        const gy = baseY + TILE * 0.5 + i * TILE * 0.06;
+                        const gh = TILE * 0.44 + i * TILE * 0.03;
+                        drawGrassBlade(gx, gy, TILE * 0.06, gh, (i - 2) * 0.15 + grassSway * 0.02, i % 2 === 0 ? '#6aaa6a' : '#4a8a4a');
                     }
                 } else {
                     // 扇形
-                    drawGrassBlade(baseX + 10, baseY + 18, 3, 12, -0.6, '#4a8a4a');
-                    drawGrassBlade(baseX + 14, baseY + 20, 3, 10, -0.3, '#5a9a5a');
-                    drawGrassBlade(baseX + 18, baseY + 20, 3, 10, 0, '#6aaa6a');
-                    drawGrassBlade(baseX + 22, baseY + 18, 3, 12, 0.3, '#5a9a5a');
-                    drawGrassBlade(baseX + 26, baseY + 16, 3, 14, 0.6, '#4a8a4a');
+                    drawGrassBlade(baseX + TILE * 0.31, baseY + TILE * 0.56, TILE * 0.09, TILE * 0.375, -0.6, '#4a8a4a');
+                    drawGrassBlade(baseX + TILE * 0.44, baseY + TILE * 0.62, TILE * 0.09, TILE * 0.31, -0.3, '#5a9a5a');
+                    drawGrassBlade(baseX + TILE * 0.56, baseY + TILE * 0.62, TILE * 0.09, TILE * 0.31, 0, '#6aaa6a');
+                    drawGrassBlade(baseX + TILE * 0.69, baseY + TILE * 0.56, TILE * 0.09, TILE * 0.375, 0.3, '#5a9a5a');
+                    drawGrassBlade(baseX + TILE * 0.81, baseY + TILE * 0.5, TILE * 0.09, TILE * 0.44, 0.6, '#4a8a4a');
                 }
                 
                 // 草叶高光
                 ctx.fillStyle = 'rgba(255,255,255,0.1)';
                 ctx.beginPath();
-                ctx.ellipse(baseX + TILE/2, baseY + TILE - 8, 4, 2, 0, 0, Math.PI*2);
+                ctx.ellipse(baseX + TILE/2, baseY + TILE * 0.75, TILE * 0.125, TILE * 0.06, 0, 0, Math.PI*2);
                 ctx.fill();
             } else if (tile === 3) {
                 // 重新设计的水域 - 波光粼粼效果
@@ -771,11 +785,11 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 
                 // 小水花
                 const splashTime = Date.now() / 600;
-                const splashX = baseX + 10 + Math.sin(splashTime + x) * 6;
-                const splashY = baseY + 20 + Math.cos(splashTime * 0.8 + y) * 4;
+                const splashX = baseX + TILE * 0.31 + Math.sin(splashTime + x) * TILE * 0.19;
+                const splashY = baseY + TILE * 0.62 + Math.cos(splashTime * 0.8 + y) * TILE * 0.12;
                 ctx.fillStyle = 'rgba(200,230,255,0.3)';
                 ctx.beginPath();
-                ctx.arc(splashX, splashY, 2, 0, Math.PI*2);
+                ctx.arc(splashX, splashY, TILE * 0.06, 0, Math.PI*2);
                 ctx.fill();
                 
             } else if (tile === 7) {
@@ -788,7 +802,7 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 ctx.fillRect(baseX, baseY, TILE, TILE);
                 if ((x + y) % 5 === 0) {
                     ctx.fillStyle = '#3a7a3a';
-                    ctx.fillRect(baseX + 10, baseY + 12, 4, 4);
+                    ctx.fillRect(baseX + TILE * 0.31, baseY + TILE * 0.38, TILE * 0.125, TILE * 0.125);
                 }
             }
         }
@@ -1240,30 +1254,33 @@ function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
                         throw new Error('Invalid canvas');
                     }
                 } catch (err) {
-                    const color = e.color || '#4a4';
+                    const color = e.color || '#5f5';
                     drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
                 }
             } else {
-                const color = e.color || '#4a4';
+                const color = e.color || '#5f5';
                 drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
             }
         } else {
-            const color = e.color || '#4a4';
+            const color = e.color || '#5f5';
             drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
         }
         
         // 敌人名称显示
         if (e.name) {
-            ctx.font = 'bold 10px Arial';
+            ctx.font = 'bold 11px Arial';
             ctx.textAlign = 'center';
-            ctx.fillStyle = e.color || '#fff';
+            ctx.fillStyle = '#fff';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.strokeText(e.name, e.x + e.w / 2, e.y - 14);
             ctx.fillText(e.name, e.x + e.w / 2, e.y - 14);
         }
         
         const hpPercent = Math.max(0, e.hp / e.maxHp);
-        ctx.fillStyle = '#300';
-        ctx.fillRect(e.x, e.y - 8, e.w, 4);
-        ctx.fillStyle = '#f00';
+        ctx.fillStyle = '#522';
+        ctx.fillRect(e.x - 1, e.y - 8, e.w + 2, 5);
+        ctx.fillStyle = '#f55';
         ctx.fillRect(e.x, e.y - 8, e.w * hpPercent, 4);
     });
 }
@@ -1289,7 +1306,7 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
         try {
             const bossType = { 
                 render: boss.render, 
-                color: boss.color || '#a22',
+                color: boss.color || '#e55',
                 type: 'boss'
             };
             const iconCanvas = window.renderEnemyIcon(bossType, boss.w);
@@ -1299,24 +1316,27 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
                 throw new Error('Invalid canvas');
             }
         } catch (err) {
-            drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
+            drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#e55', boss.render || 'boss', window.player);
         }
     } else {
-        drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
+        drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#e55', boss.render || 'boss', window.player);
     }
     
     const hpPercent = Math.min(1, Math.max(0, boss.hp / boss.maxHp));
-    ctx.fillStyle = '#300';
-    ctx.fillRect(boss.x, boss.y - 16, boss.w, 8);
-    ctx.fillStyle = '#f00';
-    ctx.fillRect(boss.x, boss.y - 16, boss.w * hpPercent, 8);
+    ctx.fillStyle = '#522';
+    ctx.fillRect(boss.x - 1, boss.y - 18, boss.w + 2, 10);
+    ctx.fillStyle = '#f55';
+    ctx.fillRect(boss.x, boss.y - 18, boss.w * hpPercent, 8);
     
     // Boss名称显示
     if (boss.name) {
-        ctx.font = 'bold 12px Arial';
+        ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
-        ctx.fillStyle = boss.color || '#fff';
-        ctx.fillText(boss.name, boss.x + boss.w / 2, boss.y - 22);
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.strokeText(boss.name, boss.x + boss.w / 2, boss.y - 24);
+        ctx.fillText(boss.name, boss.x + boss.w / 2, boss.y - 24);
     }
 }
 
@@ -1863,7 +1883,7 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     ctx.ellipse(player.x + player.w/2 + shadowDir.x, player.y + player.h - 4 + breathe + shadowDir.y, player.w/2.5, player.h/5, 0, 0, Math.PI*2);
     ctx.fill();
     
-    drawPixelSpriteFn(ctx, player.x, player.y + breathe, player.w, player.h, '#fa0', 'player', player);
+    drawPixelSpriteFn(ctx, player.x, player.y + breathe, player.w, player.h, '#ff6', 'player', player);
 }
 
 // ===== 云朵获取 =====

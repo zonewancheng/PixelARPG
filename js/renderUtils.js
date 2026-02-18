@@ -168,7 +168,7 @@ window.RenderUtils = {
      */
     getEnemyNameHtml: function(enemy) {
         if (!enemy) return '未知';
-        return `<span style="color:${enemy.color || '#4a4'}">${enemy.name}</span>`;
+        return `<span style="color:${enemy.color || '#5f5'}">${enemy.name}</span>`;
     },
 
     /**
@@ -233,7 +233,7 @@ window.RenderUtils = {
             <div class="bestiary-card-icon" style="background:transparent">
                 <img src="${iconUrl}" style="image-rendering:pixelated;width:32px;height:32px;">
             </div>
-            <div class="bestiary-card-name" style="color:${enemy.color || '#4a4'}">${enemy.name}</div>
+            <div class="bestiary-card-name" style="color:${enemy.color || '#5f5'}">${enemy.name}</div>
             <div class="bestiary-card-info">${stats}</div>
             ${skillsHtml}
             <div class="bestiary-card-count">击杀: ${discovered}</div>
