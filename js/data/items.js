@@ -1343,6 +1343,127 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
         }
     }
+    // 药水渲染 - 像素风格药水瓶
+    else if (item.type === 'consumable' && (item.heal || item.mp)) {
+        const cx = x + w * 0.5;
+        const bottleW = w * 0.5;
+        const bottleH = h * 0.6;
+        const bottleX = cx - bottleW * 0.5;
+        const bottleY = y + h * 0.35;
+        
+        // 确定药水颜色
+        let liquidColor, bottleColor, capColor, glowColor;
+        if (item.heal) {
+            if (item.id.includes('2') || item.id.includes('super')) {
+                // 超级红药水 - 更鲜艳
+                liquidColor = '#ff3333';
+                bottleColor = '#cc2222';
+                capColor = '#ffaa00';
+                glowColor = 'rgba(255, 80, 80, 0.4)';
+            } else {
+                // 普通红药水
+                liquidColor = '#ff4444';
+                bottleColor = '#cc3333';
+                capColor = '#aa8855';
+                glowColor = 'rgba(255, 100, 100, 0.3)';
+            }
+        } else if (item.mp) {
+            if (item.id.includes('2') || item.id.includes('super')) {
+                // 超级蓝药水
+                liquidColor = '#3333ff';
+                bottleColor = '#2222cc';
+                capColor = '#ffaa00';
+                glowColor = 'rgba(80, 80, 255, 0.4)';
+            } else {
+                // 普通蓝药水
+                liquidColor = '#4444ff';
+                bottleColor = '#3333cc';
+                capColor = '#aaaacc';
+                glowColor = 'rgba(100, 100, 255, 0.3)';
+            }
+        }
+        
+        // 发光效果
+        if (glowColor) {
+            ctx.fillStyle = glowColor;
+            ctx.beginPath();
+            ctx.arc(cx, bottleY + bottleH * 0.5, bottleW * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // 瓶身（玻璃质感）
+        ctx.fillStyle = 'rgba(200, 220, 255, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(bottleX + bottleW * 0.15, bottleY);
+        ctx.lineTo(bottleX + bottleW * 0.15, bottleY + bottleH * 0.25);
+        ctx.lineTo(bottleX, bottleY + bottleH * 0.5);
+        ctx.lineTo(bottleX + bottleW * 0.1, bottleY + bottleH);
+        ctx.lineTo(bottleX + bottleW * 0.9, bottleY + bottleH);
+        ctx.lineTo(bottleX + bottleW, bottleY + bottleH * 0.5);
+        ctx.lineTo(bottleX + bottleW * 0.85, bottleY + bottleH * 0.25);
+        ctx.lineTo(bottleX + bottleW * 0.85, bottleY);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 瓶身轮廓
+        ctx.strokeStyle = bottleColor || '#888';
+        ctx.lineWidth = Math.max(1, size * 0.05);
+        ctx.stroke();
+        
+        // 液体
+        const liquidH = bottleH * 0.55;
+        const liquidY = bottleY + bottleH - liquidH;
+        ctx.fillStyle = liquidColor;
+        ctx.beginPath();
+        ctx.moveTo(bottleX + bottleW * 0.18, liquidY);
+        ctx.lineTo(bottleX + bottleW * 0.18, bottleY + bottleH * 0.3);
+        ctx.lineTo(bottleX + bottleW * 0.05, bottleY + bottleH * 0.5);
+        ctx.lineTo(bottleX + bottleW * 0.13, bottleY + bottleH - 2);
+        ctx.lineTo(bottleX + bottleW * 0.87, bottleY + bottleH - 2);
+        ctx.lineTo(bottleX + bottleW * 0.95, bottleY + bottleH * 0.5);
+        ctx.lineTo(bottleX + bottleW * 0.82, bottleY + bottleH * 0.3);
+        ctx.lineTo(bottleX + bottleW * 0.82, liquidY);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 液体高光
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.ellipse(bottleX + bottleW * 0.3, liquidY + liquidH * 0.3, bottleW * 0.08, liquidH * 0.15, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 瓶塞/瓶盖
+        const capW = bottleW * 0.4;
+        const capH = bottleH * 0.15;
+        const capX = cx - capW * 0.5;
+        const capY = bottleY - capH;
+        
+        ctx.fillStyle = capColor;
+        ctx.beginPath();
+        ctx.roundRect(capX, capY, capW, capH, 2);
+        ctx.fill();
+        
+        // 瓶盖高光
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(capX + 2, capY + 2, capW * 0.3, capH * 0.4);
+        
+        // 气泡效果
+        if (Math.random() > 0.5) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            const bubbleY = bottleY + bottleH * 0.6 + Math.random() * bottleH * 0.3;
+            const bubbleX = cx - bottleW * 0.2 + Math.random() * bottleW * 0.4;
+            ctx.beginPath();
+            ctx.arc(bubbleX, bubbleY, Math.max(1, size * 0.03), 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // 标签
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(cx - bottleW * 0.15, bottleY + bottleH * 0.35, bottleW * 0.3, bottleH * 0.2);
+        // 标签图案
+        ctx.fillStyle = item.heal ? '#f44' : '#44f';
+        ctx.fillRect(cx - bottleW * 0.1, bottleY + bottleH * 0.4, bottleW * 0.2, bottleH * 0.1);
+    }
     else {
         ctx.fillStyle = color;
         ctx.fillRect(x + w*0.3, y + h*0.3, w*0.4, h*0.4);
