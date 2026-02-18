@@ -166,44 +166,294 @@ window.renderEquipmentIcon = function(item, size = 32) {
     
     const sprite = item.sprite || item.type;
     
-    // 武器渲染
+    // 武器渲染 - 完整的剑设计：把手、刀镡、刃、尖尖
     if (item.type === 'weapon') {
+        const cx = x + w * 0.5;
+        const bladeW = w * 0.15;
+        
         if (sprite === 'fire_sword') {
-            ctx.fillStyle = '#a00';
-            ctx.fillRect(x + w*0.35, y + h*0.1, w*0.15, h*0.5);
-            ctx.fillStyle = '#c74';
-            ctx.fillRect(x + w*0.3, y + h*0.55, w*0.25, h*0.2);
-            ctx.fillStyle = '#f96';
-            ctx.fillRect(x + w*0.35, y + h*0.7, w*0.15, h*0.15);
+            // 火焰剑 - 红色系
+            // 1. 把手 (handle)
+            ctx.fillStyle = '#4a2a1a';
+            ctx.fillRect(cx - bladeW*0.4, y + h*0.75, bladeW*0.8, h*0.22);
+            ctx.fillStyle = '#6a3a2a';
+            ctx.fillRect(cx - bladeW*0.25, y + h*0.78, bladeW*0.5, h*0.16);
+            
+            // 2. 刀镡 (guard)
+            ctx.fillStyle = '#800';
+            ctx.fillRect(cx - bladeW*1.5, y + h*0.7, bladeW*3, h*0.08);
             ctx.fillStyle = '#f00';
-            ctx.fillRect(x + w*0.38, y + h*0.05, w*0.1, h*0.08);
+            ctx.fillRect(cx - bladeW, y + h*0.71, bladeW*2, h*0.06);
+            
+            // 3. 刃 (blade) - 逐渐变窄
+            ctx.fillStyle = '#c00';
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW, y + h*0.7);
+            ctx.lineTo(cx - bladeW*0.6, y + h*0.25);
+            ctx.lineTo(cx, y + h*0.05);
+            ctx.lineTo(cx + bladeW*0.6, y + h*0.25);
+            ctx.lineTo(cx + bladeW, y + h*0.7);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 4. 刃的亮部
+            ctx.fillStyle = '#f44';
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW*0.3, y + h*0.65);
+            ctx.lineTo(cx - bladeW*0.15, y + h*0.3);
+            ctx.lineTo(cx, y + h*0.12);
+            ctx.lineTo(cx + bladeW*0.15, y + h*0.3);
+            ctx.lineTo(cx + bladeW*0.3, y + h*0.65);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 5. 尖尖 (tip)
+            ctx.fillStyle = '#ff6';
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.02);
+            ctx.lineTo(cx - bladeW*0.3, y + h*0.12);
+            ctx.lineTo(cx + bladeW*0.3, y + h*0.12);
+            ctx.closePath();
+            ctx.fill();
+            
         } else if (sprite === 'thunder_sword') {
+            // 雷电剑 - 黄色/青色系
+            // 1. 把手
+            ctx.fillStyle = '#224';
+            ctx.fillRect(cx - bladeW*0.35, y + h*0.75, bladeW*0.7, h*0.22);
+            ctx.fillStyle = '#446';
+            ctx.fillRect(cx - bladeW*0.2, y + h*0.78, bladeW*0.4, h*0.16);
+            
+            // 2. 刀镡 - 闪电形状
             ctx.fillStyle = '#cc0';
-            ctx.fillRect(x + w*0.4, y + h*0.1, w*0.1, h*0.5);
+            ctx.fillRect(cx - bladeW*1.8, y + h*0.7, bladeW*3.6, h*0.08);
             ctx.fillStyle = '#ff0';
-            ctx.fillRect(x + w*0.35, y + h*0.55, w*0.2, h*0.2);
-            ctx.fillStyle = '#0ff';
-            ctx.fillRect(x + w*0.3, y, w*0.3, h*0.1);
-            ctx.fillRect(x + w*0.45, y + h*0.1, w*0.1, h*0.3);
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW, y + h*0.69);
+            ctx.lineTo(cx - bladeW*0.3, y + h*0.75);
+            ctx.lineTo(cx + bladeW*0.3, y + h*0.69);
+            ctx.lineTo(cx + bladeW*0.8, y + h*0.75);
+            ctx.lineTo(cx + bladeW, y + h*0.71);
+            ctx.lineTo(cx + bladeW*0.3, y + h*0.78);
+            ctx.lineTo(cx - bladeW*0.3, y + h*0.71);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 3. 刃 - 闪电纹理
+            ctx.fillStyle = '#aa0';
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW*0.9, y + h*0.7);
+            ctx.lineTo(cx - bladeW*0.5, y + h*0.35);
+            ctx.lineTo(cx - bladeW*0.2, y + h*0.5);
+            ctx.lineTo(cx, y + h*0.08);
+            ctx.lineTo(cx + bladeW*0.2, y + h*0.5);
+            ctx.lineTo(cx + bladeW*0.5, y + h*0.35);
+            ctx.lineTo(cx + bladeW*0.9, y + h*0.7);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 4. 闪电亮部
+            ctx.fillStyle = '#ff4';
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW*0.25, y + h*0.65);
+            ctx.lineTo(cx - bladeW*0.1, y + h*0.4);
+            ctx.lineTo(cx, y + h*0.15);
+            ctx.lineTo(cx + bladeW*0.1, y + h*0.4);
+            ctx.lineTo(cx + bladeW*0.25, y + h*0.65);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 5. 尖尖
+            ctx.fillStyle = '#aff';
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.03);
+            ctx.lineTo(cx - bladeW*0.25, y + h*0.13);
+            ctx.lineTo(cx + bladeW*0.25, y + h*0.13);
+            ctx.closePath();
+            ctx.fill();
+            
         } else if (sprite === 'ice_sword') {
-            ctx.fillStyle = '#08c';
-            ctx.fillRect(x + w*0.4, y + h*0.1, w*0.1, h*0.5);
-            ctx.fillStyle = '#8ef';
-            ctx.fillRect(x + w*0.35, y + h*0.55, w*0.2, h*0.2);
+            // 寒冰剑 - 蓝白色系
+            // 1. 把手 - 冰晶质感
+            ctx.fillStyle = '#246';
+            ctx.fillRect(cx - bladeW*0.4, y + h*0.75, bladeW*0.8, h*0.22);
+            for(let i=0; i<3; i++) {
+                ctx.fillStyle = i%2===0 ? '#468' : '#8cf';
+                ctx.fillRect(cx - bladeW*0.3 + i*bladeW*0.2, y + h*0.76 + i*h*0.06, bladeW*0.25, h*0.05);
+            }
+            
+            // 2. 刀镡 - 雪花形状
+            ctx.fillStyle = '#8cf';
+            for(let i=0; i<6; i++) {
+                const angle = (i * Math.PI) / 3;
+                const r1 = bladeW * 1.5;
+                const r2 = bladeW * 0.5;
+                ctx.beginPath();
+                ctx.moveTo(cx, y + h*0.73);
+                ctx.lineTo(cx + Math.cos(angle)*r1, y + h*0.73 + Math.sin(angle)*r1*0.3);
+                ctx.lineTo(cx + Math.cos(angle)*r2, y + h*0.73 + Math.sin(angle)*r2*0.3);
+                ctx.closePath();
+                ctx.fill();
+            }
             ctx.fillStyle = '#cef';
-            ctx.fillRect(x + w*0.3, y, w*0.3, h*0.15);
+            ctx.beginPath();
+            ctx.arc(cx, y + h*0.73, bladeW*0.4, 0, Math.PI*2);
+            ctx.fill();
+            
+            // 3. 刃 - 冰晶形状
+            ctx.fillStyle = '#6af';
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW*0.8, y + h*0.7);
+            ctx.lineTo(cx - bladeW*0.5, y + h*0.45);
+            ctx.lineTo(cx - bladeW*0.7, y + h*0.3);
+            ctx.lineTo(cx - bladeW*0.3, y + h*0.2);
+            ctx.lineTo(cx, y + h*0.06);
+            ctx.lineTo(cx + bladeW*0.3, y + h*0.2);
+            ctx.lineTo(cx + bladeW*0.7, y + h*0.3);
+            ctx.lineTo(cx + bladeW*0.5, y + h*0.45);
+            ctx.lineTo(cx + bladeW*0.8, y + h*0.7);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 4. 冰晶亮部
+            ctx.fillStyle = '#def';
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW*0.2, y + h*0.6);
+            ctx.lineTo(cx - bladeW*0.1, y + h*0.35);
+            ctx.lineTo(cx, y + h*0.18);
+            ctx.lineTo(cx + bladeW*0.1, y + h*0.35);
+            ctx.lineTo(cx + bladeW*0.2, y + h*0.6);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 5. 尖尖 - 冰锥
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.02);
+            ctx.lineTo(cx - bladeW*0.2, y + h*0.12);
+            ctx.lineTo(cx + bladeW*0.2, y + h*0.12);
+            ctx.closePath();
+            ctx.fill();
+            
         } else if (sprite === 'demon_sword') {
-            ctx.fillStyle = '#606';
-            ctx.fillRect(x + w*0.35, y + h*0.1, w*0.15, h*0.5);
-            ctx.fillStyle = '#909';
-            ctx.fillRect(x + w*0.3, y + h*0.55, w*0.25, h*0.2);
+            // 恶魔剑 - 紫色/暗色系
+            // 1. 把手 - 骨质纹理
+            ctx.fillStyle = '#212';
+            ctx.fillRect(cx - bladeW*0.45, y + h*0.72, bladeW*0.9, h*0.26);
+            // 骨节
+            for(let i=0; i<4; i++) {
+                ctx.fillStyle = i%2===0 ? '#434' : '#212';
+                ctx.beginPath();
+                ctx.arc(cx, y + h*0.75 + i*h*0.05, bladeW*(0.4 - i*0.05), 0, Math.PI*2);
+                ctx.fill();
+            }
+            
+            // 2. 刀镡 - 恶魔翅膀形状
+            ctx.fillStyle = '#505';
+            // 左翼
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.72);
+            ctx.lineTo(cx - bladeW*2, y + h*0.6);
+            ctx.lineTo(cx - bladeW*1.5, y + h*0.75);
+            ctx.lineTo(cx - bladeW*2, y + h*0.85);
+            ctx.lineTo(cx, y + h*0.78);
+            ctx.closePath();
+            ctx.fill();
+            // 右翼
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.72);
+            ctx.lineTo(cx + bladeW*2, y + h*0.6);
+            ctx.lineTo(cx + bladeW*1.5, y + h*0.75);
+            ctx.lineTo(cx + bladeW*2, y + h*0.85);
+            ctx.lineTo(cx, y + h*0.78);
+            ctx.closePath();
+            ctx.fill();
+            // 中心宝石
             ctx.fillStyle = '#f0f';
-            ctx.fillRect(x + w*0.25, y + h*0.7, w*0.35, h*0.1);
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.68);
+            ctx.lineTo(cx - bladeW*0.3, y + h*0.75);
+            ctx.lineTo(cx, y + h*0.82);
+            ctx.lineTo(cx + bladeW*0.3, y + h*0.75);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 3. 刃 - 弯曲的恶魔刀
+            ctx.fillStyle = '#404';
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW*0.7, y + h*0.72);
+            ctx.quadraticCurveTo(cx - bladeW*0.5, y + h*0.4, cx - bladeW*0.3, y + h*0.25);
+            ctx.lineTo(cx, y + h*0.08);
+            ctx.lineTo(cx + bladeW*0.3, y + h*0.25);
+            ctx.quadraticCurveTo(cx + bladeW*0.5, y + h*0.4, cx + bladeW*0.7, y + h*0.72);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 4. 血槽
+            ctx.fillStyle = '#808';
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.68);
+            ctx.quadraticCurveTo(cx - bladeW*0.15, y + h*0.4, cx, y + h*0.15);
+            ctx.quadraticCurveTo(cx + bladeW*0.15, y + h*0.4, cx, y + h*0.68);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 5. 尖尖 - 恶魔角
+            ctx.fillStyle = '#f6f';
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.03);
+            ctx.lineTo(cx - bladeW*0.25, y + h*0.15);
+            ctx.lineTo(cx - bladeW*0.1, y + h*0.12);
+            ctx.lineTo(cx, y + h*0.06);
+            ctx.lineTo(cx + bladeW*0.1, y + h*0.12);
+            ctx.lineTo(cx + bladeW*0.25, y + h*0.15);
+            ctx.closePath();
+            ctx.fill();
+            
         } else {
+            // 默认铁剑
+            // 1. 把手
+            ctx.fillStyle = '#543';
+            ctx.fillRect(cx - bladeW*0.35, y + h*0.75, bladeW*0.7, h*0.22);
+            ctx.fillStyle = '#765';
+            ctx.fillRect(cx - bladeW*0.2, y + h*0.78, bladeW*0.4, h*0.16);
+            
+            // 2. 刀镡
             ctx.fillStyle = '#888';
-            ctx.fillRect(x + w*0.4, y + h*0.15, w*0.1, h*0.5);
+            ctx.fillRect(cx - bladeW*1.3, y + h*0.71, bladeW*2.6, h*0.06);
             ctx.fillStyle = '#aaa';
-            ctx.fillRect(x + w*0.35, y + h*0.6, w*0.2, h*0.15);
+            ctx.fillRect(cx - bladeW, y + h*0.72, bladeW*2, h*0.04);
+            
+            // 3. 刃
+            ctx.fillStyle = '#999';
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW*0.7, y + h*0.71);
+            ctx.lineTo(cx - bladeW*0.4, y + h*0.3);
+            ctx.lineTo(cx, y + h*0.1);
+            ctx.lineTo(cx + bladeW*0.4, y + h*0.3);
+            ctx.lineTo(cx + bladeW*0.7, y + h*0.71);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 4. 刃亮部
+            ctx.fillStyle = '#ccc';
+            ctx.beginPath();
+            ctx.moveTo(cx - bladeW*0.2, y + h*0.65);
+            ctx.lineTo(cx - bladeW*0.1, y + h*0.35);
+            ctx.lineTo(cx, y + h*0.18);
+            ctx.lineTo(cx + bladeW*0.1, y + h*0.35);
+            ctx.lineTo(cx + bladeW*0.2, y + h*0.65);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 5. 尖尖
+            ctx.fillStyle = '#eee';
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.06);
+            ctx.lineTo(cx - bladeW*0.2, y + h*0.15);
+            ctx.lineTo(cx + bladeW*0.2, y + h*0.15);
+            ctx.closePath();
+            ctx.fill();
         }
     }
     // 护甲渲染
