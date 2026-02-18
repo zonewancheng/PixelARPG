@@ -90,6 +90,50 @@ function getAudioContext() {
 let gameWidth = 480;
 let gameHeight = 640;
 
+// 摄像机偏移（用于地图滚动）
+let cameraX = 0;
+let cameraY = 0;
+
+// 窗口大小变化时重置摄像机
+window.addEventListener('resize', () => {
+    cameraX = 0;
+    cameraY = 0;
+});
+
+window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+        cameraX = 0;
+        cameraY = 0;
+    }, 100);
+});
+
+function updateCamera() {
+    if (!window.MAP_W || !window.MAP_H || !window.TILE) return;
+    
+    const mapWidth = window.MAP_W * window.TILE;
+    const mapHeight = window.MAP_H * window.TILE;
+    
+    // 只有当地图大于画布时才需要摄像机跟随
+    if (mapWidth <= gameWidth && mapHeight <= gameHeight) {
+        cameraX = 0;
+        cameraY = 0;
+        return;
+    }
+    
+    // 目标位置：玩家居中
+    let targetX = player.x + player.w / 2 - gameWidth / 2;
+    let targetY = player.y + player.h / 2 - gameHeight / 2;
+    
+    // 限制在地图范围内
+    targetX = Math.max(0, Math.min(targetX, mapWidth - gameWidth));
+    targetY = Math.max(0, Math.min(targetY, mapHeight - gameHeight));
+    
+    // 平滑跟随（简单线性插值）
+    const smoothing = 0.15;
+    cameraX += (targetX - cameraX) * smoothing;
+    cameraY += (targetY - cameraY) * smoothing;
+}
+
 function initGame() {
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
@@ -737,6 +781,7 @@ function gameLoop() {
     if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen) {
         update();
     }
+    updateCamera();
     render();
     requestAnimationFrame(gameLoop);
 }
@@ -1226,6 +1271,10 @@ function render() {
         damageFlash--;
     }
     
+    // 应用摄像机偏移
+    ctx.save();
+    ctx.translate(-cameraX, -cameraY);
+    
     // 绘制地图
     drawMap(ctx, map, window.TILE, window.MAP_W, window.MAP_H);
     
@@ -1260,7 +1309,10 @@ function render() {
     // 绘制伤害数字
     drawDamageNumbers(ctx, damageNumbers);
     
-    // 云层
+    // 恢复摄像机偏移
+    ctx.restore();
+    
+    // 云层（不应用摄像机偏移，保持在屏幕固定位置）
     drawClouds(ctx, gameWidth, gameHeight, player);
     
     if (message) {
