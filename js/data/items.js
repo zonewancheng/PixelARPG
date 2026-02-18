@@ -48,6 +48,8 @@ window.ITEM_TYPES = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace', '
 window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     const dir = player.dirX > 0 ? 1 : (player.dirX < 0 ? -1 : 1);
     const cx = x + w / 2;
+    const time = Date.now() / 1000;
+    const breathe = Math.sin(time * 2) * 1.5;
     
     // 原神风格角色基础设计
     // 皮肤颜色
@@ -68,9 +70,9 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     let weaponX, weaponY, weaponCanvas, weaponSize = 22;
     
     if (player.weapon && window.renderEquipmentIcon) {
-        const time = Date.now() / 1500;
+        const weaponTime = Date.now() / 1500;
         const orbitRadius = w * 0.45;
-        const angle = time + (dir > 0 ? 0 : Math.PI);
+        const angle = weaponTime + (dir > 0 ? 0 : Math.PI);
         
         weaponX = cx + Math.cos(angle) * orbitRadius;
         weaponY = y + h * 0.5 + Math.sin(angle) * orbitRadius * 0.4;
@@ -201,42 +203,53 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     // 身体主体
     ctx.fillStyle = clothesColor;
     ctx.beginPath();
-    ctx.moveTo(cx - 10, y + h*0.45);
-    ctx.lineTo(cx + 10, y + h*0.45);
-    ctx.lineTo(cx + 12, y + h*0.7);
-    ctx.lineTo(cx - 12, y + h*0.7);
+    ctx.moveTo(cx - 10, y + h*0.45 + breathe * 0.3);
+    ctx.lineTo(cx + 10, y + h*0.45 + breathe * 0.3);
+    ctx.lineTo(cx + 12, y + h*0.7 + breathe * 0.2);
+    ctx.lineTo(cx - 12, y + h*0.7 + breathe * 0.2);
     ctx.closePath();
     ctx.fill();
     
     // 衣服阴影/褶皱
     ctx.fillStyle = clothesDark;
     ctx.beginPath();
-    ctx.moveTo(cx - 8, y + h*0.5);
-    ctx.lineTo(cx - 6, y + h*0.65);
-    ctx.lineTo(cx - 10, y + h*0.68);
+    ctx.moveTo(cx - 8, y + h*0.5 + breathe * 0.3);
+    ctx.lineTo(cx - 6, y + h*0.65 + breathe * 0.2);
+    ctx.lineTo(cx - 10, y + h*0.68 + breathe * 0.2);
     ctx.closePath();
     ctx.fill();
     ctx.beginPath();
-    ctx.moveTo(cx + 8, y + h*0.5);
-    ctx.lineTo(cx + 6, y + h*0.65);
-    ctx.lineTo(cx + 10, y + h*0.68);
+    ctx.moveTo(cx + 8, y + h*0.5 + breathe * 0.3);
+    ctx.lineTo(cx + 6, y + h*0.65 + breathe * 0.2);
+    ctx.lineTo(cx + 10, y + h*0.68 + breathe * 0.2);
     ctx.closePath();
     ctx.fill();
     
     // 腰带
     ctx.fillStyle = '#432';
-    ctx.fillRect(cx - 11, y + h*0.68, 22, h*0.04);
+    ctx.fillRect(cx - 11, y + h*0.68 + breathe * 0.2, 22, h*0.04);
     ctx.fillStyle = '#ca8';
-    ctx.fillRect(cx - 3, y + h*0.69, 6, h*0.02);
+    ctx.fillRect(cx - 3, y + h*0.69 + breathe * 0.2, 6, h*0.02);
     
     // 根据 armor 渲染护甲（叠加在基础衣服上）
     if (player.armor && window.renderEquipmentIcon) {
         const armorCanvas = window.renderEquipmentIcon(player.armor, 24);
         ctx.save();
         ctx.globalAlpha = 0.9;
-        ctx.translate(x + 12, y + h*0.55);
-        ctx.scale(0.75, 0.75);
+        // 护甲呼吸动画
+        const armorPulse = 1 + Math.sin(time * 2.5) * 0.03;
+        ctx.translate(x + 12, y + h*0.55 + breathe * 0.3);
+        ctx.scale(0.75 * armorPulse, 0.75 * armorPulse);
         ctx.drawImage(armorCanvas, -12, -12);
+        
+        // 护甲发光效果
+        if (player.armor.quality === 'legendary' || player.armor.quality === 'epic') {
+            ctx.globalAlpha = 0.15 + Math.sin(time * 3) * 0.1;
+            const glowColor = player.armor.color || '#fa0';
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 10 + Math.sin(time * 4) * 5;
+            ctx.drawImage(armorCanvas, -12, -12);
+        }
         ctx.restore();
     }
     
@@ -269,13 +282,16 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     if (player.boots && window.renderEquipmentIcon) {
         const bootCanvas = window.renderEquipmentIcon(player.boots, 16);
         ctx.save();
-        ctx.translate(x + w*0.34, y + h*0.88);
+        // 靴子动画 - 轻微上下浮动
+        const bootBob = Math.sin(time * 3) * 1;
+        ctx.save();
+        ctx.translate(x + w*0.34, y + h*0.88 + bootBob);
         ctx.scale(0.5, 0.5);
         ctx.drawImage(bootCanvas, -8, -8);
         ctx.restore();
         
         ctx.save();
-        ctx.translate(x + w*0.66, y + h*0.88);
+        ctx.translate(x + w*0.66, y + h*0.88 - bootBob);
         ctx.scale(0.5, 0.5);
         ctx.drawImage(bootCanvas, -8, -8);
         ctx.restore();
@@ -292,33 +308,70 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
         const helmCanvas = window.renderEquipmentIcon(player.helmet, 20);
         ctx.save();
         ctx.globalAlpha = 0.95;
-        ctx.translate(x + w*0.5, y + h*0.12);
+        // 头盔轻微上下浮动
+        const helmBob = Math.sin(time * 2.5) * 0.5;
+        ctx.translate(x + w*0.5, y + h*0.12 + helmBob);
         ctx.scale(0.8, 0.8);
         ctx.drawImage(helmCanvas, -10, -10);
+        
+        // 头盔高光闪烁
+        if (player.helmet.quality === 'legendary' || player.helmet.quality === 'epic') {
+            const shineAlpha = 0.2 + Math.sin(time * 4) * 0.15;
+            ctx.globalAlpha = shineAlpha;
+            const helmColor = player.helmet.color || '#fa0';
+            ctx.shadowColor = helmColor;
+            ctx.shadowBlur = 8;
+            ctx.drawImage(helmCanvas, -10, -10);
+        }
         ctx.restore();
     }
     
     // ========== 饰品 ==========
     
-    // 戒指
+    // 戒指 - 发光脉动动画
     if (player.ring && window.renderEquipmentIcon) {
         const ringCanvas = window.renderEquipmentIcon(player.ring, 12);
-        // 戴在右手（武器手）
         const ringX = dir > 0 ? x + w*0.88 : x + w*0.12;
+        
+        // 戒指发光效果
+        if (player.ring.quality && player.ring.quality !== 'common') {
+            const ringGlow = 0.2 + Math.sin(time * 3) * 0.15;
+            ctx.fillStyle = player.ring.color || '#fa0';
+            ctx.globalAlpha = ringGlow;
+            ctx.beginPath();
+            ctx.arc(ringX, y + h*0.62, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+        
         ctx.save();
         ctx.translate(ringX, y + h*0.62);
-        ctx.scale(0.4, 0.4);
+        // 戒指轻微脉动
+        const ringPulse = 1 + Math.sin(time * 2) * 0.05;
+        ctx.scale(0.4 * ringPulse, 0.4 * ringPulse);
         ctx.drawImage(ringCanvas, -6, -6);
         ctx.restore();
     }
     
-    // 项链
+    // 项链 - 摇摆动画
     if (player.necklace && window.renderEquipmentIcon) {
         const neckCanvas = window.renderEquipmentIcon(player.necklace, 14);
         ctx.save();
+        // 项链摇摆
+        const neckSwing = Math.sin(time * 2) * 0.05;
         ctx.translate(x + w*0.5, y + h*0.4);
+        ctx.rotate(neckSwing);
         ctx.scale(0.45, 0.45);
         ctx.drawImage(neckCanvas, -7, -7);
+        
+        // 项链发光
+        if (player.necklace.quality && player.necklace.quality !== 'common') {
+            const neckGlow = 0.15 + Math.sin(time * 2.5) * 0.1;
+            ctx.globalAlpha = neckGlow;
+            ctx.shadowColor = player.necklace.color || '#fa0';
+            ctx.shadowBlur = 8;
+            ctx.drawImage(neckCanvas, -7, -7);
+        }
         ctx.restore();
     }
     
@@ -328,10 +381,10 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
         
         // 绘制武器到手的连线
         if (player.weapon && window.renderEquipmentIcon) {
-            const time = Date.now() / 1500;
+            const weaponTime = Date.now() / 1500;
             ctx.strokeStyle = player.weapon.color || '#fff';
             ctx.lineWidth = 2;
-            ctx.globalAlpha = 0.3 + Math.sin(time * 5) * 0.2;
+            ctx.globalAlpha = 0.3 + Math.sin(weaponTime * 5) * 0.2;
             ctx.beginPath();
             const handX = dir > 0 ? x + w*0.88 : x + w*0.12;
             const handY = y + h*0.6;
@@ -343,7 +396,6 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     }
     
     // 元素光芒效果（风元素）
-    const time = Date.now() / 1000;
     ctx.fillStyle = `rgba(0, 200, 200, ${0.1 + Math.sin(time * 3) * 0.05})`;
     ctx.beginPath();
     ctx.arc(cx, y + h*0.5, w*0.25 + Math.sin(time * 2) * 2, 0, Math.PI*2);
