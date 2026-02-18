@@ -223,35 +223,24 @@ window.renderSkillIcon = function(skill, size = 32) {
     const renderType = skill.render || skill.id;
     
     if (renderType === 'slash') {
-        // 斩击 - 三道交叉的剑气
+        // 新月 - 中间厚两头尖，朝向左上方45度
         ctx.save();
         ctx.translate(cx, cy);
+        ctx.rotate(-Math.PI * 0.25); // 旋转45度朝向左上方
         
-        // 发光效果
-        ctx.shadowColor = skill.slashGlow || '#0cf';
+        // 外发光
+        ctx.shadowColor = '#0cf';
         ctx.shadowBlur = 8;
         
-        // 主剑气
-        ctx.strokeStyle = skill.slashColor || '#fff';
-        ctx.lineWidth = 3;
+        // 月牙主体 - 使用贝塞尔曲线实现中间厚两头尖
+        ctx.fillStyle = '#fff';
         ctx.beginPath();
-        ctx.moveTo(-size*0.25, -size*0.15);
-        ctx.lineTo(size*0.25, size*0.15);
-        ctx.stroke();
-        
-        // 第二道剑气
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(-size*0.2, -size*0.25);
-        ctx.lineTo(size*0.2, 0);
-        ctx.stroke();
-        
-        // 第三道剑气
-        ctx.beginPath();
-        ctx.moveTo(-size*0.15, 0);
-        ctx.lineTo(size*0.15, size*0.25);
-        ctx.stroke();
+        ctx.moveTo(-size * 0.35, 0);
+        ctx.quadraticCurveTo(-size * 0.15, -size * 0.25, size * 0.35, -size * 0.15);
+        ctx.quadraticCurveTo(size * 0.25, 0, size * 0.35, size * 0.15);
+        ctx.quadraticCurveTo(-size * 0.15, size * 0.25, -size * 0.35, 0);
+        ctx.closePath();
+        ctx.fill();
         
         ctx.restore();
         

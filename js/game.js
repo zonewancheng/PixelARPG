@@ -1298,25 +1298,25 @@ function attack() {
     
     player.attacking = 20;
     
-    // 摇杆模式下自动锁定最近敌人
+    // 摇杆模式下自动锁定最近敌人（仅当玩家没有明确方向时）
     let dirX = player.dirX;
     let dirY = player.dirY;
     
     if (window.controlMode === 'joystick') {
-        const target = getAutoTarget();
-        if (target) {
-            const targetX = target.x + (target.w || 0) / 2;
-            const targetY = target.y + (target.h || 0) / 2;
-            const baseX = player.x + player.w / 2;
-            const baseY = player.y + player.h / 2;
-            const dx = targetX - baseX;
-            const dy = targetY - baseY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist > 0) {
-                dirX = dx / dist;
-                dirY = dy / dist;
-                player.dirX = dirX;
-                player.dirY = dirY;
+        if (dirX === 0 && dirY === 0) {
+            const target = getAutoTarget();
+            if (target) {
+                const targetX = target.x + (target.w || 0) / 2;
+                const targetY = target.y + (target.h || 0) / 2;
+                const baseX = player.x + player.w / 2;
+                const baseY = player.y + player.h / 2;
+                const dx = targetX - baseX;
+                const dy = targetY - baseY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > 0) {
+                    dirX = dx / dist;
+                    dirY = dy / dist;
+                }
             }
         }
     }
@@ -1428,10 +1428,10 @@ function getAutoTarget() {
 }
 
 // 技能栏扇形布局 - 摇杆模式
-// 最里面: 普通攻击
-// 第二层: 2、3、4技能
-// 5技能: 最左侧
-// 6技能: 4技能上方
+// 攻击按钮在右下角
+// 月牙形包裹: 2、3、4技能（月牙朝向左上方45度，凹处对着攻击按钮）
+// 5技能: 最左侧（与摇杆对称）
+// 6技能: 攻击按钮上方
 function updateSkillFanLayout() {
     const container = document.getElementById('skills-container');
     const skills = window.playerSkills || [];
@@ -1445,31 +1445,24 @@ function updateSkillFanLayout() {
         slot.style.transform = '';
     });
     
-    // 布局配置: [index, radius, angle(度), isCenter]
+    // 布局配置: [skillIndex, offsetX, offsetY]
+    // 2,3,4,5,6技能从下往上排列，每个向左上45度方向移动20px
+    // 3,4,5,6向上移动15px
+    // 4技能向右上移动15px，5技能向右移动40px
     const layout = [
-        [0, 0, 0, true],      // 普通攻击 - 中心
-        [1, 55, -45],          // 技能2 - 右下45度
-        [2, 55, 0],            // 技能3 - 右
-        [3, 55, 45],           // 技能4 - 右下-45度
-        [4, 55, -135],         // 技能5 - 左侧
-        [5, 80, 90],           // 技能6 - 右上方
+        [1, -4, -36],    // 技能2 - 最下方
+        [2, 7, 4],      // 技能3 - 下方
+        [3, 38, 33],    // 技能4 - 向右上15px
+        [4, 80, 35],    // 技能5 - 向右40px
+        [5, 80, 80],    // 技能6 - 最上方
     ];
     
-    layout.forEach(([idx, radius, angleDeg, isCenter]) => {
+    layout.forEach(([idx, ox, oy]) => {
         const slot = container.querySelector(`[data-skill-index="${idx}"]`);
         if (slot) {
-            if (isCenter) {
-                slot.style.position = 'absolute';
-                slot.style.left = 'calc(50% - 18px)';
-                slot.style.bottom = 'calc(50% - 18px)';
-            } else {
-                const angle = angleDeg * Math.PI / 180;
-                const x = Math.cos(angle) * radius;
-                const y = -Math.sin(angle) * radius;
-                slot.style.position = 'absolute';
-                slot.style.left = `calc(50% + ${x - 18}px)`;
-                slot.style.bottom = `calc(50% + ${y - 18}px)`;
-            }
+            slot.style.position = 'absolute';
+            slot.style.left = `calc(50% + ${ox - 18}px)`;
+            slot.style.bottom = `calc(50% + ${oy - 18}px)`;
         }
     });
 }
@@ -1498,26 +1491,26 @@ function useSkill(index) {
         return;
     }
     
-    // 摇杆模式下自动锁定最近敌人
+    // 摇杆模式下自动锁定最近敌人（仅当玩家没有明确方向时）
     let dirX = player.dirX;
     let dirY = player.dirY;
     
     if (window.controlMode === 'joystick') {
-        const target = getAutoTarget();
-        if (target) {
-            const targetX = target.x + (target.w || 0) / 2;
-            const targetY = target.y + (target.h || 0) / 2;
-            const baseX = player.x + player.w / 2;
-            const baseY = player.y + player.h / 2;
-            const dx = targetX - baseX;
-            const dy = targetY - baseY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist > 0) {
-                dirX = dx / dist;
-                dirY = dy / dist;
-                // 更新玩家朝向
-                player.dirX = dirX;
-                player.dirY = dirY;
+        // 只有当玩家没有明确方向时才自动锁定
+        if (dirX === 0 && dirY === 0) {
+            const target = getAutoTarget();
+            if (target) {
+                const targetX = target.x + (target.w || 0) / 2;
+                const targetY = target.y + (target.h || 0) / 2;
+                const baseX = player.x + player.w / 2;
+                const baseY = player.y + player.h / 2;
+                const dx = targetX - baseX;
+                const dy = targetY - baseY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > 0) {
+                    dirX = dx / dist;
+                    dirY = dy / dist;
+                }
             }
         }
     }
@@ -1606,39 +1599,72 @@ function useSkill(index) {
     playSound('skill');
 }
 
+function refreshAttackButton() {
+    const joystickAttack = document.getElementById('joystick-attack');
+    if (!joystickAttack) return;
+    
+    const weapon = window.player.weapon;
+    if (weapon && window.renderEquipmentIcon) {
+        try {
+            const canvas = window.renderEquipmentIcon(weapon, 36);
+            const iconUrl = canvas.toDataURL();
+            joystickAttack.innerHTML = `<img src="${iconUrl}" style="image-rendering:pixelated;width:36px;height:36px;">`;
+        } catch(e) {
+            console.error('Render weapon icon error:', e);
+            joystickAttack.textContent = weapon.icon || '⚔️';
+        }
+    } else {
+        joystickAttack.textContent = '⚔️';
+    }
+}
+
 function setupUI() {
     const skillsContainer = document.getElementById('skills');
     skillsContainer.innerHTML = '';
     
-    window.playerSkills.forEach((skill, i) => {
+    // 从索引1开始（去掉1技能，攻击按钮使用）
+    window.playerSkills.slice(1).forEach((skill, i) => {
         const slot = document.createElement('div');
         slot.className = 'skill-slot';
-        slot.dataset.skillIndex = i;
+        slot.dataset.skillIndex = i + 1;
         let iconHtml = skill.icon;
         if (window.renderSkillIcon) {
             const iconUrl = window.renderSkillIcon(skill, 28);
             iconHtml = `<img src="${iconUrl}" style="image-rendering:pixelated;width:28px;height:28px;">`;
         }
         slot.innerHTML = `
-            <span class="hotkey">${i + 1}</span>
+            <span class="hotkey">${i + 2}</span>
             ${iconHtml}
             <div class="cooldown"></div>
         `;
-        slot.addEventListener('click', () => useSkill(i));
+        slot.addEventListener('click', () => useSkill(i + 1));
         skillsContainer.appendChild(slot);
     });
     
-    // 摇杆模式攻击按钮
+    // 摇杆模式攻击按钮 - 使用当前装备的武器图标
     const joystickAttack = document.getElementById('joystick-attack');
     if (joystickAttack) {
+        const weapon = window.player.weapon;
+        if (weapon && window.renderEquipmentIcon) {
+            try {
+                const canvas = window.renderEquipmentIcon(weapon, 36);
+                const iconUrl = canvas.toDataURL();
+                joystickAttack.innerHTML = `<img src="${iconUrl}" style="image-rendering:pixelated;width:36px;height:36px;">`;
+            } catch(e) {
+                console.error('Render weapon icon error:', e);
+                joystickAttack.textContent = weapon.icon || '⚔️';
+            }
+        } else {
+            joystickAttack.textContent = '⚔️';
+        }
         joystickAttack.addEventListener('click', (e) => {
             e.stopPropagation();
-            attack();
+            useSkill(0);
         });
         joystickAttack.addEventListener('touchstart', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            attack();
+            useSkill(0);
         });
     }
     
@@ -2533,6 +2559,7 @@ function equipItem(index) {
     if (inventoryOpen) {
         openInventory();
     }
+    refreshAttackButton();
 }
 
 function recalculateStats() {
