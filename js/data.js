@@ -16,11 +16,15 @@ window.MAP_H = 20;
 window.initMapSize = function(canvasWidth, canvasHeight) {
     // 计算合适的瓦片大小，使地图填满画布
     const minTile = 24;
-    const maxTile = 40;
+    const maxTile = 48;
     
     // 计算最佳瓦片大小（填满屏幕）
-    const tileByWidth = Math.floor(canvasWidth / 15);
-    const tileByHeight = Math.floor(canvasHeight / 20);
+    // 根据屏幕高度动态调整行数
+    const rows = Math.max(20, Math.floor(canvasHeight / 28));
+    const cols = Math.floor(canvasWidth / 20);
+    
+    const tileByWidth = Math.floor(canvasWidth / cols);
+    const tileByHeight = Math.floor(canvasHeight / rows);
     
     // 取较小值确保填满屏幕
     window.TILE = Math.max(minTile, Math.min(maxTile, Math.min(tileByWidth, tileByHeight)));
@@ -29,7 +33,7 @@ window.initMapSize = function(canvasWidth, canvasHeight) {
     window.MAP_W = Math.ceil(canvasWidth / window.TILE);
     window.MAP_H = Math.ceil(canvasHeight / window.TILE);
     
-    console.log(`Map: ${window.MAP_W}x${window.MAP_H}, TILE=${window.TILE}`);
+    console.log(`Map: ${window.MAP_W}x${window.MAP_H}, TILE=${window.TILE}, rows=${rows}`);
 };
 
 // 游戏版本

@@ -99,10 +99,9 @@ function initGame() {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     
-    // 计算合适的画布大小（保留一定边距）
-    const margin = 0;
-    gameWidth = Math.min(480, screenWidth - margin);
-    gameHeight = Math.min(640, screenHeight - margin);
+    // 计算合适的画布大小（填满整个屏幕）
+    gameWidth = screenWidth;
+    gameHeight = screenHeight;
     
     canvas.width = gameWidth * dpr;
     canvas.height = gameHeight * dpr;
