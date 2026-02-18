@@ -412,6 +412,11 @@ function drawWallWithBricks(ctx, x, y, size) {
 }
 
 function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
+    // 确保地图数据有效
+    if (!map || !map.length || !map[0] || MAP_W <= 0 || MAP_H <= 0 || TILE <= 0) {
+        return;
+    }
+    
     // 使用逻辑尺寸绘制背景
     const logicalWidth = MAP_W * TILE;
     const logicalHeight = MAP_H * TILE;
@@ -424,6 +429,7 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
     const shadowDir = getShadowDirection();
     
     for (let y = 0; y < MAP_H; y++) {
+        if (!map[y]) continue;
         for (let x = 0; x < MAP_W; x++) {
             const tile = map[y][x];
             const baseX = x * TILE;

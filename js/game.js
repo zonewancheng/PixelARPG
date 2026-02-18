@@ -96,16 +96,48 @@ let cameraY = 0;
 
 // 窗口大小变化时重置摄像机
 window.addEventListener('resize', () => {
-    cameraX = 0;
-    cameraY = 0;
+    updateCanvasSize();
+    if (window.initMapSize) {
+        window.initMapSize(gameWidth, gameHeight);
+    }
+    if (window.MAP_W && window.MAP_H && window.TILE) {
+        const mapWidth = window.MAP_W * window.TILE;
+        const mapHeight = window.MAP_H * window.TILE;
+        
+        let targetX = player.x + player.w/2 - gameWidth/2;
+        let targetY = player.y + player.h/2 - gameHeight/2;
+        
+        cameraX = Math.max(0, Math.min(targetX, mapWidth - gameWidth));
+        cameraY = Math.max(0, Math.min(targetY, mapHeight - gameHeight));
+    }
 });
 
 window.addEventListener('orientationchange', () => {
     setTimeout(() => {
+        updateCanvasSize();
+        if (window.initMapSize) {
+            window.initMapSize(gameWidth, gameHeight);
+        }
+        generateMap();
+        spawnEnemies();
+        player.x = window.player.x;
+        player.y = window.player.y;
         cameraX = 0;
         cameraY = 0;
-    }, 100);
+    }, 200);
 });
+
+function updateCanvasSize() {
+    const dpr = window.devicePixelRatio || 1;
+    gameWidth = window.innerWidth;
+    gameHeight = window.innerHeight;
+    
+    canvas.width = gameWidth * dpr;
+    canvas.height = gameHeight * dpr;
+    canvas.style.width = gameWidth + 'px';
+    canvas.style.height = gameHeight + 'px';
+    ctx.scale(dpr, dpr);
+}
 
 function updateCamera() {
     if (!window.MAP_W || !window.MAP_H || !window.TILE) return;
@@ -113,22 +145,15 @@ function updateCamera() {
     const mapWidth = window.MAP_W * window.TILE;
     const mapHeight = window.MAP_H * window.TILE;
     
-    // 只有当地图大于画布时才需要摄像机跟随
-    if (mapWidth <= gameWidth && mapHeight <= gameHeight) {
-        cameraX = 0;
-        cameraY = 0;
-        return;
-    }
-    
-    // 目标位置：玩家居中
+    // 玩家永远在屏幕中心，计算摄像机目标位置
     let targetX = player.x + player.w / 2 - gameWidth / 2;
     let targetY = player.y + player.h / 2 - gameHeight / 2;
     
-    // 限制在地图范围内
+    // 限制在地图范围内（这样当地图小于屏幕时会自动居中）
     targetX = Math.max(0, Math.min(targetX, mapWidth - gameWidth));
     targetY = Math.max(0, Math.min(targetY, mapHeight - gameHeight));
     
-    // 平滑跟随（简单线性插值）
+    // 平滑跟随
     const smoothing = 0.15;
     cameraX += (targetX - cameraX) * smoothing;
     cameraY += (targetY - cameraY) * smoothing;
@@ -179,6 +204,7 @@ function initGame() {
     spawnEnemies();
     setupInput();
     setupUI();
+    refreshAttackButton();
     
     setTimeout(() => {
         updatePlayerAvatar();
@@ -1109,6 +1135,8 @@ function update() {
             spawnEnemies();
             player.x = 7 * window.TILE;
             player.y = 15 * window.TILE;
+            cameraX = 0;
+            cameraY = 0;
             levelTransitioning = false;
         }, 1500);
     }
@@ -1207,6 +1235,8 @@ function update() {
                                     spawnEnemies();
                                     player.x = 7 * window.TILE;
                                     player.y = 15 * window.TILE;
+                                    cameraX = 0;
+                                    cameraY = 0;
                                     levelTransitioning = false;
                                     showMessage(`Level ${mapLevel}!`);
                                 }, 10000);
@@ -1504,7 +1534,55 @@ function attack() {
         }
     });
     
-    if (window.boss) {
+    // 攻击所有Boss
+    if (window.bosses && window.bosses.length > 0) {
+        window.bosses.forEach(boss => {
+            if (!boss || boss.hp <= 0) return;
+            const dx = (boss.x + boss.w/2) - px;
+            const dy = (boss.y + boss.h/2) - py;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < range + 20 && isTargetInDirection(boss.x + boss.w/2, boss.y + boss.h/2)) {
+                const dmg = Math.max(1, player.atk - boss.def + Math.floor(Math.random() * 10));
+                boss.hp -= dmg;
+                boss.vx = dirX * 8;
+                boss.vy = dirY * 8;
+                spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#f44', 10);
+                spawnDamageNumber(boss.x + boss.w/2, boss.y, dmg);
+                if (boss.hp <= 0) {
+                    player.exp += Math.floor(boss.exp * 1.5);
+                    player.gold += boss.gold;
+                    spawnDrop(boss.x, boss.y, true);
+                    window.discoverEnemy?.(boss.render, boss.name);
+                    showMessage(`BOSS DEFEATED! +${Math.floor(boss.exp * 1.5)} EXP!`);
+                    mapLevel++;
+                    levelTransitioning = true;
+                    
+                    let countdown = 10;
+                    const countdownMsg = setInterval(() => {
+                        showMessage(`Next level in ${countdown}s...`);
+                        countdown--;
+                        if (countdown <= 0) clearInterval(countdownMsg);
+                    }, 1000);
+                    
+                    setTimeout(() => {
+                        generateMap();
+                        spawnEnemies();
+                        player.x = 7 * window.TILE;
+                        player.y = 15 * window.TILE;
+                        cameraX = 0;
+                        cameraY = 0;
+                        levelTransitioning = false;
+                        showMessage(`Level ${mapLevel}!`);
+                    }, 10000);
+                    
+                    // 从 bosses 数组中移除
+                    const idx = window.bosses.indexOf(boss);
+                    if (idx > -1) window.bosses.splice(idx, 1);
+                    window.boss = window.bosses[0] || null;
+                }
+            }
+        });
+    } else if (window.boss) {
         const dx = (window.boss.x + window.boss.w/2) - px;
         const dy = (window.boss.y + window.boss.h/2) - py;
         const dist = Math.sqrt(dx*dx + dy*dy);
@@ -1537,6 +1615,8 @@ function attack() {
                     spawnEnemies();
                     player.x = 7 * window.TILE;
                     player.y = 15 * window.TILE;
+                    cameraX = 0;
+                    cameraY = 0;
                     levelTransitioning = false;
                     showMessage(`Level ${mapLevel}!`);
                 }, 10000);
@@ -1742,20 +1822,24 @@ function useSkill(index) {
 
 function refreshAttackButton() {
     const joystickAttack = document.getElementById('joystick-attack');
-    if (!joystickAttack) return;
+    const attackBtn = document.getElementById('attack');
     
     const weapon = window.player.weapon;
-    if (weapon && window.renderEquipmentIcon) {
+    const weaponIcon = weapon && window.renderEquipmentIcon ? (() => {
         try {
             const canvas = window.renderEquipmentIcon(weapon, 36);
-            const iconUrl = canvas.toDataURL();
-            joystickAttack.innerHTML = `<img src="${iconUrl}" style="image-rendering:pixelated;width:36px;height:36px;">`;
+            return `<img src="${canvas.toDataURL()}" style="image-rendering:pixelated;width:36px;height:36px;">`;
         } catch(e) {
             console.error('Render weapon icon error:', e);
-            joystickAttack.textContent = weapon.icon || '⚔️';
+            return weapon.icon || '⚔️';
         }
-    } else {
-        joystickAttack.textContent = '⚔️';
+    })() : '⚔️';
+    
+    if (joystickAttack) {
+        joystickAttack.innerHTML = weaponIcon;
+    }
+    if (attackBtn) {
+        attackBtn.innerHTML = weaponIcon;
     }
 }
 
@@ -2281,6 +2365,8 @@ async function loadGame() {
                 mapLevel = data.mapLevel;
                 generateMap();
                 spawnEnemies();
+                cameraX = 0;
+                cameraY = 0;
             }
             showMessage('Game loaded!', 60);
             updateUI();
