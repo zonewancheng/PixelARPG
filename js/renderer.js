@@ -559,9 +559,16 @@ function drawDrops(ctx, drops) {
         ctx.arc(d.x, d.y + 8, glowSize, 0, Math.PI * 2);
         ctx.fill();
         
-        ctx.font = '24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(d.item.icon || '?', d.x, d.y + 16);
+        // 使用像素渲染装备图标
+        if (window.renderEquipmentIcon && ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'].includes(d.item.type)) {
+            const itemCanvas = window.renderEquipmentIcon(d.item, 20);
+            ctx.drawImage(itemCanvas, d.x - 10, d.y + 4, 20, 20);
+        } else {
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(d.item.icon || '?', d.x, d.y + 16);
+        }
+        
         ctx.strokeStyle = qualityColor;
         ctx.lineWidth = 2;
         ctx.strokeRect(d.x - 10, d.y + 2, 20, 20);

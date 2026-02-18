@@ -974,7 +974,8 @@ function updatePlayerAvatar() {
         const avatarBtn = document.getElementById('characterBtn');
         if (avatarBtn) {
             try {
-                const imgUrl = window.renderPlayerIcon(window.player, 40);
+                const canvas = window.renderPlayerIcon(window.player, 40);
+                const imgUrl = canvas.toDataURL();
                 avatarBtn.innerHTML = `<img src="${imgUrl}" style="image-rendering:pixelated;width:40px;height:40px;">`;
             } catch (e) {
                 console.error('Failed to render player avatar:', e);
@@ -1248,7 +1249,8 @@ function setupUI() {
     if (window.renderPlayerIcon) {
         const avatarBtn = document.getElementById('characterBtn');
         if (avatarBtn) {
-            const imgUrl = window.renderPlayerIcon(window.player, 40);
+            const canvas = window.renderPlayerIcon(window.player, 40);
+            const imgUrl = canvas.toDataURL();
             avatarBtn.innerHTML = `<img src="${imgUrl}" style="image-rendering:pixelated;width:40px;height:40px;">`;
         }
     }

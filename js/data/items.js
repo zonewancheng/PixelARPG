@@ -95,38 +95,19 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
         ctx.fillRect(x + 10, y + 26, 4, 4);
     }
     
-    // 武器
-    if (player.weapon && player.attacking === 0) {
-        const wp = player.weapon.sprite;
-        const handX = dir > 0 ? x + 18 : x - 6;
-        const handY = y + 14;
+    // 武器 - 使用装备图标渲染（旋转180度）
+    if (player.weapon && player.attacking === 0 && window.renderEquipmentIcon) {
+        const weaponSize = 20;
+        const weaponCanvas = window.renderEquipmentIcon(player.weapon, weaponSize);
         
-        if (wp === 'fire_sword') {
-            ctx.fillStyle = '#f00';
-            ctx.fillRect(handX + 2, handY, 4, 16);
-            ctx.fillStyle = '#ff0';
-            ctx.fillRect(handX, handY + 12, 8, 4);
-        } else if (wp === 'thunder_sword') {
-            ctx.fillStyle = '#ff0';
-            ctx.fillRect(handX + 3, handY, 2, 16);
-            ctx.fillStyle = '#0ff';
-            ctx.fillRect(handX, handY + 12, 8, 4);
-        } else if (wp === 'ice_sword') {
-            ctx.fillStyle = '#0cf';
-            ctx.fillRect(handX + 2, handY, 4, 16);
-            ctx.fillStyle = '#8ef';
-            ctx.fillRect(handX, handY + 12, 8, 4);
-        } else if (wp === 'demon_sword') {
-            ctx.fillStyle = '#a0a';
-            ctx.fillRect(handX + 1, handY, 6, 16);
-            ctx.fillStyle = '#f0f';
-            ctx.fillRect(handX - 1, handY + 12, 10, 4);
-        } else {
-            ctx.fillStyle = '#aaa';
-            ctx.fillRect(handX + 2, handY + 2, 4, 12);
-            ctx.fillStyle = '#888';
-            ctx.fillRect(handX, handY + 10, 8, 4);
-        }
+        const handX = dir > 0 ? x + 20 : x - 4;
+        const handY = y + 8;
+        
+        ctx.save();
+        ctx.translate(handX + weaponSize/2, handY + weaponSize/2);
+        ctx.rotate(Math.PI);
+        ctx.drawImage(weaponCanvas, -weaponSize/2, -weaponSize/2);
+        ctx.restore();
     }
     
     // 头盔
@@ -150,7 +131,7 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
 window.renderPlayerIcon = function(player, size = 48) {
     const canvas = document.createElement('canvas');
     canvas.width = size;
-    canvas.height = size;
+    canvas.height = size + 16; // 增加高度容纳武器
     const ctx = canvas.getContext('2d');
     
     const dummyPlayer = {
@@ -162,9 +143,10 @@ window.renderPlayerIcon = function(player, size = 48) {
     };
     
     const scale = size / 32;
-    window.renderPlayerSprite(ctx, dummyPlayer, 0, 0, size, size);
+    // 向下渲染玩家（y+16偏移）
+    window.renderPlayerSprite(ctx, dummyPlayer, 0, 16, size, size);
     
-    return canvas.toDataURL();
+    return canvas;
 };
 
 /**
@@ -370,7 +352,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
         ctx.fillRect(x + w*0.3, y + h*0.3, w*0.4, h*0.4);
     }
     
-    return canvas.toDataURL();
+    return canvas;
 };
 
 /**

@@ -12,7 +12,8 @@ window.RenderUtils = {
         const color = item.color || '#fff';
         let iconHtml = item.icon;
         if (window.renderEquipmentIcon) {
-            const imgUrl = window.renderEquipmentIcon(item, 16);
+            const canvas = window.renderEquipmentIcon(item, 16);
+            const imgUrl = canvas.toDataURL();
             iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:16px;height:16px;vertical-align:middle;">`;
         }
         return `<span style="color:${color}">${iconHtml} ${item.name}</span>`;
@@ -82,7 +83,8 @@ window.RenderUtils = {
         // 使用像素渲染
         let iconHtml = item.icon || '?';
         if (usePixelArt && window.renderEquipmentIcon) {
-            const imgUrl = window.renderEquipmentIcon(item, size - 8);
+            const canvas = window.renderEquipmentIcon(item, size - 8);
+            const imgUrl = canvas.toDataURL();
             iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:${size-8}px;height:${size-8}px;">`;
         }
 
@@ -113,7 +115,8 @@ window.RenderUtils = {
         
         let iconHtml = item?.icon || slotInfo.icon;
         if (usePixelArt && item && window.renderEquipmentIcon) {
-            const imgUrl = window.renderEquipmentIcon(item, size - 8);
+            const canvas = window.renderEquipmentIcon(item, size - 8);
+            const imgUrl = canvas.toDataURL();
             iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:${size-8}px;height:${size-8}px;">`;
         }
 
@@ -132,7 +135,8 @@ window.RenderUtils = {
         const {
             onclick = '',
             usePixelArt = true,
-            size = 48
+            size = 48,
+            showBadge = true
         } = options;
 
         if (!item) return '';
@@ -143,17 +147,19 @@ window.RenderUtils = {
         
         let iconHtml = item.icon || '?';
         if (usePixelArt && window.renderEquipmentIcon) {
-            const imgUrl = window.renderEquipmentIcon(item, size - 8);
+            const canvas = window.renderEquipmentIcon(item, size - 8);
+            const imgUrl = canvas.toDataURL();
             iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:${size-8}px;height:${size-8}px;">`;
         }
 
-        return `<div class="shop-item ${legendaryClass}" 
-                     style="border-color:${borderColor}"
+        const style = `width:${size}px;height:${size}px;border-color:${borderColor}`;
+
+        return `<div class="item-slot ${legendaryClass}" 
+                     style="${style}"
                      title="${tooltip}"
                      ${onclick ? `onclick="${onclick}"` : ''}>
-            <div class="shop-item-icon">${iconHtml}</div>
-            <div class="shop-item-name" style="color:${item.color || '#fff'}">${item.name}</div>
-            <div class="shop-item-price">💰 ${item.price}</div>
+            <div class="item-slot-icon">${iconHtml}</div>
+            ${showBadge && item ? `<div class="item-slot-badge" style="background:${item.color || '#888'}"></div>` : ''}
         </div>`;
     },
 
@@ -252,7 +258,8 @@ window.RenderUtils = {
         
         let iconHtml = item.icon;
         if (window.renderEquipmentIcon) {
-            const imgUrl = window.renderEquipmentIcon(item, 32);
+            const canvas = window.renderEquipmentIcon(item, 32);
+            const imgUrl = canvas.toDataURL();
             iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:32px;height:32px;">`;
         }
         

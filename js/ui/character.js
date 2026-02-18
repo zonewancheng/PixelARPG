@@ -49,7 +49,7 @@ window.UICharacter = {
                         }).join('')}
                     </div>
                     <div class="char-body">
-                        ${window.renderPlayerIcon ? `<img src="${window.renderPlayerIcon(player, 48)}" style="image-rendering:pixelated;width:48px;height:48px;">` : '🧙'}
+                        ${window.renderPlayerIcon ? `<img src="${window.renderPlayerIcon(player, 48).toDataURL()}" style="image-rendering:pixelated;width:48px;height:56px;">` : '🧙'}
                     </div>
                     <div class="equip-column">
                         ${equipSlots.slice(3, 6).map(slot => {

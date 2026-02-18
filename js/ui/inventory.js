@@ -52,7 +52,8 @@ window.UIInventory = {
             
             let iconHtml = item ? item.icon : '';
             if (item && window.renderEquipmentIcon) {
-                const imgUrl = window.renderEquipmentIcon(item, 40);
+                const canvas = window.renderEquipmentIcon(item, 40);
+                const imgUrl = canvas.toDataURL();
                 iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:40px;height:40px;">`;
             }
             
@@ -166,11 +167,17 @@ window.UIInventory = {
             slot.onclick = function() {
                 const idx = parseInt(this.dataset.index);
                 const item = self.getSortedItem(idx);
-                if (item && item.type) {
+                if (item && item.type === 'consumable') {
+                    // 消耗品显示确认使用弹窗
+                    const healText = item.heal ? `+${item.heal} HP` : '';
+                    const mpText = item.mp ? `+${item.mp} MP` : '';
+                    const originalIndex = window.player.inventory.indexOf(item);
+                    window.showConfirm(`使用 ${item.name}？\n${healText} ${mpText}`, () => {
+                        window.useItem(originalIndex);
+                    });
+                } else if (item && item.type && ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'].includes(item.type)) {
+                    // 装备显示对比面板
                     window.UICompare.show(item, item.type, 'inventory');
-                } else if (item && !item.type) {
-                    // 消耗品直接使用
-                    self.useItem(idx);
                 }
             };
             
