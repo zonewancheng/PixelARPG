@@ -526,6 +526,8 @@ function spawnPotionEffect(x, y, type) {
 }
 
 window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
+    let hasHit = false;
+    
     // 对怪物造成伤害
     enemies.forEach(e => {
         const eCenterX = e.x + e.w / 2;
@@ -539,6 +541,7 @@ window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
             e.hp -= eDmg;
             spawnParticles(eCenterX, eCenterY, '#ff0', 8);
             spawnDamageNumber(eCenterX, eCenterY, eDmg);
+            hasHit = true;
         }
     });
     
@@ -555,7 +558,13 @@ window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
             window.boss.hp -= bossDmg;
             spawnParticles(bossCenterX, bossCenterY, '#ff0', 12);
             spawnDamageNumber(bossCenterX, bossCenterY, bossDmg);
+            hasHit = true;
         }
+    }
+    
+    // 雷电伤害音效
+    if (hasHit) {
+        playSound('lightning');
     }
 };
 
