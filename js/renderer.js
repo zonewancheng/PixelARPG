@@ -1247,6 +1247,14 @@ function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
             drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
         }
         
+        // 敌人名称显示
+        if (e.name) {
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = e.color || '#fff';
+            ctx.fillText(e.name, e.x + e.w / 2, e.y - 14);
+        }
+        
         const hpPercent = Math.max(0, e.hp / e.maxHp);
         ctx.fillStyle = '#300';
         ctx.fillRect(e.x, e.y - 8, e.w, 4);

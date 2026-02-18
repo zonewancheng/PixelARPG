@@ -253,10 +253,10 @@ function spawnEnemies() {
             x: ex * window.TILE + 4,
             y: ey * window.TILE + 4,
             w: 24, h: 24,
-            hp: et.hp + mapLevel * 5,
-            maxHp: et.hp + mapLevel * 5,
-            atk: et.atk + mapLevel * 2,
-            def: et.def + Math.floor(mapLevel * 0.5),
+            hp: et.hp + mapLevel * 10,
+            maxHp: et.hp + mapLevel * 10,
+            atk: et.atk + mapLevel * 4,
+            def: et.def + mapLevel,
             type: et.type,
             render: et.render,
             vx: 0, vy: 0,
@@ -265,8 +265,8 @@ function spawnEnemies() {
             attackProgress: 0,
             attackType: getEnemyAttackType(et.type),
             aggro: 30,
-            exp: et.exp + mapLevel * 2,
-            gold: et.gold + mapLevel,
+            exp: et.exp + mapLevel * 4,
+            gold: et.gold + mapLevel * 2,
             name: et.name,
             color: et.color,
             moveMode: mode,
@@ -299,17 +299,17 @@ function spawnBoss() {
         x: 7 * window.TILE,
         y: 3 * window.TILE,
         w: bossType.size, h: bossType.size,
-        hp: bossType.hp + mapLevel * 20,
-        maxHp: bossType.hp + mapLevel * 20,
-        atk: bossType.atk + mapLevel * 3,
-        def: bossType.def + Math.floor(mapLevel * 2),
+        hp: bossType.hp + mapLevel * 40,
+        maxHp: bossType.hp + mapLevel * 40,
+        atk: bossType.atk + mapLevel * 6,
+        def: bossType.def + mapLevel * 4,
         type: 'boss',
         render: bossType.render,
         vx: 0, vy: 0,
         attackCooldown: 0,
         aggro: 60,
-        exp: bossType.exp + mapLevel * 10,
-        gold: bossType.gold + mapLevel * 20,
+        exp: bossType.exp + mapLevel * 20,
+        gold: bossType.gold + mapLevel * 40,
         name: bossType.name,
         color: bossType.color,
         skills: bossSkills,
@@ -321,7 +321,11 @@ function spawnBoss() {
     });
     
     const skillNames = bossSkills.map(s => s.name).join(', ');
+    const skillDescs = bossSkills.map(s => s.desc || '').join(' | ');
     showMessage(`BOSS: ${bossType.name}! [${skillNames}]`, 180);
+    if (skillDescs) {
+        setTimeout(() => showMessage(skillDescs, 120), 2000);
+    }
     playSound('boss');
 }
 
