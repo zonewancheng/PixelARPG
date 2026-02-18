@@ -912,7 +912,7 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
                 
                 // 对玩家造成伤害
                 if (dist < 60 && player.invulnerable <= 0) {
-                    const dmg = Math.max(1, 10 + Math.floor(Math.random() * 5) - player.def);
+                    const dmg = Math.max(1, 25 + Math.floor(Math.random() * 15) - player.def);
                     player.hp -= dmg;
                     player.invulnerable = 20;
                     damageFlash = 8;

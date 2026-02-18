@@ -79,6 +79,13 @@ function initGame() {
     window.skillCooldowns = {};
     window.skills.forEach(s => window.skillCooldowns[s.id] = 0);
     
+    if (!window.discoveredEnemies) window.discoveredEnemies = {};
+    if (!window.discoveredSkills) window.discoveredSkills = {};
+    if (!window.discoveredItems) window.discoveredItems = {};
+    
+    // 解锁初始技能
+    window.discoveredSkills['slash'] = true;
+    
     if (window.initClouds) {
         window.initClouds(canvas.width, canvas.height);
     }
@@ -249,38 +256,95 @@ function spawnEnemies() {
         });
     }
     
-    if (mapLevel % 3 === 0) {
-        spawnBoss();
-    }
+    spawnBoss();
 }
 
 function spawnBoss() {
-    const idx = Math.min(mapLevel - 1, window.bossTypes.length - 1);
-    const b = window.bossTypes[idx];
+    // 随机选择一个Boss
+    const idx = Math.floor(Math.random() * window.bossTypes.length);
+    const bossType = window.bossTypes[idx];
+    
+    // 使用Boss自带的技能（从玩家技能中获取）
+    const bossSkills = [];
+    if (bossType.skills) {
+        bossType.skills.forEach(skillId => {
+            const skill = window.getSkillById(skillId);
+            if (skill) bossSkills.push(skill);
+        });
+    }
     
     window.boss = {
         x: 7 * window.TILE,
         y: 3 * window.TILE,
-        w: b.size, h: b.size,
-        hp: b.hp + mapLevel * 20,
-        maxHp: b.hp + mapLevel * 20,
-        atk: b.atk + mapLevel * 3,
-        def: b.def + Math.floor(mapLevel * 2),
+        w: bossType.size, h: bossType.size,
+        hp: bossType.hp + mapLevel * 20,
+        maxHp: bossType.hp + mapLevel * 20,
+        atk: bossType.atk + mapLevel * 3,
+        def: bossType.def + Math.floor(mapLevel * 2),
         type: 'boss',
-        render: b.render,
+        render: bossType.render,
         vx: 0, vy: 0,
         attackCooldown: 0,
         aggro: 60,
-        exp: b.exp + mapLevel * 10,
-        gold: b.gold + mapLevel * 20,
-        name: b.name,
-        color: b.color
+        exp: bossType.exp + mapLevel * 10,
+        gold: bossType.gold + mapLevel * 20,
+        name: bossType.name,
+        color: bossType.color,
+        skills: bossSkills,
+        skillCooldowns: {}
     };
-    showMessage(`BOSS APPEARED: ${b.name}!`, 180);
+    
+    bossSkills.forEach(s => {
+        window.boss.skillCooldowns[s.id] = 0;
+    });
+    
+    const skillNames = bossSkills.map(s => s.name).join(', ');
+    showMessage(`BOSS: ${bossType.name}! [${skillNames}]`, 180);
     playSound('boss');
 }
 
+function bossUseSkill(skill) {
+    if (!window.boss || !skill) return;
+    
+    const player = window.player;
+    const boss = window.boss;
+    const baseX = boss.x + boss.w / 2;
+    const baseY = boss.y + boss.h / 2;
+    const targetX = player.x + player.w / 2;
+    const targetY = player.y + player.h / 2;
+    
+    const dirX = targetX - baseX;
+    const dirY = targetY - baseY;
+    const dist = Math.sqrt(dirX * dirX + dirY * dirY);
+    
+    if (dist === 0) return;
+    
+    const dirXNorm = dirX / dist;
+    const dirYNorm = dirY / dist;
+    
+    const speed = skill.speed || 6;
+    
+    if (skill.type === 'projectile') {
+        projectiles.push({
+            x: baseX,
+            y: baseY,
+            vx: dirXNorm * speed,
+            vy: dirYNorm * speed,
+            damage: Math.floor(boss.atk * skill.damage),
+            color: skill.projectileColor || '#fff',
+            particleColor: skill.particleColor || '#fff',
+            size: skill.size || 10,
+            life: 120,
+            isBoss: true,
+            skillName: skill.name
+        });
+        showMessage(`BOSS uses ${skill.name}!`);
+    }
+}
+
 function spawnDrop(x, y, isBoss = false) {
+    if (!window.discoveredItems) window.discoveredItems = {};
+    
     const rand = Math.random();
     let item;
     const level = mapLevel + (isBoss ? 3 : 0);
@@ -299,6 +363,7 @@ function spawnDrop(x, y, isBoss = false) {
     } else {
         const type = equipTypes[Math.floor(Math.random() * equipTypes.length)];
         item = window.generateRandomItem(type, level);
+        if (item && item.baseId) window.discoverItem(item.baseId);
     }
     drops.push({ x: x + 10, y: y + 10, item: item, life: 1800 });
     
@@ -320,13 +385,17 @@ function spawnDrop(x, y, isBoss = false) {
             item2 = window.items.find(i => i.id === 'gold');
         } else if (rand2 < 0.6) {
             item2 = window.generateItemByQuality('uncommon', 'weapon', level);
+            if (item2 && item2.baseId) window.discoverItem(item2.baseId);
         } else if (rand2 < 0.7) {
             item2 = window.generateItemByQuality('rare', 'armor', level);
+            if (item2 && item2.baseId) window.discoverItem(item2.baseId);
         } else if (rand2 < 0.8) {
             item2 = window.generateItemByQuality('epic', 'helmet', level);
+            if (item2 && item2.baseId) window.discoverItem(item2.baseId);
         } else {
             const type = equipTypes[Math.floor(Math.random() * equipTypes.length)];
             item2 = window.generateItemByQuality('legendary', type, level);
+            if (item2 && item2.baseId) window.discoverItem(item2.baseId);
         }
         drops.push({ x: x + 10 + (Math.random() - 0.5) * 40, y: y + 10 + (Math.random() - 0.5) * 40, item: item2, life: 1800 });
     }
@@ -489,6 +558,13 @@ function update() {
         if (window.skillCooldowns[key] > 0) window.skillCooldowns[key]--;
     });
     
+    // 更新Boss技能冷却
+    if (window.boss && window.boss.skillCooldowns) {
+        Object.keys(window.boss.skillCooldowns).forEach(key => {
+            if (window.boss.skillCooldowns[key] > 0) window.boss.skillCooldowns[key]--;
+        });
+    }
+    
     enemies.forEach(e => {
         if (!e.slowed) e.slowed = 0;
         if (!e.frozen) e.frozen = 0;
@@ -597,7 +673,7 @@ function update() {
         const dist = Math.sqrt(dx*dx + dy*dy);
         
         // Boss chases player when in range but maintains distance
-        if (dist < 250 && dist > 60) {
+        if (dist < 250 && dist > 40) {
             const chaseSpeed = window.boss.aggro > 0 ? 0.6 : 0.4;
             window.boss.x += (dx / dist) * chaseSpeed;
             window.boss.y += (dy / dist) * chaseSpeed;
@@ -623,6 +699,22 @@ function update() {
             window.boss.y = 3 * window.TILE;
         }
         
+        // Boss技能攻击 - 在技能范围内即可释放
+        if (window.boss.skills && window.boss.skills.length > 0 && window.boss.attackCooldown <= 0) {
+            const readySkill = window.boss.skills.find(s => {
+                const cd = window.boss.skillCooldowns[s.id] || 0;
+                return cd <= 0;
+            });
+            
+            if (readySkill && dist < readySkill.range) {
+                bossUseSkill(readySkill);
+                window.boss.skillCooldowns[readySkill.id] = readySkill.cd;
+                window.boss.attackCooldown = 45;
+                return;
+            }
+        }
+        
+        // Boss普通攻击 - 需要靠近玩家
         if (dist < 40 && window.boss.attackCooldown <= 0 && player.invulnerable <= 0) {
             const dmg = Math.max(1, window.boss.atk - player.def + Math.floor(Math.random() * 5));
             player.hp -= dmg;
@@ -731,13 +823,14 @@ function update() {
                 player.exp += e.exp;
                 player.gold += e.gold;
                 spawnDrop(e.x, e.y);
+                window.discoverEnemy?.(e.type, e.name);
                 showMessage(`Defeated ${e.name}! +${e.exp} EXP`);
                 return false;
             }
             return true;
         });
         
-        if (window.boss) {
+        if (window.boss && !p.isBoss) {
             const dx = p.x - (window.boss.x + window.boss.w/2);
             const dy = p.y - (window.boss.y + window.boss.h/2);
             if (Math.sqrt(dx*dx + dy*dy) < 30) {
@@ -750,6 +843,7 @@ function update() {
                     player.exp += window.boss.exp;
                     player.gold += window.boss.gold;
                     spawnDrop(window.boss.x, window.boss.y, true);
+                    window.discoverEnemy?.(window.boss.render, window.boss.name);
                     showMessage(`BOSS DEFEATED! +${window.boss.exp} EXP!`);
                     mapLevel++;
                     levelTransitioning = true;
@@ -762,6 +856,26 @@ function update() {
                     }, 2000);
                     window.boss = null;
                 }
+            }
+        }
+        
+        // Boss投射物击中玩家
+        if (p.isBoss && player.invulnerable <= 0) {
+            const dx = p.x - (player.x + player.w/2);
+            const dy = p.y - (player.y + player.h/2);
+            if (Math.sqrt(dx*dx + dy*dy) < 20) {
+                const dmg = Math.max(1, p.damage - player.def);
+                player.hp -= dmg;
+                player.invulnerable = 15;
+                damageFlash = 10;
+                spawnParticles(player.x + player.w/2, player.y + player.h/2, p.particleColor || '#f00', 8);
+                spawnDamageNumber(player.x + player.w/2, player.y, dmg);
+                showMessage(`BOSS ${p.skillName || 'ATTACK'}! -${dmg} HP`);
+                if (player.hp <= 0) {
+                    gameState = 'gameover';
+                    showMessage('GAME OVER - Tap to restart', 300);
+                }
+                hit = true;
             }
         }
         
@@ -966,6 +1080,7 @@ function attack() {
                 player.exp += e.exp;
                 player.gold += e.gold;
                 spawnDrop(e.x, e.y);
+                window.discoverEnemy?.(e.type, e.name);
                 showMessage(`Defeated ${e.name}! +${e.exp} EXP`);
             }
         }
@@ -986,6 +1101,7 @@ function attack() {
                 player.exp += window.boss.exp;
                 player.gold += window.boss.gold;
                 spawnDrop(window.boss.x, window.boss.y, true);
+                window.discoverEnemy?.(window.boss.render, window.boss.name);
                 showMessage(`BOSS DEFEATED! +${window.boss.exp} EXP!`);
                 mapLevel++;
                 levelTransitioning = true;
@@ -1020,6 +1136,7 @@ function useSkill(index) {
     
     player.mp -= skill.mp;
     window.skillCooldowns[skill.id] = skill.cd;
+    window.discoverSkill?.(skill.id);
     
     const baseX = player.x + player.w/2;
     const baseY = player.y + player.h/2;

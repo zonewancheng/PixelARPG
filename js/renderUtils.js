@@ -208,12 +208,19 @@ window.RenderUtils = {
         const stats = this.getEnemyStatsText(enemy);
         const iconUrl = this.renderMonsterIcon(enemy, 32);
         
+        let skillsHtml = '';
+        if (enemy.skills && enemy.skills.length > 0) {
+            const skillNames = enemy.skills.join(', ');
+            skillsHtml = `<div class="bestiary-card-skills">技能: ${skillNames}</div>`;
+        }
+        
         return `<div class="bestiary-card ${locked ? 'locked' : ''}">
             <div class="bestiary-card-icon" style="background:transparent">
                 <img src="${iconUrl}" style="image-rendering:pixelated;width:32px;height:32px;">
             </div>
             <div class="bestiary-card-name" style="color:${enemy.color || '#4a4'}">${enemy.name}</div>
             <div class="bestiary-card-info">${stats}</div>
+            ${skillsHtml}
             <div class="bestiary-card-count">击杀: ${discovered}</div>
         </div>`;
     },
@@ -241,17 +248,19 @@ window.RenderUtils = {
     getBestiaryEquipmentHtml: function(item, discovered = false) {
         const locked = !discovered;
         const slotName = window.EQUIPMENT_SLOTS?.[item.type]?.name || item.type;
+        const statsText = this.getItemStatsText(item);
         
         let iconHtml = item.icon;
-        if (discovered && window.renderEquipmentIcon) {
+        if (window.renderEquipmentIcon) {
             const imgUrl = window.renderEquipmentIcon(item, 32);
             iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:32px;height:32px;">`;
         }
         
         return `<div class="bestiary-card ${locked ? 'locked' : ''}">
-            <div class="bestiary-card-icon">${iconHtml}</div>
-            <div class="bestiary-card-name">${item.name}</div>
+            <div class="bestiary-card-icon" style="background:transparent">${iconHtml}</div>
+            <div class="bestiary-card-name" style="color:${item.color || '#fff'}">${item.name}</div>
             <div class="bestiary-card-info">${slotName}</div>
+            <div class="bestiary-card-stats">${statsText}</div>
             <div class="bestiary-card-count">${discovered ? '已发现' : '未发现'}</div>
         </div>`;
     },

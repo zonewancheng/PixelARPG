@@ -20,13 +20,13 @@ window.enemyTypes = window.ENEMY_TYPES;
 
 // Boss怪物类型
 window.BOSS_TYPES = [
-    { name: '史莱姆王', type: 'slime_king', hp: 80, atk: 12, def: 2, exp: 40, gold: 80, color: '#4a4', size: 40, render: 'boss_slime' },
-    { name: '哥布林领主', type: 'goblin_lord', hp: 120, atk: 18, def: 4, exp: 60, gold: 120, color: '#484', size: 36, render: 'boss_goblin' },
-    { name: 'orc王', type: 'orc_king', hp: 180, atk: 25, def: 8, exp: 100, gold: 180, color: '#484', size: 44, render: 'boss_orc' },
-    { name: '黑暗法师', type: 'dark_mage', hp: 150, atk: 35, def: 5, exp: 150, gold: 250, color: '#848', size: 32, render: 'boss_mage' },
-    { name: '火龙', type: 'fire_dragon', hp: 300, atk: 40, def: 15, exp: 300, gold: 500, color: '#a44', size: 56, render: 'boss_dragon' },
-    { name: '冰魔', type: 'ice_devil', hp: 350, atk: 45, def: 18, exp: 400, gold: 600, color: '#aaf', size: 48, render: 'boss_ice' },
-    { name: '恶魔领主', type: 'demon_lord', hp: 500, atk: 60, def: 25, exp: 600, gold: 1000, color: '#a2a', size: 52, render: 'boss_demon' }
+    { name: '史莱姆王', type: 'slime_king', hp: 80, atk: 12, def: 2, exp: 40, gold: 80, color: '#4a4', size: 40, render: 'boss_slime', skills: ['ice'] },
+    { name: '哥布林领主', type: 'goblin_lord', hp: 120, atk: 18, def: 4, exp: 60, gold: 120, color: '#484', size: 36, render: 'boss_goblin', skills: ['vine'] },
+    { name: 'orc王', type: 'orc_king', hp: 180, atk: 25, def: 8, exp: 100, gold: 180, color: '#484', size: 44, render: 'boss_orc', skills: ['tornado'] },
+    { name: '黑暗法师', type: 'dark_mage', hp: 150, atk: 35, def: 5, exp: 150, gold: 250, color: '#848', size: 32, render: 'boss_mage', skills: ['thunder', 'fireball'] },
+    { name: '火龙', type: 'fire_dragon', hp: 300, atk: 40, def: 15, exp: 300, gold: 500, color: '#a44', size: 56, render: 'boss_dragon', skills: ['fireball', 'tornado'] },
+    { name: '冰魔', type: 'ice_devil', hp: 350, atk: 45, def: 18, exp: 400, gold: 600, color: '#aaf', size: 48, render: 'boss_ice', skills: ['ice', 'thunder'] },
+    { name: '恶魔领主', type: 'demon_lord', hp: 500, atk: 60, def: 25, exp: 600, gold: 1000, color: '#a2a', size: 52, render: 'boss_demon', skills: ['fireball', 'thunder', 'ice'] }
 ];
 
 // 兼容旧版本
@@ -78,11 +78,26 @@ window.createEnemyFromType = function(enemyType, level = 1) {
  * @param {string} name - 怪物名称
  */
 window.discoverEnemy = function(type, name) {
+    if (!window.discoveredEnemies) window.discoveredEnemies = {};
     if (!window.discoveredEnemies[type]) {
         window.discoveredEnemies[type] = { name: name, count: 0 };
     }
     window.discoveredEnemies[type].count++;
     window.discoveredEnemies[type].name = name;
+};
+
+window.discoverSkill = function(skillId) {
+    if (!window.discoveredSkills) window.discoveredSkills = {};
+    if (!window.discoveredSkills[skillId]) {
+        window.discoveredSkills[skillId] = true;
+    }
+};
+
+window.discoverItem = function(itemId) {
+    if (!window.discoveredItems) window.discoveredItems = {};
+    if (!window.discoveredItems[itemId]) {
+        window.discoveredItems[itemId] = true;
+    }
 };
 
 /**

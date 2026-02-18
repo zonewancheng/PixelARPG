@@ -388,7 +388,8 @@ window.createItem = function(baseItem, quality, level = 1) {
         qualityName: q.name,
         color: q.color,
         level: level,
-        quantity: 1
+        quantity: 1,
+        baseId: baseItem.id
     };
     
     const mult = q.multiplier * (1 + level * 0.1);
