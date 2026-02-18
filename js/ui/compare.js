@@ -128,7 +128,8 @@ window.UICompare = {
         
         let iconHtml = item.icon;
         if (window.renderEquipmentIcon) {
-            const imgUrl = window.renderEquipmentIcon(item, 48);
+            const canvas = window.renderEquipmentIcon(item, 48);
+            const imgUrl = canvas.toDataURL();
             iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:48px;height:48px;">`;
         }
         
