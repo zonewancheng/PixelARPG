@@ -1319,7 +1319,7 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
 
 /**
  * 绘制玩家攻击效果
- * 优化的挥刀弧线，带武器轨迹和粒子效果
+ * 月牙形状的斩击效果，根据武器颜色变化
  */
 function drawPlayerAttack(ctx, player) {
     if (player.attacking <= 0) return;
@@ -1330,37 +1330,16 @@ function drawPlayerAttack(ctx, player) {
     const baseX = player.x + player.w/2;
     const baseY = player.y + player.h/2;
     
-    // 根据武器类型设置效果参数
+    // 根据武器颜色设置效果参数
     let slashColor = '#fff';
-    let slashGlow = '#0cf';
+    let slashGlow = 'rgba(255, 255, 255, 0.5)';
     let slashSize = 1;
-    let hasElementalEffect = false;
     
-    if (player.weapon) {
-        switch(player.weapon.sprite) {
-            case 'fire_sword':
-                slashColor = '#f84';
-                slashGlow = '#f40';
-                slashSize = 1.6;
-                hasElementalEffect = true;
-                break;
-            case 'thunder_sword':
-                slashColor = '#ff0';
-                slashGlow = '#0ff';
-                slashSize = 1.4;
-                hasElementalEffect = true;
-                break;
-            case 'ice_sword':
-                slashColor = '#aff';
-                slashGlow = '#0af';
-                slashSize = 1.3;
-                hasElementalEffect = true;
-                break;
-            default:
-                slashColor = '#ddd';
-                slashGlow = '#fff';
-                slashSize = 1.0;
-        }
+    if (player.weapon && player.weapon.color) {
+        // 使用武器的品质颜色
+        slashColor = player.weapon.color;
+        slashGlow = player.weapon.color + '80';
+        slashSize = 1.0;
     }
     
     // 计算攻击角度
@@ -1370,167 +1349,71 @@ function drawPlayerAttack(ctx, player) {
     else if (dirY < 0) attackAngle = -Math.PI/2;
     else if (dirY > 0) attackAngle = Math.PI/2;
     
-    const swingAngle = attackAngle + (attackProgress - 0.5) * Math.PI * 0.9;
-    const startAngle = attackAngle - 0.5;
+    const swingAngle = attackAngle + (attackProgress - 0.5) * Math.PI * 0.8;
     
     ctx.save();
     ctx.translate(baseX, baseY);
+    ctx.rotate(swingAngle);
     
-    // 外层光晕效果
-    if (hasElementalEffect || player.weapon) {
-        ctx.shadowColor = slashGlow;
-        ctx.shadowBlur = 15 * slashSize;
-        ctx.strokeStyle = slashGlow;
-        ctx.lineWidth = 8 * slashSize;
-        ctx.globalAlpha = 0.3 * (1 - attackProgress * 0.5);
-        ctx.beginPath();
-        ctx.arc(0, 0, 38, startAngle, swingAngle);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-    }
-    
-    // 中层斩击效果
-    ctx.strokeStyle = slashColor;
-    ctx.lineWidth = 4 * slashSize;
-    ctx.globalAlpha = 0.9;
-    ctx.lineCap = 'round';
+    // 外层发光月牙
+    ctx.shadowColor = slashColor;
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = slashGlow;
+    ctx.globalAlpha = 0.4 * (1 - attackProgress * 0.3);
     ctx.beginPath();
-    ctx.arc(0, 0, 36, startAngle, swingAngle);
-    ctx.stroke();
+    ctx.ellipse(30, 0, 28, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
     
-    // 内层核心
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2 * slashSize;
-    ctx.globalAlpha = 0.7;
+    // 主月牙形状
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = slashColor;
+    ctx.globalAlpha = 0.85;
     ctx.beginPath();
-    ctx.arc(0, 0, 34, startAngle, swingAngle);
-    ctx.stroke();
+    ctx.ellipse(28, 0, 22, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
     
-    // 武器轨迹残影
-    const trailCount = 3;
+    // 内层亮色月牙
+    ctx.fillStyle = '#fff';
+    ctx.globalAlpha = 0.6 * (1 - attackProgress * 0.5);
+    ctx.beginPath();
+    ctx.ellipse(26, -2, 14, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.shadowBlur = 0;
+    
+    // 月牙斩击轨迹（多个残影）
+    const trailCount = 4;
     for (let i = 1; i <= trailCount; i++) {
-        const trailProgress = attackProgress - i * 0.1;
+        const trailProgress = attackProgress - i * 0.08;
         if (trailProgress > 0) {
-            const trailAngle = attackAngle + (trailProgress - 0.5) * Math.PI * 0.9;
-            ctx.strokeStyle = slashColor;
-            ctx.lineWidth = 2 * slashSize * (1 - i * 0.25);
-            ctx.globalAlpha = 0.3 * (1 - i * 0.3);
+            ctx.save();
+            ctx.rotate(-i * 0.12);
+            ctx.fillStyle = slashColor;
+            ctx.globalAlpha = 0.25 * (1 - i * 0.2) * trailProgress;
             ctx.beginPath();
-            ctx.arc(0, 0, 36, trailAngle - 0.15, trailAngle + 0.15);
-            ctx.stroke();
+            ctx.ellipse(24 - i * 3, 0, 18 - i * 2, 6 - i, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
         }
     }
     
-    // 攻击终点火花效果
-    const sparkX = Math.cos(swingAngle) * 38;
-    const sparkY = Math.sin(swingAngle) * 38;
+    // 攻击终点粒子效果
+    const endX = Math.cos(attackAngle + 0.4) * 35;
+    const endY = Math.sin(attackAngle + 0.4) * 35;
     
-    // 火花粒子
-    if (attackProgress > 0.7) {
-        ctx.globalAlpha = (1 - attackProgress) * 3;
-        for (let i = 0; i < 4; i++) {
-            const sparkOffset = (Math.random() - 0.5) * 10;
-            const sparkDist = 3 + Math.random() * 5;
+    if (attackProgress > 0.6) {
+        ctx.globalAlpha = (attackProgress - 0.6) * 2;
+        for (let i = 0; i < 6; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 15;
             ctx.fillStyle = i % 2 === 0 ? '#fff' : slashColor;
             ctx.beginPath();
-            ctx.arc(sparkX + sparkOffset, sparkY + sparkOffset, 1.5, 0, Math.PI * 2);
+            ctx.arc(endX + Math.cos(angle) * dist, endY + Math.sin(angle) * dist, 1.5 + Math.random(), 0, Math.PI * 2);
             ctx.fill();
         }
-    }
-    
-    // 武器绘制
-    if (player.weapon) {
-        const wp = player.weapon.sprite;
-        const weaponAngle = swingAngle - (dirX > 0 || (dirX === 0 && dirY >= 0) ? 0 : Math.PI);
-        const wx = Math.cos(weaponAngle) * 32;
-        const wy = Math.sin(weaponAngle) * 32;
-        
-        ctx.save();
-        ctx.translate(wx, wy);
-        ctx.rotate(weaponAngle);
-        
-        // 武器发光
-        if (hasElementalEffect) {
-            ctx.shadowColor = slashGlow;
-            ctx.shadowBlur = 10;
-        }
-        
-        // 武器柄
-        ctx.fillStyle = '#654';
-        ctx.fillRect(-3, -3, 6, 6);
-        
-        // 武器刃
-        if (wp === 'fire_sword') {
-            // 火焰剑刃
-            ctx.fillStyle = '#a42';
-            ctx.fillRect(-3, -14, 6, 18);
-            ctx.fillStyle = '#f64';
-            ctx.fillRect(-2, -12, 4, 14);
-            ctx.fillStyle = '#ff8';
-            ctx.fillRect(-1, -10, 2, 10);
-            // 火焰粒子
-            if (Math.random() > 0.5) {
-                ctx.fillStyle = '#f84';
-                ctx.globalAlpha = 0.7;
-                ctx.beginPath();
-                ctx.arc((Math.random()-0.5)*8, -12 - Math.random()*6, 2, 0, Math.PI*2);
-                ctx.fill();
-            }
-        } else if (wp === 'thunder_sword') {
-            // 雷电剑刃
-            ctx.fillStyle = '#aa4';
-            ctx.fillRect(-3, -14, 6, 18);
-            ctx.fillStyle = '#ff4';
-            ctx.fillRect(-2, -12, 4, 14);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(-1, -10, 2, 10);
-            // 电光效果
-            ctx.strokeStyle = '#0ff';
-            ctx.lineWidth = 1;
-            ctx.globalAlpha = 0.8;
-            ctx.beginPath();
-            ctx.moveTo(-4, -12);
-            ctx.lineTo(0, -8);
-            ctx.lineTo(4, -10);
-            ctx.stroke();
-        } else if (wp === 'ice_sword') {
-            // 冰霜剑刃
-            ctx.fillStyle = '#68a';
-            ctx.fillRect(-3, -14, 6, 18);
-            ctx.fillStyle = '#9cf';
-            ctx.fillRect(-2, -12, 4, 14);
-            ctx.fillStyle = '#def';
-            ctx.fillRect(-1, -10, 2, 10);
-            // 冰霜结晶
-            ctx.fillStyle = '#aff';
-            ctx.globalAlpha = 0.6;
-            ctx.beginPath();
-            ctx.arc(0, -12, 3, 0, Math.PI*2);
-            ctx.fill();
-        } else {
-            // 普通剑刃
-            ctx.fillStyle = '#888';
-            ctx.fillRect(-3, -14, 6, 18);
-            ctx.fillStyle = '#ccc';
-            ctx.fillRect(-2, -12, 4, 14);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(-1, -10, 2, 10);
-        }
-        
-        ctx.restore();
     }
     
     ctx.restore();
-    
-    // 击中时的屏幕震动效果（在攻击中段）
-    if (attackProgress > 0.4 && attackProgress < 0.6 && player.attacking === 10) {
-        const shakeX = (Math.random() - 0.5) * 4;
-        const shakeY = (Math.random() - 0.5) * 4;
-        ctx.canvas.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
-        setTimeout(() => {
-            ctx.canvas.style.transform = 'translate(0, 0)';
-        }, 50);
-    }
 }
 
 // ===== 敌人攻击效果绘制 =====
