@@ -2067,6 +2067,11 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
                     spawnParticles(playerCenterX, playerCenterY, '#ff0', 8);
                     spawnDamageNumber(playerCenterX, playerCenterY, dmg);
                     
+                    // 雷电伤害音效
+                    if (typeof playSound === 'function') {
+                        playSound('lightning');
+                    }
+                    
                     if (player.hp <= 0) {
                         gameState = 'gameover';
                     }

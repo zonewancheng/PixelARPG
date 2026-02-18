@@ -1835,6 +1835,15 @@ function playSound(type) {
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
             oscillator.start();
             oscillator.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'lightning') {
+            // 雷电 - 劈裂声
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+            gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.15);
         } else if (type === 'levelup') {
             oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
             oscillator.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
