@@ -1403,43 +1403,26 @@ function setupInput() {
 function attack() {
     const player = window.player;
     if (player.attacking > 0) return;
-    
+
     player.attacking = 20;
-    
-    // 摇杆模式下总是自动锁定最近敌人
-    let dirX = player.dirX;
-    let dirY = player.dirY;
-    
-    if (window.controlMode === 'joystick') {
-        const target = getAutoTarget();
-        if (target) {
-            const targetX = target.x + (target.w || 0) / 2;
-            const targetY = target.y + (target.h || 0) / 2;
-            const baseX = player.x + player.w / 2;
-            const baseY = player.y + player.h / 2;
-            const dx = targetX - baseX;
-            const dy = targetY - baseY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist > 0) {
-                dirX = dx / dist;
-                dirY = dy / dist;
-            }
-        }
-    }
-    
+
+    // 使用玩家当前朝向，移除自动索敌
+    let dirX = player.dirX || 1;
+    let dirY = player.dirY || 0;
+
     const px = player.x + player.w/2;
     const py = player.y + player.h/2;
     const range = 50;
-    
+
     function isTargetInDirection(targetX, targetY) {
         const dx = targetX - px;
         const dy = targetY - py;
         const targetDist = Math.sqrt(dx*dx + dy*dy);
         if (targetDist === 0) return true;
-        
+
         const targetDirX = dx / targetDist;
         const targetDirY = dy / targetDist;
-        
+
         const dot = dirX * targetDirX + dirY * targetDirY;
         return dot > 0.5;
     }
@@ -1917,25 +1900,31 @@ function setupUI() {
     
     function handleJoystickMove(clientX, clientY) {
         if (window.controlMode !== 'joystick') return;
-        
+
         const dx = clientX - joystickCenter.x;
         const dy = clientY - joystickCenter.y;
         const maxDist = 35;
         const dist = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
         const angle = Math.atan2(dy, dx);
-        
+
         const knobX = Math.cos(angle) * dist;
         const knobY = Math.sin(angle) * dist;
-        
+
         joystickKnob.style.left = (25 + knobX) + 'px';
         joystickKnob.style.top = (25 + knobY) + 'px';
-        
+
         // 转换为方向键
         const threshold = 15;
         keys['ArrowUp'] = dy < -threshold;
         keys['ArrowDown'] = dy > threshold;
         keys['ArrowLeft'] = dx < -threshold;
         keys['ArrowRight'] = dx > threshold;
+
+        // 设置玩家朝向用于攻击方向
+        if (dist > threshold) {
+            window.player.dirX = Math.cos(angle);
+            window.player.dirY = Math.sin(angle);
+        }
     }
     
     function resetJoystick() {
