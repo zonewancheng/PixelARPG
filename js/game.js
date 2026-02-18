@@ -85,10 +85,16 @@ function initGame() {
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
     
-    // 优化高DPI屏幕显示
+    // 自适应屏幕大小
     const dpr = window.devicePixelRatio || 1;
-    const baseWidth = 480;
-    const baseHeight = 640;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // 计算合适的画布大小（保留一定边距）
+    const margin = 0;
+    const baseWidth = Math.min(480, screenWidth - margin);
+    const baseHeight = Math.min(640, screenHeight - margin);
+    
     canvas.width = baseWidth * dpr;
     canvas.height = baseHeight * dpr;
     canvas.style.width = baseWidth + 'px';
@@ -1742,14 +1748,6 @@ function setupUI() {
             e.stopPropagation();
             currentLanguage = currentLanguage === 'zh' ? 'en' : 'zh';
             langBtn.textContent = currentLanguage === 'zh' ? '中' : 'EN';
-        });
-    }
-    
-    const controlsBtn = document.getElementById('controlsBtn');
-    if (controlsBtn) {
-        controlsBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            document.getElementById('controls').classList.toggle('show');
         });
     }
     
