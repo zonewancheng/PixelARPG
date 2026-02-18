@@ -1388,21 +1388,6 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
         const baseY = cloud.y;
         const size = cloud.size;
         
-        // 云朵阴影 - 投射到地面
-        const shadowY = canvasHeight * 0.85; // 阴影投射到地面位置
-        const cloudToGroundDistance = shadowY - baseY;
-        const shadowScale = 1.0 + cloudToGroundDistance * 0.002;
-        const shadowAlpha = Math.max(0.05, 0.15 - cloudToGroundDistance * 0.0003);
-        
-        ctx.fillStyle = `rgba(0,0,0,${shadowAlpha})`;
-        cloud.circles.forEach(c => {
-            ctx.beginPath();
-            ctx.arc(baseX + c.ox * size * shadowScale + shadowDir.x * 0.5, 
-                   shadowY, 
-                   c.r * size * breathe * shadowScale * 0.8, 0, Math.PI * 2);
-            ctx.fill();
-        });
-        
         // 云朵主体
         if (cloud.type === 'storm') {
             ctx.fillStyle = '#2a2a2a';
@@ -1411,6 +1396,18 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
         } else {
             ctx.fillStyle = '#e8e8f0';
         }
+        
+        // 绘制云朵阴影 - 在云朵底部形成阴影效果
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        cloud.circles.forEach((c, i) => {
+            if (c.oy > 0) { // 只在云朵下半部分画阴影
+                ctx.beginPath();
+                ctx.arc(baseX + c.ox * size + shadowDir.x * 0.3, 
+                       baseY + c.oy * size + 4 + shadowDir.y * 0.3, 
+                       c.r * size * breathe * 0.9, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
         
         // 绘制云朵本体 - 分层渲染增加立体感
         cloud.circles.forEach((c, i) => {
