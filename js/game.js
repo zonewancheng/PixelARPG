@@ -1211,8 +1211,16 @@ function render() {
     drawEnemies(ctx, enemies, drawPixelSprite);
     drawEnemiesAttack(ctx, enemies);
     
-    // 绘制Boss
-    drawBoss(ctx, window.boss, drawPixelSprite);
+    // 绘制所有Boss
+    if (window.bosses && window.bosses.length > 0) {
+        window.bosses.forEach(boss => {
+            if (boss && boss.hp > 0) {
+                drawBoss(ctx, boss, drawPixelSprite);
+            }
+        });
+    } else if (window.boss && window.boss.hp > 0) {
+        drawBoss(ctx, window.boss, drawPixelSprite);
+    }
     
     // 绘制玩家
     drawPlayer(ctx, player, drawPixelSprite, player.invulnerable);

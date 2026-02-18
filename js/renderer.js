@@ -1947,10 +1947,10 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     const flashAlpha = 0.5 + Math.sin(flashTime) * 0.5; // 0到1之间闪烁
     const shadowBlur = 8 + Math.sin(flashTime * 2) * 6; // 8到14之间变化
     
-        // 发光效果 - 动态闪烁，改为金黄色
-    ctx.shadowColor = '#ffd700';
+        // 发光效果 - 动态闪烁，改为粉紫色
+    ctx.shadowColor = '#ff69b4';
     ctx.shadowBlur = shadowBlur;
-    ctx.fillStyle = `rgba(255, 215, 0, ${0.7 + flashAlpha * 0.3})`;
+    ctx.fillStyle = `rgba(255, 105, 180, ${0.7 + flashAlpha * 0.3})`;
     ctx.beginPath();
     ctx.moveTo(centerX, markerY + 8);  // 朝下
     ctx.lineTo(centerX - 6, markerY - 2);
@@ -1960,7 +1960,7 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     
     // 内部高光 - 反向闪烁
     ctx.shadowBlur = 0;
-    ctx.fillStyle = `rgba(255, 255, 200, ${0.6 + (1 - flashAlpha) * 0.4})`;
+    ctx.fillStyle = `rgba(255, 182, 193, ${0.6 + (1 - flashAlpha) * 0.4})`;
     ctx.beginPath();
     ctx.moveTo(centerX, markerY + 5);
     ctx.lineTo(centerX - 3, markerY - 1);
