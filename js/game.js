@@ -346,6 +346,9 @@ function bossUseSkill(skill) {
     
     const speed = skill.speed || 6;
     
+    // 播放Boss技能音效
+    playSound('bossSkill');
+    
     if (skill.type === 'projectile') {
         projectiles.push({
             x: baseX,
@@ -760,6 +763,28 @@ function update() {
             e.isAttacking = true;
             e.attackProgress = 0;
             
+            // 播放敌人攻击音效
+            const enemyType = e.type || e.name?.toLowerCase();
+            if (enemyType?.includes('slime')) {
+                playSound('slimeAttack');
+            } else if (enemyType?.includes('goblin')) {
+                playSound('goblinAttack');
+            } else if (enemyType?.includes('bat')) {
+                playSound('batAttack');
+            } else if (enemyType?.includes('spider')) {
+                playSound('spiderAttack');
+            } else if (enemyType?.includes('skeleton')) {
+                playSound('skeletonAttack');
+            } else if (enemyType?.includes('wolf')) {
+                playSound('wolfAttack');
+            } else if (enemyType?.includes('snake')) {
+                playSound('snakeAttack');
+            } else if (enemyType?.includes('scorpion')) {
+                playSound('scorpionAttack');
+            } else {
+                playSound('enemyAttack');
+            }
+            
             const dmg = Math.max(1, e.atk - player.def + Math.floor(Math.random() * 3));
             player.hp -= dmg;
             player.invulnerable = 30;
@@ -843,6 +868,7 @@ function update() {
         
         // Boss普通攻击 - 需要靠近玩家
         if (dist < 40 && window.boss.attackCooldown <= 0 && player.invulnerable <= 0) {
+            playSound('bossAttack');
             const dmg = Math.max(1, window.boss.atk - player.def + Math.floor(Math.random() * 5));
             player.hp -= dmg;
             player.invulnerable = 20;
@@ -1706,6 +1732,106 @@ function playSound(type) {
             oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
             oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
             gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'enemyAttack') {
+            // 敌人攻击 - 低沉的打击声
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.15);
+            gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.15);
+        } else if (type === 'bossAttack') {
+            // Boss攻击 - 更沉重的打击声
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(100, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.35, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'bossSkill') {
+            // Boss技能 - 能量聚集释放的声音
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.2);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.4);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        } else if (type === 'slimeAttack') {
+            // 史莱姆 - 粘稠的水滴声
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'goblinAttack') {
+            // 哥布林 - 尖锐的刺击声
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.08);
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.08);
+        } else if (type === 'batAttack') {
+            // 蝙蝠 - 快速的拍打声
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'spiderAttack') {
+            // 蜘蛛 - 毒液喷射声
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(250, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.12);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.12);
+        } else if (type === 'skeletonAttack') {
+            // 骷髅 - 骨骼碰撞声
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(180, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'wolfAttack') {
+            // 狼 - 凶猛的咬击声
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.12);
+            gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.12);
+        } else if (type === 'snakeAttack') {
+            // 蛇 - 快速的毒牙穿刺声
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(350, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.08);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.08);
+        } else if (type === 'scorpionAttack') {
+            // 蝎子 - 尾刺蜇刺声
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(280, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
             oscillator.start();
             oscillator.stop(audioCtx.currentTime + 0.1);
