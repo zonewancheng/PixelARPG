@@ -891,16 +891,52 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
             ctx.fill();
         });
         
+        // 雷电云逻辑
         if (cloud.type === 'storm') {
             if (!cloud.lightningTimer) cloud.lightningTimer = 0;
             cloud.lightningTimer++;
             if (cloud.lightningTimer > 120) {
                 cloud.lightningTimer = 0;
             }
+            
+            // 雷电伤害
+            if (cloud.lightningTimer >= 60 && cloud.lightningTimer % 25 === 0) {
+                const cloudCenterX = cloud.x;
+                const cloudCenterY = cloud.y + cloud.size * 0.5;
+                
+                const playerCenterX = player.x + player.w / 2;
+                const playerCenterY = player.y + player.h / 2;
+                const dx = playerCenterX - cloudCenterX;
+                const dy = playerCenterY - cloudCenterY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                // 对玩家造成伤害
+                if (dist < 60 && player.invulnerable <= 0) {
+                    const dmg = Math.max(1, 10 + Math.floor(Math.random() * 5) - player.def);
+                    player.hp -= dmg;
+                    player.invulnerable = 20;
+                    damageFlash = 8;
+                    spawnParticles(playerCenterX, playerCenterY, '#ff0', 8);
+                    spawnDamageNumber(playerCenterX, playerCenterY, dmg);
+                    
+                    if (player.hp <= 0) {
+                        gameState = 'gameover';
+                    }
+                }
+                
+                // 对怪物造成伤害 - 通过自定义事件通知游戏逻辑
+                if (window.triggerCloudDamage) {
+                    window.triggerCloudDamage(cloudCenterX, cloudCenterY);
+                }
+            }
+            
+            // 显示闪电图标
             ctx.font = `${Math.floor(size * 0.55)}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('⚡', baseX, baseY);
+            if (cloud.lightningTimer >= 60 && cloud.lightningTimer <= 90) {
+                ctx.fillText('⚡', baseX, baseY);
+            }
         }
     });
 }

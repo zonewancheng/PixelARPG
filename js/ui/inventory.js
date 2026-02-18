@@ -1,10 +1,11 @@
 /**
  * PixelARPG - 背包面板模块
- * 使用统一的渲染工具
+ * 完整功能：排序、叠加、穿戴、对比、出售
  */
 
 window.UIInventory = {
     element: null,
+    sortType: 'default', // default, quality, type, level
     
     init: function() {
         this.element = document.getElementById('inventory-panel');
@@ -14,11 +15,13 @@ window.UIInventory = {
         if (!this.element) this.init();
         this.element.style.display = 'flex';
         this.render();
+        if (typeof inventoryOpen !== 'undefined') inventoryOpen = true;
     },
     
     close: function() {
         if (!this.element) return;
         this.element.style.display = 'none';
+        if (typeof inventoryOpen !== 'undefined') inventoryOpen = false;
     },
     
     render: function() {
@@ -27,11 +30,14 @@ window.UIInventory = {
         const player = window.player;
         const equippedUids = this.getEquippedUids();
         
+        // 排序背包
+        const sortedInventory = this.sortInventory([...player.inventory], this.sortType);
+        
         // 生成背包物品格子
         let itemsHtml = '';
-        const maxSlots = Math.max(player.inventory.length, 16);
+        const maxSlots = Math.max(sortedInventory.length, 20);
         for (let i = 0; i < maxSlots; i++) {
-            const item = player.inventory[i];
+            const item = sortedInventory[i];
             const isEquipped = item && equippedUids.has(item.uid);
             
             let slotClass = '';
@@ -50,23 +56,37 @@ window.UIInventory = {
                 iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:40px;height:40px;">`;
             }
             
+            // 数量显示
+            const qtyBadge = item && item.quantity > 1 ? `<span class="qty-badge">${item.quantity}</span>` : '';
+            
             itemsHtml += `<div class="inv-slot ${slotClass}" 
                 data-index="${i}" 
-                style="border-color:${borderColor}"
+                data-item-id="${item?.id || ''}"
+                data-quality="${item?.quality || ''}"
+                style="border-color:${item?.color || 'rgba(80, 100, 140, 0.2)'}"
                 title="${tooltip}">
                 ${iconHtml}
+                ${qtyBadge}
             </div>`;
         }
         
         // 生成装备栏
         const equipSlots = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
         
+        // 排序选项
+        const sortOptions = [
+            { value: 'default', label: '默认' },
+            { value: 'quality', label: '品质' },
+            { value: 'type', label: '类型' },
+            { value: 'level', label: '等级' }
+        ];
+        
         this.element.innerHTML = `
             <div class="panel-header">
-                <h2>背包 (${player.inventory.length})</h2>
+                <h2>背包 (${player.inventory.length}格)</h2>
                 <button class="panel-close-btn" id="inventory-close-btn">✕</button>
             </div>
-            <div class="panel-body">
+            <div class="inventory-container">
                 <div class="equipment-section">
                     ${equipSlots.map(slot => {
                         const item = player[slot];
@@ -80,18 +100,28 @@ window.UIInventory = {
                         `;
                     }).join('')}
                 </div>
-                <div class="item-grid">${itemsHtml}</div>
-                <div class="sell-section">
-                    <div class="sell-title">一键出售</div>
-                    <div class="quick-sell-btns">
-                        <button class="quick-sell-btn" data-quality="common" style="border-color:#fff">白</button>
-                        <button class="quick-sell-btn" data-quality="uncommon" style="border-color:#4f4">绿</button>
-                        <button class="quick-sell-btn" data-quality="rare" style="border-color:#44f">蓝</button>
-                        <button class="quick-sell-btn" data-quality="epic" style="border-color:#a4f">紫</button>
-                        <button class="quick-sell-btn" data-quality="legendary" style="border-color:#fa4">金</button>
-                    </div>
-                    <div class="sell-tip">点击物品查看详情/穿戴，长按品质按钮直接出售</div>
+                <div class="sort-section">
+                    <span class="sort-label">排序:</span>
+                    <select id="inventory-sort" class="sort-select">
+                        ${sortOptions.map(opt => `<option value="${opt.value}" ${this.sortType === opt.value ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                    </select>
                 </div>
+                <div class="item-grid" id="inventory-grid">${itemsHtml}</div>
+                <div class="action-section">
+                    <button class="action-btn" id="btn-stack">整理背包</button>
+                    <div class="sell-section">
+                        <div class="sell-title">快速出售</div>
+                        <div class="quick-sell-btns">
+                            <button class="quick-sell-btn" data-quality="common">白</button>
+                            <button class="quick-sell-btn" data-quality="uncommon">绿</button>
+                            <button class="quick-sell-btn" data-quality="rare">蓝</button>
+                            <button class="quick-sell-btn" data-quality="epic">紫</button>
+                            <button class="quick-sell-btn" data-quality="legendary">金</button>
+                        </div>
+                    </div>
+                    <div class="sell-tip">点击查看详情/对比，右键单个出售</div>
+                </div>
+            </div>
             </div>
         `;
         
@@ -104,37 +134,209 @@ window.UIInventory = {
             closeBtn.onclick = () => window.PanelManager.closePanel('inventory');
         }
         
-        // 物品格子点击 - 打开对比面板
-        document.querySelectorAll('#inventory-panel .inv-slot:not(.empty)').forEach(slot => {
-            slot.onclick = () => {
-                const index = parseInt(slot.dataset.index);
-                const item = window.player.inventory[index];
-                if (item) {
-                    window.UICompare.show(item, item.type, 'inventory');
-                }
+        // 排序选择
+        const sortSelect = document.getElementById('inventory-sort');
+        if (sortSelect) {
+            sortSelect.onchange = (e) => {
+                this.sortType = e.target.value;
+                this.render();
             };
-        });
+        }
         
-        // 物品格子长按 - 一键出售该品质
-        document.querySelectorAll('#inventory-panel .inv-slot:not(.empty)').forEach(slot => {
-            slot.oncontextmenu = (e) => {
-                e.preventDefault();
-                const index = parseInt(slot.dataset.index);
-                const item = window.player.inventory[index];
-                if (item) {
-                    this.quickSell(item.quality);
-                }
+        // 整理按钮
+        const stackBtn = document.getElementById('btn-stack');
+        if (stackBtn) {
+            stackBtn.onclick = () => {
+                this.stackItems();
+                this.render();
+                window.showMessage('背包整理完成');
             };
-        });
+        }
         
-        // 一键出售按钮
+        // 快速出售按钮
         document.querySelectorAll('#inventory-panel .quick-sell-btn').forEach(btn => {
             btn.onclick = () => {
                 this.quickSell(btn.dataset.quality);
             };
         });
+        
+        // 物品点击事件
+        const self = this;
+        document.querySelectorAll('#inventory-grid .inv-slot').forEach(slot => {
+            slot.onclick = function() {
+                const idx = parseInt(this.dataset.index);
+                const item = self.getSortedItem(idx);
+                if (item && item.type) {
+                    window.UICompare.show(item, item.type, 'inventory');
+                } else if (item && !item.type) {
+                    // 消耗品直接使用
+                    self.useItem(idx);
+                }
+            };
+            
+            // 右键出售
+            slot.oncontextmenu = function(e) {
+                e.preventDefault();
+                const idx = parseInt(this.dataset.index);
+                const item = self.getSortedItem(idx);
+                if (item) {
+                    self.sellItem(idx);
+                }
+            };
+        });
     },
     
+    // 排序背包
+    sortInventory: function(inventory, sortType) {
+        const qualityOrder = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
+        const typeOrder = { weapon: 6, armor: 5, helmet: 4, boots: 3, ring: 2, necklace: 1 };
+        
+        // 过滤空格子
+        let items = inventory.filter(item => item !== null && item !== undefined);
+        
+        switch(sortType) {
+            case 'quality':
+                items.sort((a, b) => (qualityOrder[b.quality] || 0) - (qualityOrder[a.quality] || 0));
+                break;
+            case 'type':
+                items.sort((a, b) => (typeOrder[b.type] || 99) - (typeOrder[a.type] || 99));
+                break;
+            case 'level':
+                items.sort((a, b) => (b.level || 0) - (a.level || 0));
+                break;
+            default:
+                // 默认按品质+等级
+                items.sort((a, b) => {
+                    const q = (qualityOrder[b.quality] || 0) - (qualityOrder[a.quality] || 0);
+                    if (q !== 0) return q;
+                    return (b.level || 0) - (a.level || 0);
+                });
+        }
+        
+        return items;
+    },
+    
+    // 获取排序后的物品
+    getSortedItem: function(index) {
+        const sorted = this.sortInventory([...window.player.inventory], this.sortType);
+        return sorted[index];
+    },
+    
+    // 叠加物品
+    stackItems: function() {
+        const player = window.player;
+        const newInventory = [];
+        const added = new Set();
+        
+        for (let i = 0; i < player.inventory.length; i++) {
+            const item = player.inventory[i];
+            if (!item || added.has(item.uid)) continue;
+            
+            // 查找相同可叠加物品
+            const stackable = player.inventory.filter((it, idx) => {
+                if (!it || idx <= i || added.has(it.uid)) return false;
+                // 可叠加条件：相同ID、非装备类型
+                return it.id === item.id && !this.isEquipment(it.type);
+            });
+            
+            if (stackable.length > 0) {
+                // 叠加数量
+                let totalQty = item.quantity || 1;
+                stackable.forEach(it => {
+                    totalQty += it.quantity || 1;
+                    added.add(it.uid);
+                });
+                item.quantity = Math.min(totalQty, 99); // 最多99
+                added.add(item.uid);
+            }
+            newInventory.push(item);
+        }
+        
+        player.inventory = newInventory;
+    },
+    
+    // 判断是否是装备
+    isEquipment: function(type) {
+        return ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'].includes(type);
+    },
+    
+    // 穿戴装备
+    equipItem: function(index) {
+        const player = window.player;
+        const item = this.getSortedItem(index);
+        if (!item || !item.type) return;
+        
+        const slot = item.type;
+        const oldItem = player[slot];
+        
+        // 卸下旧装备
+        if (oldItem) {
+            player.inventory.push(oldItem);
+        }
+        
+        // 装备新装备
+        player[slot] = item;
+        
+        // 从背包移除
+        const idx = player.inventory.indexOf(item);
+        if (idx > -1) {
+            player.inventory.splice(idx, 1);
+        }
+        
+        // 重新计算属性
+        if (window.recalculateStats) window.recalculateStats();
+        
+        // 更新头像
+        if (window.updatePlayerAvatar) window.updatePlayerAvatar();
+        
+        window.showMessage(`装备 ${item.name}`);
+        this.render();
+    },
+    
+    // 使用消耗品
+    useItem: function(index) {
+        const player = window.player;
+        const item = this.getSortedItem(index);
+        if (!item) return;
+        
+        // 消耗品效果
+        if (item.heal) {
+            player.hp = Math.min(player.maxHp, player.hp + item.heal);
+            window.showMessage(`恢复 ${item.heal} HP`);
+        }
+        if (item.mp) {
+            player.mp = Math.min(player.maxMp, player.mp + item.mp);
+            window.showMessage(`恢复 ${item.mp} MP`);
+        }
+        
+        // 减少数量
+        item.quantity--;
+        if (item.quantity <= 0) {
+            const idx = player.inventory.indexOf(item);
+            if (idx > -1) player.inventory.splice(idx, 1);
+        }
+        
+        this.render();
+    },
+    
+    // 出售单个物品
+    sellItem: function(index) {
+        const player = window.player;
+        const item = this.getSortedItem(index);
+        if (!item) return;
+        
+        const price = Math.floor((item.price || 10) * 0.5);
+        
+        window.showConfirm(`出售 ${item.name}？\n获得 ${price} 金币`, () => {
+            player.gold += price;
+            const idx = player.inventory.indexOf(item);
+            if (idx > -1) player.inventory.splice(idx, 1);
+            window.showMessage(`出售 ${item.name}，获得 ${price} 金币`);
+            this.render();
+        });
+    },
+    
+    // 快速出售
     quickSell: function(quality) {
         const player = window.player;
         const equippedUids = this.getEquippedUids();
@@ -151,9 +353,7 @@ window.UIInventory = {
         const totalGold = sellItems.reduce((sum, item) => sum + Math.floor((item.price || 10) * 0.5), 0);
         const qualityName = this.getQualityName(quality);
         
-        const confirmed = confirm(`出售 ${sellItems.length} 件${qualityName}装备？\n将获得 ${totalGold} 金币`);
-        
-        if (confirmed) {
+        window.showConfirm(`出售 ${sellItems.length} 件${qualityName}装备？\n将获得 ${totalGold} 金币`, () => {
             player.inventory = player.inventory.filter(item => {
                 if (item && item.quality === quality && !equippedUids.has(item.uid)) {
                     player.gold += Math.floor((item.price || 10) * 0.5);
@@ -163,7 +363,7 @@ window.UIInventory = {
             });
             window.showMessage(`出售 ${sellItems.length} 件${qualityName}装备，获得 ${totalGold} 金币`);
             this.render();
-        }
+        });
     },
     
     getEquippedUids: function() {

@@ -15,11 +15,13 @@ window.UICharacter = {
         this.element.style.display = 'flex';
         this.render();
         if (window.updatePlayerAvatar) window.updatePlayerAvatar();
+        if (typeof characterOpen !== 'undefined') characterOpen = true;
     },
     
     close: function() {
         if (!this.element) return;
         this.element.style.display = 'none';
+        if (typeof characterOpen !== 'undefined') characterOpen = false;
     },
     
     render: function() {

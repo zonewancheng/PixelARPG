@@ -16,11 +16,13 @@ window.UIShop = {
         this.refreshItems();
         this.render();
         this.element.style.display = 'flex';
+        if (typeof shopOpen !== 'undefined') shopOpen = true;
     },
     
     close: function() {
         if (!this.element) return;
         this.element.style.display = 'none';
+        if (typeof shopOpen !== 'undefined') shopOpen = false;
     },
     
     refreshItems: function() {
@@ -107,25 +109,20 @@ window.UIShop = {
             player.boots?.uid, player.ring?.uid, player.necklace?.uid
         ].filter(Boolean));
         
-        let totalGold = 0;
-        let count = 0;
+        const sellItems = player.inventory.filter(item => item && !equippedUids.has(item.uid));
         
-        player.inventory = player.inventory.filter(item => {
-            if (item && !equippedUids.has(item.uid)) {
-                const price = Math.floor((item.price || 10) * 0.5);
-                totalGold += price;
-                count++;
-                return false;
-            }
-            return true;
-        });
+        if (sellItems.length === 0) {
+            window.showMessage?.('没有可出售的装备');
+            return;
+        }
         
-        if (count > 0) {
+        const totalGold = sellItems.reduce((sum, item) => sum + Math.floor((item.price || 10) * 0.5), 0);
+        
+        window.showConfirm(`出售 ${sellItems.length} 件装备？\n将获得 ${totalGold} 金币`, () => {
             player.gold += totalGold;
+            player.inventory = player.inventory.filter(item => !item || equippedUids.has(item.uid));
             window.showMessage?.(`出售装备获得 ${totalGold} 金币`);
             this.render();
-        } else {
-            window.showMessage?.('没有可出售的装备');
-        }
+        });
     }
 };

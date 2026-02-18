@@ -154,7 +154,6 @@ window.RenderUtils = {
             <div class="shop-item-icon">${iconHtml}</div>
             <div class="shop-item-name" style="color:${item.color || '#fff'}">${item.name}</div>
             <div class="shop-item-price">💰 ${item.price}</div>
-            <div class="shop-item-quality" style="background:${item.color || '#888'}"></div>
         </div>`;
     },
 

@@ -31,8 +31,9 @@ window.UICompare = {
                         </div>
                     </div>
                     <div class="compare-actions">
-                        <button class="compare-btn confirm" id="compare-confirm-btn">确定</button>
+                        <button class="compare-btn sell" id="compare-sell-btn">出售</button>
                         <button class="compare-btn cancel" id="compare-cancel-btn">取消</button>
+                        <button class="compare-btn confirm" id="compare-confirm-btn">确定</button>
                     </div>
                 </div>
             `;
@@ -55,6 +56,11 @@ window.UICompare = {
         const confirmBtn = document.getElementById('compare-confirm-btn');
         if (confirmBtn) {
             confirmBtn.onclick = () => this.confirm();
+        }
+        
+        const sellBtn = document.getElementById('compare-sell-btn');
+        if (sellBtn) {
+            sellBtn.onclick = () => this.sellItem();
         }
         
         this.element.onclick = (e) => {
@@ -97,12 +103,18 @@ window.UICompare = {
         statsContent.innerHTML = window.RenderUtils.getCompareStatsHtml(newItem, equippedItem);
         
         const confirmBtn = document.getElementById('compare-confirm-btn');
+        const sellBtn = document.getElementById('compare-sell-btn');
+        
         if (this.source === 'shop') {
             confirmBtn.textContent = `购买 (${newItem.price}金)`;
             confirmBtn.className = 'compare-btn confirm buy';
-        } else {
+            confirmBtn.style.display = 'inline-block';
+            sellBtn.style.display = 'none';
+        } else if (this.source === 'inventory') {
             confirmBtn.textContent = '穿戴';
             confirmBtn.className = 'compare-btn confirm equip';
+            confirmBtn.style.display = 'inline-block';
+            sellBtn.style.display = 'inline-block';
         }
     },
     
@@ -195,5 +207,28 @@ window.UICompare = {
         window.UIInventory?.render();
         window.updatePlayerAvatar?.();
         window.showMessage?.(`购买 ${item.name}`);
+    },
+    
+    sellItem: function() {
+        const item = this.currentItem;
+        const player = window.player;
+        
+        if (!item) {
+            this.hide();
+            return;
+        }
+        
+        const sellPrice = Math.floor((item.price || 10) * 0.5);
+        player.gold += sellPrice;
+        
+        const itemIndex = player.inventory.indexOf(item);
+        if (itemIndex > -1) {
+            player.inventory.splice(itemIndex, 1);
+        }
+        
+        this.hide();
+        window.UIInventory?.render();
+        window.UICharacter?.render();
+        window.showMessage?.(`出售 ${item.name} +${sellPrice}金`);
     }
 };

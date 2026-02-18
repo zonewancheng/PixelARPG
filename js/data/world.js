@@ -71,9 +71,10 @@ window.CLOUD_CIRCLES = [
  */
 window.createCloud = function(canvasWidth, canvasHeight) {
     const types = ['white', 'dark', 'storm'];
-    const type = types[Math.floor(Math.random() * 3)];
+    const rand = Math.random();
+    const type = rand < 0.3 ? 'storm' : (rand < 0.6 ? 'dark' : 'white');
     const size = 20 + Math.random() * 30;
-    const speedX = (Math.random() * 0.3 + 0.1) * (Math.random() > 0.5 ? 1 : -1);
+    const speedX = (Math.random() * 0.15 + 0.05) * (Math.random() > 0.5 ? 1 : -1);
     
     return {
         x: Math.random() * canvasWidth,

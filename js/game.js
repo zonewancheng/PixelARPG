@@ -5,6 +5,7 @@ let enemies = [];
 let drops = [];
 let particles = [];
 let projectiles = [];
+let damageNumbers = [];
 let gameState = 'playing';
 let inventoryOpen = false;
 let characterOpen = false;
@@ -343,6 +344,50 @@ function spawnParticles(x, y, color, count) {
     }
 }
 
+function spawnDamageNumber(x, y, value, isHeal = false) {
+    damageNumbers.push({
+        x: x + (Math.random() - 0.5) * 20,
+        y: y - 10,
+        value: value,
+        isHeal: isHeal,
+        life: 45
+    });
+}
+
+window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
+    // 对怪物造成伤害
+    enemies.forEach(e => {
+        const eCenterX = e.x + e.w / 2;
+        const eCenterY = e.y + e.h / 2;
+        const edx = eCenterX - cloudCenterX;
+        const edy = eCenterY - cloudCenterY;
+        const edist = Math.sqrt(edx * edx + edy * edy);
+        
+        if (edist < 60) {
+            const eDmg = Math.max(1, 15 + Math.floor(Math.random() * 10) - (e.def || 0));
+            e.hp -= eDmg;
+            spawnParticles(eCenterX, eCenterY, '#ff0', 8);
+            spawnDamageNumber(eCenterX, eCenterY, eDmg);
+        }
+    });
+    
+    // 对Boss造成伤害
+    if (window.boss) {
+        const bossCenterX = window.boss.x + window.boss.w / 2;
+        const bossCenterY = window.boss.y + window.boss.h / 2;
+        const bdx = bossCenterX - cloudCenterX;
+        const bdy = bossCenterY - cloudCenterY;
+        const bdist = Math.sqrt(bdx * bdx + bdy * bdy);
+        
+        if (bdist < 80) {
+            const bossDmg = Math.max(1, 20 + Math.floor(Math.random() * 15) - (window.boss.def || 0));
+            window.boss.hp -= bossDmg;
+            spawnParticles(bossCenterX, bossCenterY, '#ff0', 12);
+            spawnDamageNumber(bossCenterX, bossCenterY, bossDmg);
+        }
+    }
+};
+
 function showMessage(msg, duration = 60) {
     message = msg;
     messageTimer = duration;
@@ -355,6 +400,61 @@ function showMessage(msg, duration = 60) {
             msgEl.style.display = 'none';
         }, duration * 16.67);
     }
+}
+
+function showConfirm(message, onConfirm) {
+    let modal = document.getElementById('confirm-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'confirm-modal';
+        modal.innerHTML = `
+            <div class="confirm-overlay"></div>
+            <div class="confirm-box">
+                <div class="confirm-message"></div>
+                <div class="confirm-buttons">
+                    <button class="confirm-cancel">取消</button>
+                    <button class="confirm-ok">确定</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            #confirm-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; display: none; }
+            #confirm-modal.show { display: flex; align-items: center; justify-content: center; }
+            #confirm-modal .confirm-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+            #confirm-modal .confirm-box { position: relative; background: linear-gradient(145deg, #1a1d26, #12151c); border: 1px solid rgba(100,140,180,0.3); border-radius: 12px; padding: 20px; max-width: 280px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            #confirm-modal .confirm-message { color: #e8f0ff; font-size: 15px; margin-bottom: 20px; line-height: 1.5; white-space: pre-line; }
+            #confirm-modal .confirm-buttons { display: flex; gap: 12px; }
+            #confirm-modal button { flex: 1; padding: 10px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+            #confirm-modal .confirm-cancel { background: rgba(80,90,100,0.4); color: #99aabb; border: 1px solid rgba(120,130,150,0.3); }
+            #confirm-modal .confirm-cancel:hover { background: rgba(100,110,120,0.5); }
+            #confirm-modal .confirm-ok { background: linear-gradient(135deg, rgba(80,150,100,0.5), rgba(60,120,80,0.5)); color: #8feda3; border: 1px solid rgba(100,200,130,0.3); }
+            #confirm-modal .confirm-ok:hover { background: linear-gradient(135deg, rgba(90,170,110,0.6), rgba(70,140,90,0.6)); }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    const msgEl = modal.querySelector('.confirm-message');
+    const cancelBtn = modal.querySelector('.confirm-cancel');
+    const okBtn = modal.querySelector('.confirm-ok');
+    
+    msgEl.textContent = message;
+    
+    const cleanup = () => {
+        modal.classList.remove('show');
+        cancelBtn.onclick = null;
+        okBtn.onclick = null;
+    };
+    
+    cancelBtn.onclick = cleanup;
+    okBtn.onclick = () => {
+        cleanup();
+        onConfirm?.();
+    };
+    
+    modal.classList.add('show');
 }
 
 function gameLoop() {
@@ -400,7 +500,7 @@ function update() {
         if (e.frozen > 0) e.frozen--;
         if (e.aggro > 0) e.aggro--;
         
-        let speed = 0.8;
+        let speed = 0.4;
         if (e.slowed > 0) speed *= 0.5;
         if (e.frozen > 0) speed = 0;
         
@@ -425,7 +525,6 @@ function update() {
                     e.x += e.patrolDir * speed * 0.3;
                     if (Math.abs(e.x - e.spawnX) > patrolRange || e.x < window.TILE || e.x > (window.MAP_W - 1) * window.TILE) {
                         e.patrolDir *= -1;
-                        e.x = Math.max(window.TILE, Math.min((window.MAP_W - 1) * window.TILE, e.x));
                     }
                     break;
                 case 'patrol_v':
@@ -433,7 +532,6 @@ function update() {
                     e.y += e.patrolDir * speed * 0.3;
                     if (Math.abs(e.y - e.spawnY) > patrolRange || e.y < window.TILE || e.y > (window.MAP_H - 1) * window.TILE) {
                         e.patrolDir *= -1;
-                        e.y = Math.max(window.TILE, Math.min((window.MAP_H - 1) * window.TILE, e.y));
                     }
                     break;
                 case 'circle':
@@ -461,23 +559,13 @@ function update() {
                         e.x += Math.cos(angleToSpawn) * speed * 0.3;
                         e.y += Math.sin(angleToSpawn) * speed * 0.3;
                     }
-                    if (e.x < window.TILE || e.x > (window.MAP_W - 1) * window.TILE || 
-                        e.y < window.TILE || e.y > (window.MAP_H - 1) * window.TILE) {
-                        e.x = e.spawnX;
-                        e.y = e.spawnY;
-                    }
                     break;
                 case 'idle':
                 default:
                     break;
             }
             
-            const tileX = Math.floor((e.x + e.w/2) / window.TILE);
-            const tileY = Math.floor((e.y + e.h/2) / window.TILE);
-            if (map[tileY] && map[tileY][tileX] === 1) {
-                e.x = e.spawnX;
-                e.y = e.spawnY;
-            }
+            // 边界限制 - 不直接重置位置
             e.x = Math.max(window.TILE, Math.min((window.MAP_W - 1) * window.TILE - 10, e.x));
             e.y = Math.max(window.TILE, Math.min((window.MAP_H - 1) * window.TILE - 10, e.y));
         }
@@ -488,6 +576,7 @@ function update() {
             player.invulnerable = 30;
             damageFlash = 10;
             spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 5);
+            spawnDamageNumber(player.x + player.w/2, player.y, dmg);
             if (player.hp <= 0) {
                 gameState = 'gameover';
                 showMessage('GAME OVER - Tap to restart', 300);
@@ -509,7 +598,7 @@ function update() {
         
         // Boss chases player when in range but maintains distance
         if (dist < 250 && dist > 60) {
-            const chaseSpeed = window.boss.aggro > 0 ? 1.2 : 0.8;
+            const chaseSpeed = window.boss.aggro > 0 ? 0.6 : 0.4;
             window.boss.x += (dx / dist) * chaseSpeed;
             window.boss.y += (dy / dist) * chaseSpeed;
         } else if (dist >= 250) {
@@ -519,7 +608,7 @@ function update() {
                 window.boss.wanderDir = Math.random() * Math.PI * 2;
                 window.boss.wanderTimer = 60 + Math.random() * 60;
             }
-            const wanderSpeed = 0.3;
+            const wanderSpeed = 0.2;
             window.boss.x += Math.cos(window.boss.wanderDir) * wanderSpeed;
             window.boss.y += Math.sin(window.boss.wanderDir) * wanderSpeed;
         }
@@ -540,6 +629,7 @@ function update() {
             player.invulnerable = 20;
             damageFlash = 15;
             spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 10);
+            spawnDamageNumber(player.x + player.w/2, player.y, dmg);
             showMessage(`BOSS ATTACK! -${dmg} HP`);
             if (player.hp <= 0) {
                 gameState = 'gameover';
@@ -568,10 +658,12 @@ function update() {
             } else if (d.item.type === 'consumable') {
                 if (d.item.heal) {
                     player.hp = Math.min(player.maxHp, player.hp + d.item.heal);
+                    spawnDamageNumber(player.x + player.w/2, player.y, d.item.heal, true);
                     showMessage(`+${d.item.heal} HP!`);
                 }
                 if (d.item.mp) {
                     player.mp = Math.min(player.maxMp, player.mp + d.item.mp);
+                    spawnDamageNumber(player.x + player.w/2, player.y - 15, d.item.mp, true);
                     showMessage(`+${d.item.mp} MP!`);
                 }
             } else {
@@ -610,6 +702,12 @@ function update() {
         return p.life > 0;
     });
     
+    damageNumbers = damageNumbers.filter(d => {
+        d.y -= 0.8;
+        d.life--;
+        return d.life > 0;
+    });
+    
     projectiles = projectiles.filter(p => {
         p.x += p.vx;
         p.y += p.vy;
@@ -623,6 +721,7 @@ function update() {
                 e.hp -= p.damage;
                 e.aggro = 120;
                 spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f84', 5);
+                spawnDamageNumber(e.x + e.w/2, e.y, p.damage);
                 hit = true;
             }
         });
@@ -645,6 +744,7 @@ function update() {
                 window.boss.hp -= p.damage;
                 window.boss.aggro = 120;
                 spawnParticles(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2, '#f84', 10);
+                spawnDamageNumber(window.boss.x + window.boss.w/2, window.boss.y, p.damage);
                 hit = true;
                 if (window.boss.hp <= 0) {
                     player.exp += window.boss.exp;
@@ -689,6 +789,10 @@ function update() {
 function render() {
     const player = window.player;
     
+    if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen) {
+        update();
+    }
+    
     if (damageFlash > 0) {
         ctx.fillStyle = `rgba(255, 0, 0, ${damageFlash / 30})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -696,7 +800,6 @@ function render() {
     }
     
     drawMap(ctx, map, window.TILE, window.MAP_W, window.MAP_H);
-    drawClouds(ctx, canvas.width, canvas.height, player);
     drawDrops(ctx, drops);
     drawProjectiles(ctx, projectiles);
     drawEnemies(ctx, enemies, drawPixelSprite);
@@ -704,6 +807,8 @@ function render() {
     drawPlayer(ctx, player, drawPixelSprite, player.invulnerable);
     drawPlayerAttack(ctx, player);
     drawParticles(ctx, particles);
+    drawClouds(ctx, canvas.width, canvas.height, player);
+    drawDamageNumbers(ctx, damageNumbers);
     
     if (message) {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
@@ -856,6 +961,7 @@ function attack() {
             e.vx = dirX * 5;
             e.vy = dirY * 5;
             spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f44', 5);
+            spawnDamageNumber(e.x + e.w/2, e.y, dmg);
             if (e.hp <= 0) {
                 player.exp += e.exp;
                 player.gold += e.gold;
@@ -875,6 +981,7 @@ function attack() {
             window.boss.vx = dirX * 8;
             window.boss.vy = dirY * 8;
             spawnParticles(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2, '#f44', 10);
+            spawnDamageNumber(window.boss.x + window.boss.w/2, window.boss.y, dmg);
             if (window.boss.hp <= 0) {
                 player.exp += window.boss.exp;
                 player.gold += window.boss.gold;
@@ -942,6 +1049,7 @@ function useSkill(index) {
                 const dmg = Math.floor(player.atk * skill.damage);
                 e.hp -= dmg;
                 spawnParticles(e.x + e.w/2, e.y + e.h/2, '#ff0', 10);
+                spawnDamageNumber(e.x + e.w/2, e.y, dmg);
                 showMessage(`${skill.name} hit! -${dmg}`);
             }
         });
@@ -952,6 +1060,7 @@ function useSkill(index) {
             if (dist < range && isTargetInDirection(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2)) {
                 const dmg = Math.floor(player.atk * skill.damage);
                 window.boss.hp -= dmg;
+                spawnDamageNumber(window.boss.x + window.boss.w/2, window.boss.y, dmg);
                 showMessage(`${skill.name} hit boss! -${dmg}`);
             }
         }
@@ -1489,10 +1598,12 @@ function useItem(index) {
     if (item.type === 'consumable') {
         if (item.heal) {
             player.hp = Math.min(player.maxHp, player.hp + item.heal);
+            spawnDamageNumber(player.x + player.w/2, player.y, item.heal, true);
             showMessage(`+${item.heal} HP!`);
         }
         if (item.mp) {
             player.mp = Math.min(player.maxMp, player.mp + item.mp);
+            spawnDamageNumber(player.x + player.w/2, player.y - 15, item.mp, true);
             showMessage(`+${item.mp} MP!`);
         }
         player.inventory.splice(index, 1);
