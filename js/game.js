@@ -18,6 +18,18 @@ let keys = {};
 // 视口/摄像机系统
 let camera = { x: 0, y: 0 };
 
+// 初始化摄像机
+function initCamera() {
+    const player = window.player;
+    if (!player) return;
+    const mapWidth = window.MAP_W * window.TILE;
+    const mapHeight = window.MAP_H * window.TILE;
+    camera.x = Math.max(0, player.x + player.w / 2 - gameWidth / 2);
+    camera.y = Math.max(0, player.y + player.h / 2 - gameHeight / 2);
+    camera.x = Math.min(camera.x, mapWidth - gameWidth);
+    camera.y = Math.min(camera.y, mapHeight - gameHeight);
+}
+
 const DB_NAME = 'PixelHeroDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'save';
@@ -132,6 +144,7 @@ function initGame() {
     
     generateMap();
     spawnEnemies();
+    initCamera();
     setupInput();
     setupUI();
     

@@ -57,6 +57,9 @@ canvas {
     image-rendering: -moz-crisp-edges;
     max-width: 100%;
     max-height: 100%;
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
 #ui {
@@ -300,7 +303,7 @@ canvas {
 /* 右上角按钮 */
 #corner-buttons {
     position: absolute;
-    top: 8px;
+    top: 50px;
     right: 8px;
     display: flex;
     flex-direction: column;
@@ -455,20 +458,9 @@ canvas {
     transform: translate(-50%, -50%);
 }
 
-/* 技能扇形展开动画 */
-@keyframes skillFan {
-    from {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0;
-    }
-    to {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-}
-
 #skills-container.joystick-mode .skill-slot {
-    animation: skillFan 0.3s ease-out forwards;
+    transform: translate(-50%, -50%);
+    position: absolute;
 }
 
 #skills-container #skills {
@@ -516,10 +508,13 @@ canvas {
 }
 
 .skill-slot {
-    width: 30px;
-    height: 30px;
-    background: rgba(50,30,30,0.9);
-    border: 2px solid #864;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    background: radial-gradient(circle at 30% 30%, rgba(80,50,40,0.95) 0%, rgba(50,30,30,0.9) 100%);
+    border: 2px solid #c96;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -527,6 +522,12 @@ canvas {
     cursor: pointer;
     position: relative;
     color: #ffd700;
+    box-shadow: 
+        inset 0 -3px 6px rgba(0,0,0,0.4),
+        inset 0 3px 6px rgba(255,255,255,0.1),
+        0 2px 6px rgba(0,0,0,0.4);
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .skill-slot.locked {
