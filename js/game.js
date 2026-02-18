@@ -16,34 +16,6 @@ let damageFlash = 0;
 let keys = {};
 let deathCountdown = 0;
 
-// 视口/摄像机系统
-let camera = { x: 0, y: 0 };
-
-// 初始化摄像机
-function initCamera() {
-    const player = window.player;
-    if (!player) return;
-    const mapWidth = window.MAP_W * window.TILE;
-    const mapHeight = window.MAP_H * window.TILE;
-    
-    let cx = player.x + player.w / 2 - gameWidth / 2;
-    let cy = player.y + player.h / 2 - gameHeight / 2;
-    
-    if (mapWidth > gameWidth) {
-        cx = Math.max(0, Math.min(cx, mapWidth - gameWidth));
-    } else {
-        cx = 0;
-    }
-    if (mapHeight > gameHeight) {
-        cy = Math.max(0, Math.min(cy, mapHeight - gameHeight));
-    } else {
-        cy = 0;
-    }
-    
-    camera.x = cx;
-    camera.y = cy;
-}
-
 const DB_NAME = 'PixelHeroDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'save';
@@ -158,7 +130,6 @@ function initGame() {
     
     generateMap();
     spawnEnemies();
-    initCamera();
     setupInput();
     setupUI();
     
@@ -1143,44 +1114,8 @@ function update() {
     
     updateUI();
 }
-
-// 更新摄像机位置
-function updateCamera() {
-    const player = window.player;
-    if (!player) return;
-    
-    const mapWidth = window.MAP_W * window.TILE;
-    const mapHeight = window.MAP_H * window.TILE;
-    
-    // 目标摄像机位置（玩家中心）
-    let targetX = player.x + player.w / 2 - gameWidth / 2;
-    let targetY = player.y + player.h / 2 - gameHeight / 2;
-    
-    // 限制在地图范围内（确保地图比屏幕大时才限制）
-    if (mapWidth > gameWidth) {
-        targetX = Math.max(0, Math.min(targetX, mapWidth - gameWidth));
-    } else {
-        targetX = 0;
-    }
-    if (mapHeight > gameHeight) {
-        targetY = Math.max(0, Math.min(targetY, mapHeight - gameHeight));
-    } else {
-        targetY = 0;
-    }
-    
-    // 直接设置摄像机位置
-    camera.x = targetX;
-    camera.y = targetY;
-}
-
 function render() {
     const player = window.player;
-    
-    // 清除画布
-    ctx.clearRect(0, 0, gameWidth, gameHeight);
-    
-    // 更新摄像机位置，使玩家居中
-    updateCamera();
     
     if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen) {
         update();
@@ -1191,10 +1126,6 @@ function render() {
         ctx.fillRect(0, 0, gameWidth, gameHeight);
         damageFlash--;
     }
-    
-    // 应用摄像机偏移
-    ctx.save();
-    ctx.translate(-camera.x, -camera.y);
     
     // 绘制地图
     drawMap(ctx, map, window.TILE, window.MAP_W, window.MAP_H);
@@ -1222,9 +1153,7 @@ function render() {
     // 绘制伤害数字
     drawDamageNumbers(ctx, damageNumbers);
     
-    ctx.restore();
-    
-    // 云层（不随摄像机移动）
+    // 云层
     drawClouds(ctx, gameWidth, gameHeight, player);
     
     if (message) {
@@ -1352,18 +1281,12 @@ function setupInput() {
             const nx = player.x + dx * 3;
             const ny = player.y + dy * 3;
             
-            // 确保在地图范围内
-            const mapWidth = window.MAP_W * window.TILE;
-            const mapHeight = window.MAP_H * window.TILE;
-            const boundedX = Math.max(0, Math.min(nx, mapWidth - player.w));
-            const boundedY = Math.max(0, Math.min(ny, mapHeight - player.h));
-            
-            const tx = Math.floor((boundedX + 10) / window.TILE);
-            const ty = Math.floor((boundedY + 10) / window.TILE);
+            const tx = Math.floor((nx + 10) / window.TILE);
+            const ty = Math.floor((ny + 10) / window.TILE);
             
             if (map[ty] && map[ty][tx] !== 1) {
-                player.x = boundedX;
-                player.y = boundedY;
+                player.x = nx;
+                player.y = ny;
             }
         }
     }, 1000/60);
