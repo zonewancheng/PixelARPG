@@ -1349,12 +1349,18 @@ function setupInput() {
             const nx = player.x + dx * 3;
             const ny = player.y + dy * 3;
             
-            const tx = Math.floor((nx + 10) / window.TILE);
-            const ty = Math.floor((ny + 10) / window.TILE);
+            // 确保在地图范围内
+            const mapWidth = window.MAP_W * window.TILE;
+            const mapHeight = window.MAP_H * window.TILE;
+            const boundedX = Math.max(0, Math.min(nx, mapWidth - player.w));
+            const boundedY = Math.max(0, Math.min(ny, mapHeight - player.h));
+            
+            const tx = Math.floor((boundedX + 10) / window.TILE);
+            const ty = Math.floor((boundedY + 10) / window.TILE);
             
             if (map[ty] && map[ty][tx] !== 1) {
-                player.x = nx;
-                player.y = ny;
+                player.x = boundedX;
+                player.y = boundedY;
             }
         }
     }, 1000/60);

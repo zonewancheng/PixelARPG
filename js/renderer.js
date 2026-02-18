@@ -411,8 +411,13 @@ function drawWallWithBricks(ctx, x, y, size) {
 }
 
 function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
+    // 使用逻辑尺寸绘制背景
+    const logicalWidth = MAP_W * TILE;
+    const logicalHeight = MAP_H * TILE;
+    
+    // 绘制背景（使用逻辑尺寸）
     ctx.fillStyle = '#1a2a3a';
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillRect(0, 0, logicalWidth, logicalHeight);
     
     const time = Date.now() / 500;
     const shadowDir = getShadowDirection();
