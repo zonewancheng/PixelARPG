@@ -1,11 +1,15 @@
-/* ========== 商店面板样式 ========== */
+/* ========== 商店面板样式 - 全新设计 ========== */
 #shop-panel {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(145deg, rgba(18, 22, 30, 0.97) 0%, rgba(10, 12, 18, 0.98) 100%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 480px;
+    height: auto;
+    max-height: 85vh;
+    background: linear-gradient(145deg, #1a1f2e 0%, #0d1117 100%);
+    border: 3px solid #3a4a5a;
+    border-radius: 16px;
     display: none;
     flex-direction: column;
     padding: 0;
@@ -13,34 +17,52 @@
     z-index: 300;
     box-sizing: border-box;
     overflow: hidden;
+    box-shadow: 
+        0 0 0 1px rgba(100, 150, 200, 0.3),
+        0 20px 60px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* 标题栏 */
-#shop-panel .panel-title {
+/* 商店标题栏 */
+#shop-panel .panel-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 20px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
-    border-bottom: 1px solid rgba(100, 140, 180, 0.12);
+    padding: 20px 24px;
+    background: linear-gradient(180deg, rgba(60, 80, 120, 0.3) 0%, rgba(40, 55, 85, 0.2) 100%);
+    border-bottom: 2px solid #2a3a4a;
+    position: relative;
 }
 
-#shop-panel .panel-title span {
-    color: #e8f0ff;
-    font-size: 20px;
+#shop-panel .panel-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(100, 180, 255, 0.5), transparent);
+}
+
+#shop-panel .panel-header h2 {
+    color: #7dd3fc;
+    font-size: 22px;
     font-weight: 700;
-    letter-spacing: 2px;
-    text-shadow: 0 2px 8px rgba(100, 180, 255, 0.3);
+    margin: 0;
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px rgba(125, 211, 252, 0.5);
 }
 
-#shop-panel .panel-close {
-    width: 34px;
-    height: 34px;
-    border: none;
+/* 关闭按钮 */
+#shop-panel .panel-close-btn {
+    width: 36px;
+    height: 36px;
+    border: 2px solid #4a5a6a;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    color: #7788aa;
-    font-size: 16px;
+    background: linear-gradient(145deg, rgba(80, 90, 110, 0.5), rgba(60, 70, 90, 0.5));
+    color: #9aa5b8;
+    font-size: 18px;
+    font-weight: bold;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -48,126 +70,282 @@
     justify-content: center;
 }
 
-#shop-panel .panel-close:hover {
-    background: rgba(255, 80, 80, 0.2);
-    color: #ff6b6b;
-    transform: rotate(90deg);
+#shop-panel .panel-close-btn:hover {
+    background: linear-gradient(145deg, rgba(200, 80, 80, 0.6), rgba(180, 60, 60, 0.6));
+    border-color: #c85050;
+    color: #fff;
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 0 15px rgba(200, 80, 80, 0.4);
 }
 
-/* 金币显示 */
-#shop-gold {
+/* 商店内容区 */
+#shop-panel .panel-body {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 20px 20px;
+    gap: 16px;
+}
+
+/* 金币显示栏 */
+.shop-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 14px 18px;
-    background: rgba(0, 0, 0, 0.25);
-    color: #ffcc66;
-    font-size: 15px;
-    font-weight: 700;
-    text-shadow: 0 0 10px rgba(255, 200, 100, 0.4);
-    border-bottom: 1px solid rgba(100, 140, 180, 0.08);
+    background: linear-gradient(145deg, rgba(40, 50, 70, 0.8), rgba(30, 40, 60, 0.8));
+    border: 2px solid #3a4a5a;
+    border-radius: 12px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* 商品列表 */
-#shop-items {
-    flex: 1;
-    overflow-y: auto;
+.shop-header span:first-child {
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+.shop-gold {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fcd34d;
+    font-size: 18px;
+    font-weight: 700;
+    text-shadow: 0 0 15px rgba(252, 211, 77, 0.6);
+    background: linear-gradient(145deg, rgba(60, 50, 30, 0.8), rgba(50, 40, 20, 0.8));
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 2px solid #6b5a3a;
+}
+
+.shop-gold::before {
+    content: '💰';
+    font-size: 16px;
+    filter: drop-shadow(0 0 5px rgba(252, 211, 77, 0.8));
+}
+
+/* 商品网格 */
+.shop-items {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding: 14px;
-    box-sizing: border-box;
+    gap: 12px;
+    padding: 4px;
 }
 
-/* 自定义滚动条 */
-#shop-items::-webkit-scrollbar,
-#shop-panel::-webkit-scrollbar {
-    width: 6px;
-}
-
-#shop-items::-webkit-scrollbar-track,
-#shop-panel::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-}
-
-#shop-items::-webkit-scrollbar-thumb,
-#shop-panel::-webkit-scrollbar-thumb {
-    background: rgba(100, 140, 180, 0.25);
-    border-radius: 3px;
-}
-
-/* 商品项 */
+/* 商品卡片 */
 .shop-item {
-    background: linear-gradient(145deg, rgba(45, 50, 65, 0.9) 0%, rgba(35, 40, 55, 0.9) 100%);
+    background: linear-gradient(145deg, rgba(50, 55, 70, 0.9), rgba(35, 40, 55, 0.9));
     border: 2px solid;
     border-radius: 12px;
-    padding: 12px 8px;
+    padding: 14px 10px 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.shop-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+    pointer-events: none;
 }
 
 .shop-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+        0 12px 24px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(100, 150, 200, 0.2);
+    border-color: #5a7a9a;
 }
 
+.shop-item:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+/* 品质颜色边框 */
+.shop-item.quality-0 { border-color: #6b7280; }
+.shop-item.quality-1 { border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
+.shop-item.quality-2 { border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
+.shop-item.quality-3 { border-color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+.shop-item.quality-4 { border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+
+/* 商品图标 */
 .shop-item-icon {
-    font-size: 28px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, rgba(60, 70, 90, 0.8), rgba(40, 50, 70, 0.8));
+    border-radius: 8px;
+    border: 1px solid rgba(100, 120, 150, 0.3);
 }
 
+.shop-item-icon img {
+    width: 32px;
+    height: 32px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+/* 商品名称 */
 .shop-item-name {
-    color: #c8d8f0;
+    color: #cbd5e1;
     font-size: 11px;
     font-weight: 600;
     text-align: center;
+    line-height: 1.3;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
+/* 商品类型标签 */
+.shop-item-type {
+    font-size: 9px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+/* 商品价格 */
 .shop-item-price {
-    color: #ffcc66;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #fcd34d;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 2px;
+    text-shadow: 0 0 8px rgba(252, 211, 77, 0.4);
+}
+
+.shop-item-price::before {
+    content: '💰';
+    font-size: 12px;
+}
+
+/* 按钮区域 */
+.shop-buttons {
+    display: flex;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(100, 140, 180, 0.15);
+}
+
+/* 刷新按钮 */
+#shop-refresh-btn {
+    flex: 1;
+    padding: 14px 20px;
+    border: 2px solid #3a5a7a;
+    border-radius: 10px;
+    background: linear-gradient(145deg, rgba(50, 80, 120, 0.6), rgba(40, 65, 100, 0.6));
+    color: #7dd3fc;
     font-size: 13px;
     font-weight: 700;
-    text-shadow: 0 0 8px rgba(255, 200, 100, 0.3);
-    margin-top: 4px;
-}
-
-/* 商店按钮 */
-#shop-buttons {
-    display: flex;
-    gap: 10px;
-    padding: 14px 16px;
-    border-top: 1px solid rgba(100, 140, 180, 0.08);
-    background: rgba(0, 0, 0, 0.15);
-}
-
-#shop-refresh,
-#shop-sell {
-    flex: 1;
-    padding: 12px 18px;
-    border: none;
-    border-radius: 10px;
-    background: linear-gradient(135deg, rgba(80, 120, 180, 0.4) 0%, rgba(60, 90, 150, 0.4) 100%);
-    color: #a8d4ff;
-    font-size: 13px;
-    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 1px solid rgba(100, 150, 220, 0.3);
+    position: relative;
+    overflow: hidden;
 }
 
-#shop-refresh:hover,
-#shop-sell:hover {
-    background: linear-gradient(135deg, rgba(90, 140, 200, 0.5) 0%, rgba(70, 100, 170, 0.5) 100%);
+#shop-refresh-btn::before {
+    content: '🔄';
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+#shop-refresh-btn:hover {
+    background: linear-gradient(145deg, rgba(60, 100, 150, 0.7), rgba(50, 80, 130, 0.7));
+    border-color: #4a7aa0;
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(80, 120, 180, 0.3);
+    box-shadow: 0 8px 20px rgba(50, 100, 150, 0.3);
 }
 
-#shop-refresh:active,
-#shop-sell:active {
+#shop-refresh-btn:active {
     transform: translateY(0);
+}
+
+/* 出售按钮 */
+#shop-sell-btn {
+    flex: 1;
+    padding: 14px 20px;
+    border: 2px solid #6a4a3a;
+    border-radius: 10px;
+    background: linear-gradient(145deg, rgba(120, 80, 50, 0.6), rgba(100, 65, 40, 0.6));
+    color: #fdba74;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#shop-sell-btn::before {
+    content: '💰';
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+#shop-sell-btn:hover {
+    background: linear-gradient(145deg, rgba(140, 95, 60, 0.7), rgba(120, 80, 50, 0.7));
+    border-color: #8a5a45;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(150, 100, 60, 0.3);
+}
+
+#shop-sell-btn:active {
+    transform: translateY(0);
+}
+
+/* 滚动条样式 */
+#shop-panel ::-webkit-scrollbar {
+    width: 8px;
+}
+
+#shop-panel ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+#shop-panel ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(100, 140, 180, 0.4), rgba(80, 120, 160, 0.4));
+    border-radius: 4px;
+    border: 1px solid rgba(100, 140, 180, 0.3);
+}
+
+#shop-panel ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(120, 160, 200, 0.5), rgba(100, 140, 180, 0.5));
+}
+
+/* 空商店提示 */
+.shop-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+/* 响应式调整 */
+@media (max-width: 520px) {
+    #shop-panel {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .shop-items {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
