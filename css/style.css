@@ -449,7 +449,7 @@ canvas {
 /* 摇杆模式下的扇形技能布局 */
 #skills-container.joystick-mode {
     position: absolute;
-    bottom: 20px;
+    bottom: 0;
     right: 20px;
     left: auto;
     top: auto;
