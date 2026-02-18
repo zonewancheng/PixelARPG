@@ -1105,43 +1105,62 @@ function update() {
             return true;
         });
         
-        if (window.boss && !p.isBoss) {
-            const dx = p.x - (window.boss.x + window.boss.w/2);
-            const dy = p.y - (window.boss.y + window.boss.h/2);
-            if (Math.sqrt(dx*dx + dy*dy) < 30) {
-                window.boss.hp -= p.damage;
-                window.boss.aggro = 120;
-                spawnParticles(window.boss.x + window.boss.w/2, window.boss.y + window.boss.h/2, '#f84', 10);
-                spawnDamageNumber(window.boss.x + window.boss.w/2, window.boss.y, p.damage);
-                hit = true;
-                if (window.boss.hp <= 0) {
-                    player.exp += Math.floor(window.boss.exp * 1.5);
-                    player.gold += window.boss.gold;
-                    spawnDrop(window.boss.x, window.boss.y, true);
-                    window.discoverEnemy?.(window.boss.render, window.boss.name);
-                    showMessage(`BOSS DEFEATED! +${Math.floor(window.boss.exp * 1.5)} EXP!`);
-                    mapLevel++;
-                    levelTransitioning = true;
+        // 检查所有Boss的击中情况
+        if (window.bosses && window.bosses.length > 0 && !p.isBoss) {
+            window.bosses.forEach((boss, bossIndex) => {
+                if (!boss || boss.hp <= 0) return;
+                const dx = p.x - (boss.x + boss.w/2);
+                const dy = p.y - (boss.y + boss.h/2);
+                if (Math.sqrt(dx*dx + dy*dy) < 30) {
+                    boss.hp -= p.damage;
+                    boss.aggro = 120;
+                    spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#f84', 10);
+                    spawnDamageNumber(boss.x + boss.w/2, boss.y, p.damage);
+                    hit = true;
                     
-                    // 10秒后进入下一关
-                    let countdown = 10;
-                    const countdownMsg = setInterval(() => {
-                        showMessage(`Next level in ${countdown}s...`);
-                        countdown--;
-                        if (countdown <= 0) clearInterval(countdownMsg);
-                    }, 1000);
-                    
-                    setTimeout(() => {
-                        generateMap();
-                        spawnEnemies();
-                        player.x = 7 * window.TILE;
-                        player.y = 15 * window.TILE;
-                        levelTransitioning = false;
-                        showMessage(`Level ${mapLevel}!`);
-                    }, 10000);
-                    window.boss = null;
+                    // 检查Boss是否死亡
+                    if (boss.hp <= 0) {
+                        player.exp += Math.floor(boss.exp * 1.5);
+                        player.gold += boss.gold;
+                        spawnDrop(boss.x, boss.y, true);
+                        window.discoverEnemy?.(boss.render, boss.name);
+                        showMessage(`${boss.name} DEFEATED! +${Math.floor(boss.exp * 1.5)} EXP!`);
+                        
+                        // 从bosses数组中移除
+                        window.bosses.splice(bossIndex, 1);
+                        
+                        // 更新window.boss为第一个存活的boss
+                        if (window.bosses.length > 0) {
+                            window.boss = window.bosses[0];
+                        } else {
+                            window.boss = null;
+                            
+                            // 所有Boss都死亡，进入下一关
+                            if (!levelTransitioning) {
+                                levelTransitioning = true;
+                                mapLevel++;
+                                
+                                // 10秒后进入下一关
+                                let countdown = 10;
+                                const countdownMsg = setInterval(() => {
+                                    showMessage(`Next level in ${countdown}s...`);
+                                    countdown--;
+                                    if (countdown <= 0) clearInterval(countdownMsg);
+                                }, 1000);
+                                
+                                setTimeout(() => {
+                                    generateMap();
+                                    spawnEnemies();
+                                    player.x = 7 * window.TILE;
+                                    player.y = 15 * window.TILE;
+                                    levelTransitioning = false;
+                                    showMessage(`Level ${mapLevel}!`);
+                                }, 10000);
+                            }
+                        }
+                    }
                 }
-            }
+            });
         }
         
         // Boss投射物击中玩家
