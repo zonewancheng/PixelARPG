@@ -85,6 +85,16 @@ function initGame() {
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
     
+    // 优化高DPI屏幕显示
+    const dpr = window.devicePixelRatio || 1;
+    const baseWidth = 480;
+    const baseHeight = 640;
+    canvas.width = baseWidth * dpr;
+    canvas.height = baseHeight * dpr;
+    canvas.style.width = baseWidth + 'px';
+    canvas.style.height = baseHeight + 'px';
+    ctx.scale(dpr, dpr);
+    
     window.boss = null;
     window.player = createPlayer();
     window.playerSkills = window.skills.slice(0, 7);
