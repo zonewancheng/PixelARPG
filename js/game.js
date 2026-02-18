@@ -341,7 +341,20 @@ function bossUseSkill(skill) {
             isLightning: skill.isLightning,
             isVine: skill.isVine,
             isTornado: skill.isTornado,
-            isIce: skill.isIce
+            isIce: skill.isIce,
+            // 新颜色属性
+            coreColor: skill.coreColor,
+            innerColor: skill.innerColor,
+            outerColor: skill.outerColor,
+            glowColor: skill.glowColor,
+            boltColor: skill.boltColor,
+            stemColor: skill.stemColor,
+            leafColor: skill.leafColor,
+            thornColor: skill.thornColor,
+            midColor: skill.midColor,
+            debrisColor: skill.debrisColor,
+            crystalColor: skill.crystalColor,
+            edgeColor: skill.edgeColor
         });
         showMessage(`BOSS uses ${skill.name}!`);
     }
@@ -1218,7 +1231,22 @@ function useSkill(index) {
             isLightning: skill.isLightning || false,
             isTornado: skill.isTornado || false,
             isIce: skill.isIce || false,
-            isVine: skill.isVine || false
+            isVine: skill.isVine || false,
+            isFire: skill.isFire || false,
+            // 新颜色属性
+            coreColor: skill.coreColor,
+            innerColor: skill.innerColor,
+            outerColor: skill.outerColor,
+            glowColor: skill.glowColor,
+            boltColor: skill.boltColor,
+            stemColor: skill.stemColor,
+            leafColor: skill.leafColor,
+            thornColor: skill.thornColor,
+            midColor: skill.midColor,
+            outerColor: skill.outerColor,
+            debrisColor: skill.debrisColor,
+            crystalColor: skill.crystalColor,
+            edgeColor: skill.edgeColor
         });
     }
     

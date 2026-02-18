@@ -598,97 +598,227 @@ function drawProjectiles(ctx, projectiles) {
         const particleColor = p.particleColor || '#fff';
         
         if (p.isLightning) {
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 3;
+            // 雷电 - 与图标一致的锯齿状闪电
+            ctx.save();
+            
+            // 发光效果
+            ctx.shadowColor = p.glowColor || '#0ff';
+            ctx.shadowBlur = 15;
+            
+            // 主闪电
+            ctx.strokeStyle = p.boltColor || '#ff0';
+            ctx.lineWidth = 4;
+            ctx.lineJoin = 'miter';
             ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p.x - p.vx * 3, p.y - p.vy * 3);
+            ctx.moveTo(p.x - p.vx * 0.3, p.y - p.vy * 0.3);
+            ctx.lineTo(p.x + Math.sin(Date.now() / 50) * 3, p.y - 5);
+            ctx.lineTo(p.x - Math.sin(Date.now() / 50 + 1) * 3, p.y + 3);
+            ctx.lineTo(p.x, p.y);
             ctx.stroke();
-            ctx.fillStyle = '#fff';
+            
+            // 核心闪电
+            ctx.strokeStyle = p.coreColor || '#fff';
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-            ctx.fill();
-        } else if (p.isTornado) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            const time = Date.now() / 50;
-            for (let i = 0; i < 3; i++) {
-                const offset = Math.sin(time + i) * 8;
-                ctx.arc(p.x + offset, p.y + i * 5 - 5, size - i * 2, 0, Math.PI * 2);
+            ctx.moveTo(p.x - p.vx * 0.2, p.y - p.vy * 0.2);
+            ctx.lineTo(p.x, p.y - 3);
+            ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+            
+            // 分支闪电
+            ctx.strokeStyle = 'rgba(255,255,0,0.6)';
+            ctx.lineWidth = 1;
+            const branches = 3;
+            for (let i = 0; i < branches; i++) {
+                const angle = (Date.now() / 30) + i * Math.PI * 2 / branches;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x + Math.cos(angle) * 8, p.y + Math.sin(angle) * 8);
+                ctx.stroke();
             }
+            
+            ctx.restore();
+            
+        } else if (p.isTornado) {
+            // 龙卷 - 与图标一致的螺旋旋风
+            const time = Date.now() / 100;
+            
+            for (let i = 0; i < 6; i++) {
+                const y = p.y - size * 0.8 + i * size * 0.35;
+                const rx = size * (0.3 + i * 0.1);
+                const rotation = time + i * 0.8;
+                
+                ctx.save();
+                ctx.translate(p.x, y);
+                ctx.rotate(rotation);
+                
+                ctx.fillStyle = i % 2 === 0 ? (p.midColor || '#aaa') : (p.coreColor || '#ccc');
+                ctx.globalAlpha = 0.7 + i * 0.05;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, rx, size * 0.15, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+            
+            ctx.globalAlpha = 1;
+            
+            // debris 碎片
+            ctx.fillStyle = p.debrisColor || '#666';
+            for (let i = 0; i < 5; i++) {
+                const angle = time * 3 + i * Math.PI * 2 / 5;
+                const dist = size * (0.4 + Math.sin(time + i) * 0.2);
+                const dx = p.x + Math.cos(angle) * dist;
+                const dy = p.y + Math.sin(angle) * dist * 0.3;
+                ctx.beginPath();
+                ctx.arc(dx, dy, size * 0.08, 0, Math.PI*2);
+                ctx.fill();
+            }
+            
+        } else if (p.isIce) {
+            // 冰霜 - 与图标一致的六边形雪花
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(Date.now() / 200);
+            
+            // 发光效果
+            ctx.shadowColor = p.glowColor || '#cef';
+            ctx.shadowBlur = 10;
+            
+            // 六边形雪花臂
+            ctx.fillStyle = p.edgeColor || '#0cf';
+            for (let i = 0; i < 6; i++) {
+                ctx.save();
+                ctx.rotate(i * Math.PI / 3);
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -size * 0.1);
+                ctx.lineTo(size * 0.15, -size * 0.5);
+                ctx.lineTo(size * 0.08, -size * 0.55);
+                ctx.lineTo(0, -size * 0.15);
+                ctx.lineTo(-size * 0.08, -size * 0.55);
+                ctx.lineTo(-size * 0.15, -size * 0.5);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.restore();
+            }
+            
+            // 中心水晶
+            ctx.fillStyle = p.crystalColor || '#8ef';
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = i * Math.PI / 3;
+                const r = size * 0.25;
+                ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+            }
+            ctx.closePath();
             ctx.fill();
+            
+            // 核心
+            ctx.fillStyle = p.coreColor || '#fff';
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 0.12, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.restore();
+            
+        } else if (p.isVine) {
+            // 藤蔓 - 与图标一致的带叶藤蔓
+            ctx.save();
+            
+            const time = Date.now() / 150;
+            
+            // 主藤蔓茎
+            ctx.strokeStyle = p.stemColor || '#2a1';
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(p.x - p.vx * 0.3, p.y - p.vy * 0.3);
+            ctx.quadraticCurveTo(
+                p.x + Math.sin(time) * 3, 
+                p.y + Math.cos(time) * 3,
+                p.x, p.y
+            );
+            ctx.stroke();
+            
+            // 藤蔓叶子
+            ctx.fillStyle = p.leafColor || '#4f4';
+            const leaves = 4;
+            for (let i = 0; i < leaves; i++) {
+                const angle = time + i * Math.PI * 2 / leaves;
+                const dist = size * (0.3 + i * 0.15);
+                const lx = p.x + Math.cos(angle) * dist;
+                const ly = p.y + Math.sin(angle) * dist * 0.5;
+                
+                ctx.save();
+                ctx.translate(lx, ly);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, size * 0.25, size * 0.12, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            }
+            
+            // 小叶子装饰
+            ctx.fillStyle = p.thornColor || '#8f8';
+            ctx.beginPath();
+            ctx.ellipse(p.x - size * 0.1, p.y + size * 0.1, size * 0.1, size * 0.06, Math.PI/2, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.restore();
+        } else if (p.isFire) {
+            // 火球 - 与图标一致的多层火焰效果
+            const time = Date.now() / 100;
+            
+            // 外发光
+            const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size * 1.5);
+            gradient.addColorStop(0, p.coreColor || '#ff0');
+            gradient.addColorStop(0.3, p.innerColor || '#f80');
+            gradient.addColorStop(0.6, p.outerColor || '#f00');
+            gradient.addColorStop(1, 'rgba(255,0,0,0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, size * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 内核
+            ctx.fillStyle = p.innerColor || '#f80';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 核心
+            ctx.fillStyle = p.coreColor || '#ff0';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, size * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 高光
             ctx.fillStyle = '#fff';
             ctx.beginPath();
-            ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+            ctx.arc(p.x - size * 0.2, p.y - size * 0.2, size * 0.25, 0, Math.PI * 2);
             ctx.fill();
-        } else if (p.isIce) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y - size);
-            ctx.lineTo(p.x + size, p.y + size);
-            ctx.lineTo(p.x - size, p.y + size);
-            ctx.closePath();
-            ctx.fill();
-            ctx.fillStyle = 'rgba(200,240,255,0.7)';
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y - size/2);
-            ctx.lineTo(p.x + size/2, p.y + size/2);
-            ctx.lineTo(p.x - size/2, p.y + size/2);
-            ctx.closePath();
-            ctx.fill();
-        } else if (p.isVine) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            const time = Date.now() / 100;
+            
+            // 火焰粒子拖尾
+            ctx.fillStyle = p.glowColor || '#f40';
+            ctx.globalAlpha = 0.7;
             for (let i = 0; i < 4; i++) {
                 const angle = time + i * Math.PI / 2;
-                const ox = Math.cos(angle) * 5;
-                const oy = Math.sin(angle) * 5;
-                ctx.arc(p.x + ox, p.y + oy, 4, 0, Math.PI * 2);
-            }
-            ctx.fill();
-            ctx.fillStyle = particleColor;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-            ctx.fill();
-        } else if (p.isFire) {
-            const time = Date.now() / 50;
-            ctx.fillStyle = '#f00';
-            ctx.beginPath();
-            ctx.arc(p.x - p.vx * 2, p.y, size * 1.2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, size * 0.8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(p.x - size * 0.2, p.y - size * 0.2, size * 0.3, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = particleColor;
-            ctx.globalAlpha = 0.6;
-            for (let i = 0; i < 3; i++) {
-                const ox = Math.sin(time + i * 2) * 3;
-                const oy = -size - i * 4;
+                const dist = size * (0.8 + i * 0.3);
+                const px = p.x - p.vx * (i + 1) * 0.3 + Math.cos(angle) * 3;
+                const py = p.y - p.vy * (i + 1) * 0.3 + Math.sin(angle) * 3;
                 ctx.beginPath();
-                ctx.moveTo(p.x + ox - 3, p.y + oy);
-                ctx.lineTo(p.x + ox, p.y + oy - 8 - i * 2);
-                ctx.lineTo(p.x + ox + 3, p.y + oy);
+                ctx.arc(px, py, size * (0.4 - i * 0.08), 0, Math.PI * 2);
                 ctx.fill();
             }
             ctx.globalAlpha = 1;
+            
         } else {
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = color + '66';
-            ctx.beginPath();
-            ctx.arc(p.x - p.vx * 2, p.y, size + 4, 0, Math.PI * 2);
             ctx.fill();
         }
     });
