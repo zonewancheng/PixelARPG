@@ -422,12 +422,12 @@ canvas {
 }
 
 #skills {
-    background: rgba(0,0,0,0.6);
-    padding: 3px;
-    border: 2px solid #f84;
+    background: transparent;
+    padding: 0;
+    border: none;
     display: flex;
     flex-direction: row;
-    gap: 3px;
+    gap: 6px;
     pointer-events: auto;
 }
 
@@ -452,19 +452,20 @@ canvas {
     bottom: 20px;
     right: 20px;
     left: auto;
+    top: auto;
     transform: none;
-    flex-direction: column;
-    gap: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: auto;
+    height: auto;
+    justify-content: flex-end;
+    align-content: flex-end;
 }
 
 #skills-container.joystick-mode .skill-slot {
-    position: absolute;
-    transform: translate(-50%, -50%);
-}
-
-#skills-container.joystick-mode .skill-slot {
-    transform: translate(-50%, -50%);
-    position: absolute;
+    position: relative;
+    transform: none;
 }
 
 #skills-container #skills {

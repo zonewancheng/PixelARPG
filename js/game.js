@@ -25,10 +25,23 @@ function initCamera() {
     if (!player) return;
     const mapWidth = window.MAP_W * window.TILE;
     const mapHeight = window.MAP_H * window.TILE;
-    camera.x = Math.max(0, player.x + player.w / 2 - gameWidth / 2);
-    camera.y = Math.max(0, player.y + player.h / 2 - gameHeight / 2);
-    camera.x = Math.min(camera.x, mapWidth - gameWidth);
-    camera.y = Math.min(camera.y, mapHeight - gameHeight);
+    
+    let cx = player.x + player.w / 2 - gameWidth / 2;
+    let cy = player.y + player.h / 2 - gameHeight / 2;
+    
+    if (mapWidth > gameWidth) {
+        cx = Math.max(0, Math.min(cx, mapWidth - gameWidth));
+    } else {
+        cx = 0;
+    }
+    if (mapHeight > gameHeight) {
+        cy = Math.max(0, Math.min(cy, mapHeight - gameHeight));
+    } else {
+        cy = 0;
+    }
+    
+    camera.x = cx;
+    camera.y = cy;
 }
 
 const DB_NAME = 'PixelHeroDB';
@@ -1138,20 +1151,26 @@ function updateCamera() {
     
     const mapWidth = window.MAP_W * window.TILE;
     const mapHeight = window.MAP_H * window.TILE;
-    const dpr = window.devicePixelRatio || 1;
     
-    // 目标摄像机位置（玩家中心）- 逻辑像素
+    // 目标摄像机位置（玩家中心）
     let targetX = player.x + player.w / 2 - gameWidth / 2;
     let targetY = player.y + player.h / 2 - gameHeight / 2;
     
-    // 限制在地图范围内
-    targetX = Math.max(0, Math.min(targetX, mapWidth - gameWidth));
-    targetY = Math.max(0, Math.min(targetY, mapHeight - gameHeight));
+    // 限制在地图范围内（确保地图比屏幕大时才限制）
+    if (mapWidth > gameWidth) {
+        targetX = Math.max(0, Math.min(targetX, mapWidth - gameWidth));
+    } else {
+        targetX = 0;
+    }
+    if (mapHeight > gameHeight) {
+        targetY = Math.max(0, Math.min(targetY, mapHeight - gameHeight));
+    } else {
+        targetY = 0;
+    }
     
-    // 平滑移动摄像机
-    const smoothing = 0.15;
-    camera.x += (targetX - camera.x) * smoothing;
-    camera.y += (targetY - camera.y) * smoothing;
+    // 直接设置摄像机位置
+    camera.x = targetX;
+    camera.y = targetY;
 }
 
 function render() {
@@ -1170,22 +1189,39 @@ function render() {
         damageFlash--;
     }
     
+    // 应用摄像机偏移
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
     
+    // 绘制地图
     drawMap(ctx, map, window.TILE, window.MAP_W, window.MAP_H);
+    
+    // 绘制掉落物
     drawDrops(ctx, drops);
+    
+    // 绘制投射物
     drawProjectiles(ctx, projectiles);
+    
+    // 绘制敌人
     drawEnemies(ctx, enemies, drawPixelSprite);
     drawEnemiesAttack(ctx, enemies);
+    
+    // 绘制Boss
     drawBoss(ctx, window.boss, drawPixelSprite);
+    
+    // 绘制玩家
     drawPlayer(ctx, player, drawPixelSprite, player.invulnerable);
     drawPlayerAttack(ctx, player);
+    
+    // 绘制粒子
     drawParticles(ctx, particles);
+    
+    // 绘制伤害数字
     drawDamageNumbers(ctx, damageNumbers);
     
     ctx.restore();
     
+    // 云层（不随摄像机移动）
     drawClouds(ctx, gameWidth, gameHeight, player);
     
     if (message) {
