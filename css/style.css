@@ -440,6 +440,10 @@ canvas {
     align-items: center;
     gap: 8px;
     pointer-events: auto;
+    background: transparent;
+    padding: 0;
+    border: none;
+    box-shadow: none;
 }
 
 /* 摇杆模式下的扇形技能布局 */

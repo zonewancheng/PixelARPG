@@ -14,6 +14,7 @@ let message = '';
 let messageTimer = 0;
 let damageFlash = 0;
 let keys = {};
+let deathCountdown = 0;
 
 // 视口/摄像机系统
 let camera = { x: 0, y: 0 };
@@ -859,6 +860,7 @@ function update() {
             spawnDamageNumber(player.x + player.w/2, player.y, dmg);
             if (player.hp <= 0) {
                 gameState = 'gameover';
+                deathCountdown = 300;
                 showMessage('GAME OVER - Tap to restart', 300);
             }
             e.attackCooldown = 60;
@@ -944,6 +946,7 @@ function update() {
             showMessage(`BOSS ATTACK! -${dmg} HP`);
             if (player.hp <= 0) {
                 gameState = 'gameover';
+                deathCountdown = 300;
                 showMessage('GAME OVER - Tap to restart', 300);
             }
             window.boss.attackCooldown = 45;
@@ -1100,6 +1103,7 @@ function update() {
                 showMessage(`BOSS ${p.skillName || 'ATTACK'}! -${dmg} HP`);
                 if (player.hp <= 0) {
                     gameState = 'gameover';
+                deathCountdown = 300;
                     showMessage('GAME OVER - Tap to restart', 300);
                 }
                 hit = true;
@@ -1134,8 +1138,9 @@ function updateCamera() {
     
     const mapWidth = window.MAP_W * window.TILE;
     const mapHeight = window.MAP_H * window.TILE;
+    const dpr = window.devicePixelRatio || 1;
     
-    // 目标摄像机位置（玩家中心）
+    // 目标摄像机位置（玩家中心）- 逻辑像素
     let targetX = player.x + player.w / 2 - gameWidth / 2;
     let targetY = player.y + player.h / 2 - gameHeight / 2;
     
@@ -1196,15 +1201,26 @@ function render() {
     }
     
     if (gameState === 'gameover') {
+        if (deathCountdown > 0) deathCountdown--;
+        
         ctx.fillStyle = 'rgba(0,0,0,0.8)';
         ctx.fillRect(0, 0, gameWidth, gameHeight);
         ctx.fillStyle = '#f00';
         ctx.font = '36px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', gameWidth / 2, gameHeight / 2);
-        ctx.fillStyle = '#fff';
-        ctx.font = '18px Courier New';
-        ctx.fillText('Tap to restart', gameWidth / 2, gameHeight / 2 + 40);
+        ctx.fillText('GAME OVER', gameWidth / 2, gameHeight / 2 - 20);
+        
+        // 显示倒计时
+        const remainingTime = Math.max(0, Math.ceil(deathCountdown / 60));
+        ctx.fillStyle = '#ff0';
+        ctx.font = '24px Courier New';
+        ctx.fillText(`Restart in ${remainingTime}s`, gameWidth / 2, gameHeight / 2 + 20);
+        
+        if (deathCountdown <= 0) {
+            ctx.fillStyle = '#fff';
+            ctx.font = '18px Courier New';
+            ctx.fillText('Tap to restart', gameWidth / 2, gameHeight / 2 + 60);
+        }
         ctx.textAlign = 'left';
     }
 }
@@ -1631,7 +1647,9 @@ function setupUI() {
     
     canvas.addEventListener('click', () => {
         if (gameState === 'gameover') {
-            restartGame();
+            if (deathCountdown <= 0) {
+                restartGame();
+            }
         } else {
             attack();
         }
