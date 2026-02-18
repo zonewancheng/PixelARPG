@@ -905,90 +905,99 @@ function update() {
         }
     });
     
-    if (window.boss) {
-        if (window.boss.attackCooldown > 0) window.boss.attackCooldown--;
-        if (!window.boss.aggro) window.boss.aggro = 0;
-        if (window.boss.aggro > 0) window.boss.aggro--;
-        if (!window.boss.wanderTimer) window.boss.wanderTimer = 0;
-        if (!window.boss.wanderDir) window.boss.wanderDir = Math.random() * Math.PI * 2;
-        
-        // 使用中心点计算距离
-        const playerCenterX = player.x + player.w / 2;
-        const playerCenterY = player.y + player.h / 2;
-        const bossCenterX = window.boss.x + window.boss.w / 2;
-        const bossCenterY = window.boss.y + window.boss.h / 2;
-        const dx = playerCenterX - bossCenterX;
-        const dy = playerCenterY - bossCenterY;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        
-        // Boss chases player when in range but maintains distance
-        if (dist < 250 && dist > 40) {
-            const chaseSpeed = 0.3;
-            window.boss.x += (dx / dist) * chaseSpeed;
-            window.boss.y += (dy / dist) * chaseSpeed;
-        } else if (dist >= 250) {
-            // Idle wandering when player is far
-            window.boss.wanderTimer--;
-            if (window.boss.wanderTimer <= 0) {
-                window.boss.wanderDir = Math.random() * Math.PI * 2;
-                window.boss.wanderTimer = 60 + Math.random() * 60;
-            }
-            const wanderSpeed = 0.1;
-            window.boss.x += Math.cos(window.boss.wanderDir) * wanderSpeed;
-            window.boss.y += Math.sin(window.boss.wanderDir) * wanderSpeed;
-        }
-        
-        // 边界限制 - 平滑限制
-        window.boss.x = Math.max(window.TILE, Math.min((window.MAP_W - 2) * window.TILE, window.boss.x));
-        window.boss.y = Math.max(window.TILE, Math.min((window.MAP_H - 2) * window.TILE, window.boss.y));
-        
-        // Boss碰到墙壁则反弹
-        const bossTileX = Math.floor((window.boss.x + window.boss.w/2) / window.TILE);
-        const bossTileY = Math.floor((window.boss.y + window.boss.h/2) / window.TILE);
-        if (map[bossTileY] && map[bossTileY][bossTileX] === 1) {
-            window.boss.x = Math.max(window.TILE, Math.min((window.MAP_W - 2) * window.TILE, window.boss.x - 10));
-            window.boss.y = Math.max(window.TILE, Math.min((window.MAP_H - 2) * window.TILE, window.boss.y - 10));
-            window.boss.wanderDir = Math.random() * Math.PI * 2;
-        }
-        
-        // Boss技能攻击 - 在技能范围内即可释放，随机选择技能
-        if (window.boss.skills && window.boss.skills.length > 0 && window.boss.attackCooldown <= 0) {
-            // 找出所有冷却好的技能
-            const readySkills = window.boss.skills.filter(s => {
-                const cd = window.boss.skillCooldowns[s.id] || 0;
-                return cd <= 0;
-            });
+    // 更新所有Boss
+    if (window.bosses && window.bosses.length > 0) {
+        window.bosses.forEach(boss => {
+            if (!boss || boss.hp <= 0) return;
             
-            // 随机选择一个技能
-            if (readySkills.length > 0) {
-                const readySkill = readySkills[Math.floor(Math.random() * readySkills.length)];
+            if (boss.attackCooldown > 0) boss.attackCooldown--;
+            if (!boss.aggro) boss.aggro = 0;
+            if (boss.aggro > 0) boss.aggro--;
+            if (!boss.wanderTimer) boss.wanderTimer = 0;
+            if (!boss.wanderDir) boss.wanderDir = Math.random() * Math.PI * 2;
+            
+            // 使用中心点计算距离
+            const playerCenterX = player.x + player.w / 2;
+            const playerCenterY = player.y + player.h / 2;
+            const bossCenterX = boss.x + boss.w / 2;
+            const bossCenterY = boss.y + boss.h / 2;
+            const dx = playerCenterX - bossCenterX;
+            const dy = playerCenterY - bossCenterY;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            // Boss chases player when in range but maintains distance
+            if (dist < 250 && dist > 40) {
+                const chaseSpeed = 0.3;
+                boss.x += (dx / dist) * chaseSpeed;
+                boss.y += (dy / dist) * chaseSpeed;
+            } else if (dist >= 250) {
+                // Idle wandering when player is far
+                boss.wanderTimer--;
+                if (boss.wanderTimer <= 0) {
+                    boss.wanderDir = Math.random() * Math.PI * 2;
+                    boss.wanderTimer = 60 + Math.random() * 60;
+                }
+                const wanderSpeed = 0.1;
+                boss.x += Math.cos(boss.wanderDir) * wanderSpeed;
+                boss.y += Math.sin(boss.wanderDir) * wanderSpeed;
+            }
+            
+            // 边界限制 - 平滑限制
+            boss.x = Math.max(window.TILE, Math.min((window.MAP_W - 2) * window.TILE, boss.x));
+            boss.y = Math.max(window.TILE, Math.min((window.MAP_H - 2) * window.TILE, boss.y));
+            
+            // Boss碰到墙壁则反弹
+            const bossTileX = Math.floor((boss.x + boss.w/2) / window.TILE);
+            const bossTileY = Math.floor((boss.y + boss.h/2) / window.TILE);
+            if (map[bossTileY] && map[bossTileY][bossTileX] === 1) {
+                boss.x = Math.max(window.TILE, Math.min((window.MAP_W - 2) * window.TILE, boss.x - 10));
+                boss.y = Math.max(window.TILE, Math.min((window.MAP_H - 2) * window.TILE, boss.y - 10));
+                boss.wanderDir = Math.random() * Math.PI * 2;
+            }
+            
+            // Boss技能攻击 - 在技能范围内即可释放，随机选择技能
+            if (boss.skills && boss.skills.length > 0 && boss.attackCooldown <= 0) {
+                // 找出所有冷却好的技能
+                const readySkills = boss.skills.filter(s => {
+                    const cd = boss.skillCooldowns[s.id] || 0;
+                    return cd <= 0;
+                });
                 
-                if (dist < readySkill.range) {
-                    bossUseSkill(readySkill);
-                    window.boss.skillCooldowns[readySkill.id] = readySkill.cd;
-                    window.boss.attackCooldown = 45;
-                    return;
+                // 随机选择一个技能
+                if (readySkills.length > 0) {
+                    const readySkill = readySkills[Math.floor(Math.random() * readySkills.length)];
+                    
+                    if (dist < readySkill.range) {
+                        // 临时设置window.boss为当前boss以便技能使用
+                        const originalBoss = window.boss;
+                        window.boss = boss;
+                        bossUseSkill(readySkill);
+                        window.boss = originalBoss;
+                        boss.skillCooldowns[readySkill.id] = readySkill.cd;
+                        boss.attackCooldown = 45;
+                        return;
+                    }
                 }
             }
-        }
-        
-        // Boss普通攻击 - 需要靠近玩家
-        if (dist < 40 && window.boss.attackCooldown <= 0 && player.invulnerable <= 0) {
-            playSound('bossAttack');
-            const dmg = Math.max(1, window.boss.atk - player.def + Math.floor(Math.random() * 5));
-            player.hp -= dmg;
-            player.invulnerable = 20;
-            damageFlash = 15;
-            spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 10);
-            spawnDamageNumber(player.x + player.w/2, player.y, dmg);
-            showMessage(`BOSS ATTACK! -${dmg} HP`);
-            if (player.hp <= 0) {
-                gameState = 'gameover';
-                deathCountdown = 300;
-                showMessage('GAME OVER - Tap to restart', 300);
+            
+            // Boss普通攻击 - 需要靠近玩家
+            if (dist < 40 && boss.attackCooldown <= 0 && player.invulnerable <= 0) {
+                playSound('bossAttack');
+                const dmg = Math.max(1, boss.atk - player.def + Math.floor(Math.random() * 5));
+                player.hp -= dmg;
+                player.invulnerable = 20;
+                damageFlash = 15;
+                spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 10);
+                spawnDamageNumber(player.x + player.w/2, player.y, dmg);
+                showMessage(`${boss.name} ATTACK! -${dmg} HP`);
+                if (player.hp <= 0) {
+                    gameState = 'gameover';
+                    deathCountdown = 300;
+                    showMessage('GAME OVER - Tap to restart', 300);
+                }
+                boss.attackCooldown = 45;
             }
-            window.boss.attackCooldown = 45;
-        }
+        });
     }
     
     drops = drops.filter(d => {
