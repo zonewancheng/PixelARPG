@@ -959,6 +959,77 @@ canvas {
     background: rgba(150,60,60,0.9);
 }
 
+/* 虚拟摇杆 */
+#joystick-area {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 120px;
+    height: 120px;
+    pointer-events: auto;
+    display: none;
+    z-index: 100;
+}
+
+#joystick-area.show {
+    display: block;
+}
+
+#joystick-base {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    left: 10px;
+    top: 10px;
+    background: radial-gradient(circle, rgba(40,45,60,0.9) 0%, rgba(30,35,50,0.95) 100%);
+    border: 3px solid rgba(80,100,140,0.5);
+    border-radius: 50%;
+    box-shadow: 
+        inset 0 0 20px rgba(0,0,0,0.5),
+        0 4px 12px rgba(0,0,0,0.4);
+}
+
+#joystick-knob {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 25px;
+    top: 25px;
+    background: radial-gradient(circle at 30% 30%, #5a6a7a 0%, #3a4a5a 60%, #2a3a4a 100%);
+    border: 2px solid #6a7a8a;
+    border-radius: 50%;
+    box-shadow: 
+        inset 0 -5px 10px rgba(0,0,0,0.3),
+        inset 0 5px 10px rgba(255,255,255,0.1),
+        0 3px 8px rgba(0,0,0,0.4);
+    transition: transform 0.05s ease-out;
+    cursor: grab;
+}
+
+#joystick-knob:active {
+    cursor: grabbing;
+}
+
+/* 控制模式切换按钮 */
+#controlModeBtn {
+    transition: transform 0.2s;
+}
+
+#controlModeBtn.joystick-mode {
+    background: rgba(60, 80, 120, 0.9);
+    border-color: #6af;
+}
+
+#controlModeBtn.dpad-mode {
+    background: rgba(80, 60, 60, 0.9);
+    border-color: #f66;
+}
+
+#controlModeBtn.hidden-mode {
+    background: rgba(60, 60, 80, 0.9);
+    border-color: #888;
+}
+
 @media (max-width: 500px) {
     #gameContainer {
         width: 100vw;

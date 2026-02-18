@@ -1505,6 +1505,154 @@ function setupUI() {
         });
     }
     
+    // 控制模式变量
+    window.controlMode = 'dpad'; // 'dpad', 'joystick', 'none'
+    const controlModeBtn = document.getElementById('controlModeBtn');
+    const controlsEl = document.getElementById('controls');
+    const joystickArea = document.getElementById('joystick-area');
+    
+    // 切换控制模式
+    window.toggleControlMode = function() {
+        const modes = ['dpad', 'joystick', 'none'];
+        const currentIndex = modes.indexOf(window.controlMode);
+        window.controlMode = modes[(currentIndex + 1) % modes.length];
+        
+        // 更新UI显示
+        if (controlModeBtn) {
+            controlModeBtn.className = 'icon-btn';
+            if (window.controlMode === 'dpad') {
+                controlModeBtn.textContent = '⬡';
+                controlModeBtn.classList.add('dpad-mode');
+            } else if (window.controlMode === 'joystick') {
+                controlModeBtn.textContent = '◎';
+                controlModeBtn.classList.add('joystick-mode');
+            } else {
+                controlModeBtn.textContent = '✕';
+                controlModeBtn.classList.add('hidden-mode');
+            }
+        }
+        
+        // 显示/隐藏控制
+        if (controlsEl) {
+            controlsEl.classList.toggle('show', window.controlMode === 'dpad');
+        }
+        if (joystickArea) {
+            joystickArea.classList.toggle('show', window.controlMode === 'joystick');
+        }
+        
+        // 保存设置
+        try {
+            localStorage.setItem('pixelarpg_controlmode', window.controlMode);
+        } catch(e) {}
+    };
+    
+    // 初始化控制模式
+    if (controlModeBtn) {
+        controlModeBtn.addEventListener('click', window.toggleControlMode);
+        // 加载保存的设置
+        try {
+            const saved = localStorage.getItem('pixelarpg_controlmode');
+            if (saved && modes.includes(saved)) {
+                window.controlMode = saved;
+            }
+        } catch(e) {}
+        
+        // 初始化显示
+        window.toggleControlMode();
+    }
+    
+    // 虚拟摇杆逻辑
+    const joystickKnob = document.getElementById('joystick-knob');
+    const joystickBase = document.getElementById('joystick-base');
+    let joystickActive = false;
+    let joystickCenter = { x: 0, y: 0 };
+    
+    function initJoystick() {
+        if (!joystickBase || !joystickKnob) return;
+        const rect = joystickBase.getBoundingClientRect();
+        joystickCenter = {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+        };
+    }
+    
+    function handleJoystickMove(clientX, clientY) {
+        if (window.controlMode !== 'joystick') return;
+        
+        const dx = clientX - joystickCenter.x;
+        const dy = clientY - joystickCenter.y;
+        const maxDist = 35;
+        const dist = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
+        const angle = Math.atan2(dy, dx);
+        
+        const knobX = Math.cos(angle) * dist;
+        const knobY = Math.sin(angle) * dist;
+        
+        joystickKnob.style.left = (25 + knobX) + 'px';
+        joystickKnob.style.top = (25 + knobY) + 'px';
+        
+        // 转换为方向键
+        const threshold = 15;
+        keys['ArrowUp'] = dy < -threshold;
+        keys['ArrowDown'] = dy > threshold;
+        keys['ArrowLeft'] = dx < -threshold;
+        keys['ArrowRight'] = dx > threshold;
+    }
+    
+    function resetJoystick() {
+        if (!joystickKnob) return;
+        joystickKnob.style.left = '25px';
+        joystickKnob.style.top = '25px';
+        keys['ArrowUp'] = false;
+        keys['ArrowDown'] = false;
+        keys['ArrowLeft'] = false;
+        keys['ArrowRight'] = false;
+    }
+    
+    if (joystickArea) {
+        joystickArea.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            joystickActive = true;
+            initJoystick();
+            const touch = e.touches[0];
+            handleJoystickMove(touch.clientX, touch.clientY);
+        });
+        
+        joystickArea.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (joystickActive) {
+                const touch = e.touches[0];
+                handleJoystickMove(touch.clientX, touch.clientY);
+            }
+        });
+        
+        joystickArea.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            joystickActive = false;
+            resetJoystick();
+        });
+        
+        // 鼠标支持
+        joystickArea.addEventListener('mousedown', (e) => {
+            joystickActive = true;
+            initJoystick();
+            handleJoystickMove(e.clientX, e.clientY);
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (joystickActive) {
+                handleJoystickMove(e.clientX, e.clientY);
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (joystickActive) {
+                joystickActive = false;
+                resetJoystick();
+            }
+        });
+    }
+    
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) {
         saveBtn.addEventListener('click', (e) => {
