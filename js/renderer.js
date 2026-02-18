@@ -284,246 +284,554 @@ function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
  * 绘制地图
  * 遍历地图数组，绘制不同类型的瓦片
  */
+function getShadowDirection() {
+    const now = Date.now();
+    const dayProgress = (now % 86400000) / 86400000;
+    const sunAngle = dayProgress * Math.PI * 2;
+    const shadowX = Math.cos(sunAngle) * 8;
+    const shadowY = Math.sin(sunAngle) * 4 + 6;
+    return { x: shadowX, y: shadowY };
+}
+
+function drawStonePile(ctx, x, y, size, shadowDir) {
+    const cx = x + size/2;
+    const cy = y + size/2;
+    
+    // 石头堆阴影
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(cx + shadowDir.x, y + size - 3 + shadowDir.y, size/2.2, size/5, 0, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 石头堆设计 - 多层石头
+    const stoneType = (Math.floor(x/32) * 7 + Math.floor(y/32) * 13) % 3;
+    
+    if (stoneType === 0) {
+        // 三层石头堆
+        // 底层大石
+        ctx.fillStyle = '#6a6a7a';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 6, 10, 7, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#7a7a8a';
+        ctx.beginPath();
+        ctx.ellipse(cx - 2, cy + 4, 7, 5, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 中层中石
+        ctx.fillStyle = '#5a5a6a';
+        ctx.beginPath();
+        ctx.ellipse(cx + 2, cy - 2, 7, 5, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#6a6a7a';
+        ctx.beginPath();
+        ctx.ellipse(cx + 1, cy - 3, 5, 3, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 顶层小石
+        ctx.fillStyle = '#4a4a5a';
+        ctx.beginPath();
+        ctx.ellipse(cx - 1, cy - 8, 5, 4, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#5a5a6a';
+        ctx.beginPath();
+        ctx.ellipse(cx - 2, cy - 9, 3, 2, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+    } else if (stoneType === 1) {
+        // 散乱石头
+        const positions = [[-6, 4, 5], [4, 6, 4], [0, -2, 6], [-3, -8, 4], [6, -4, 3]];
+        const colors = ['#6a6a7a', '#5a5a6a', '#7a7a8a', '#5a5a6a', '#6a6a7a'];
+        
+        positions.forEach((pos, i) => {
+            ctx.fillStyle = colors[i];
+            ctx.beginPath();
+            ctx.ellipse(cx + pos[0], cy + pos[1], pos[2], pos[2]*0.7, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#8a8a9a';
+            ctx.beginPath();
+            ctx.ellipse(cx + pos[0] - 1, cy + pos[1] - 1, pos[2]*0.5, pos[2]*0.35, 0, 0, Math.PI*2);
+            ctx.fill();
+        });
+        
+    } else {
+        // 巨石
+        ctx.fillStyle = '#5a5a6a';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 2, 12, 9, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 裂缝
+        ctx.strokeStyle = '#3a3a4a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - 4, cy - 2);
+        ctx.lineTo(cx - 2, cy + 2);
+        ctx.lineTo(cx + 1, cy + 1);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#7a7a8a';
+        ctx.beginPath();
+        ctx.ellipse(cx - 3, cy - 1, 6, 4, 0, 0, Math.PI*2);
+        ctx.fill();
+    }
+    
+    // 石头高光细节
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(cx - 3, cy - 6, 3, 2, 0, 0, Math.PI*2);
+    ctx.fill();
+}
+
+function drawBrickPattern(ctx, x, y, size, color, highlight) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, size, size);
+    const brickH = size / 4;
+    const brickW = size / 2;
+    ctx.fillStyle = highlight;
+    for (let row = 0; row < 4; row++) {
+        const offset = (row % 2) * (brickW / 2);
+        for (let col = -1; col < 3; col++) {
+            const bx = x + offset + col * brickW;
+            const by = y + row * brickH;
+            ctx.fillRect(bx + 1, by + 1, brickW - 2, brickH - 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fillRect(bx + brickW - 2, by + 1, 2, brickH - 2);
+            ctx.fillRect(bx + 1, by + brickH - 2, brickW - 2, 2);
+            ctx.fillStyle = highlight;
+        }
+    }
+}
+
+function drawHillShadow(ctx, baseX, baseY, width, height, shadowDir) {
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(baseX + width/2 + shadowDir.x, baseY + height - 2 + shadowDir.y, width/2.5, height/4, 0, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawTreeShadow(ctx, baseX, baseY, size, shadowDir) {
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(baseX + size/2 + shadowDir.x, baseY + size - 4 + shadowDir.y, size/2.2, size/5, 0, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawFlowerShadow(ctx, baseX, baseY, shadowDir) {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(baseX + 16 + shadowDir.x * 0.5, baseY + 28 + shadowDir.y * 0.5, 6, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawTreeTrunk(ctx, x, y, w, h, color, sway) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x + sway * 0.2, y, w, h);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(x + sway * 0.2 + w - 2, y, 2, h);
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(x + sway * 0.2, y, 2, h);
+    ctx.fillStyle = '#3a2a20';
+    ctx.fillRect(x + sway * 0.2 + 2, y + 2, w - 4, 2);
+    ctx.fillRect(x + sway * 0.2 + 2, y + h/2, w - 4, 1);
+}
+
+function drawFoliageLayer(ctx, x, y, r, color, shadowColor, sway) {
+    ctx.fillStyle = shadowColor;
+    ctx.beginPath();
+    ctx.arc(x + sway + 2, y + 2, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x + sway, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.beginPath();
+    ctx.arc(x + sway - r*0.3, y - r*0.3, r*0.4, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawFlowerPetal(ctx, x, y, size, color, centerColor, sway) {
+    ctx.fillStyle = '#2a6a2a';
+    ctx.fillRect(x + sway * 0.3 - 1, y, 2, 10);
+    ctx.fillStyle = '#1a5a1a';
+    ctx.fillRect(x + sway * 0.3 + 1, y + 2, 1, 6);
+    const petalCount = 5;
+    const angleStep = (Math.PI * 2) / petalCount;
+    for (let i = 0; i < petalCount; i++) {
+        const angle = i * angleStep + sway * 0.02;
+        const px = x + Math.cos(angle) * size * 0.6 + sway;
+        const py = y - 6 + Math.sin(angle) * size * 0.3;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.ellipse(px, py, size * 0.35, size * 0.25, angle, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(px + 1, py + 1, size * 0.25, size * 0.18, angle, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.fillStyle = centerColor;
+    ctx.beginPath();
+    ctx.arc(x + sway, y - 6, size * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    ctx.arc(x + sway - 1, y - 7, size * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawWallWithBricks(ctx, x, y, size, shadowDir) {
+    const baseColor = '#5a5a7a';
+    const highlightColor = '#6a6a8a';
+    const shadowColor = '#3a3a5a';
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fillRect(x + shadowDir.x, y + shadowDir.y, size, size);
+    
+    drawBrickPattern(ctx, x, y, size, baseColor, highlightColor);
+    
+    ctx.fillStyle = '#4a4a6a';
+    ctx.fillRect(x, y, size, 4);
+    ctx.fillStyle = '#7a7a9a';
+    ctx.fillRect(x, y + 1, size, 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(x, y + size - 3, size, 3);
+}
+
 function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
     ctx.fillStyle = '#1a2a3a';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     
     const time = Date.now() / 500;
+    const shadowDir = getShadowDirection();
     
     for (let y = 0; y < MAP_H; y++) {
         for (let x = 0; x < MAP_W; x++) {
             const tile = map[y][x];
+            const baseX = x * TILE;
+            const baseY = y * TILE;
             
             if (tile === 1) {
-                ctx.fillStyle = '#4a4a6a';
-                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
-                ctx.fillStyle = '#3a3a5a';
-                ctx.fillRect(x * TILE, y * TILE, TILE, 4);
+                drawWallWithBricks(ctx, baseX, baseY, TILE, shadowDir);
             } else if (tile === 4) {
+                // 重新设计的小山 - 更自然的地形效果
                 ctx.fillStyle = GROUND_COLOR;
-                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
-                const grassOffset = Math.sin(time + x * 0.5 + y * 0.3) * 1;
-                ctx.fillStyle = '#3a7a3a';
-                ctx.fillRect(x * TILE + 6, y * TILE + 12 + grassOffset, 2, 8);
-                ctx.fillRect(x * TILE + 14, y * TILE + 10 + grassOffset, 2, 10);
-                ctx.fillRect(x * TILE + 24, y * TILE + 14 + grassOffset, 2, 6);
+                ctx.fillRect(baseX, baseY, TILE, TILE);
+                
                 const hillType = (x * 5 + y * 7) % 4;
-                const hillOffset = Math.sin(time * 0.3 + x * 0.2 + y * 0.1) * 1.5;
-                const baseX = x * TILE;
-                const baseY = y * TILE;
+                const hillSway = Math.sin(time * 0.3 + x * 0.2 + y * 0.1) * 1;
+                
+                // 小山阴影 - 根据太阳方向
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(baseX + TILE/2 + shadowDir.x, baseY + TILE - 2 + shadowDir.y, TILE/2.2, TILE/5, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                // 小山主体
                 if (hillType === 0) {
-                    const grad = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY);
-                    grad.addColorStop(0, '#3a7a3a');
-                    grad.addColorStop(0.5, '#4a8a4a');
-                    grad.addColorStop(1, '#5a9a5a');
+                    // 圆润山丘
+                    const grad = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY - 4);
+                    grad.addColorStop(0, '#1d4a1d');
+                    grad.addColorStop(0.4, '#3a6a3a');
+                    grad.addColorStop(0.8, '#5a9a5a');
+                    grad.addColorStop(1, '#7aba7a');
                     ctx.fillStyle = grad;
                     ctx.beginPath();
                     ctx.moveTo(baseX, baseY + TILE);
-                    ctx.quadraticCurveTo(baseX + TILE * 0.5, baseY - 2 + hillOffset, baseX + TILE, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.3, baseY + 4 + hillSway, baseX + TILE * 0.5, baseY - 4 + hillSway);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.7, baseY + 4 + hillSway, baseX + TILE, baseY + TILE);
                     ctx.fill();
-                    ctx.fillStyle = '#6aaa6a';
+                    
+                    // 山丘侧面阴影
+                    ctx.fillStyle = 'rgba(0,0,0,0.15)';
                     ctx.beginPath();
-                    ctx.ellipse(baseX + TILE * 0.5, baseY + 6 + hillOffset * 0.5, 8, 4, 0, 0, Math.PI * 2);
+                    ctx.moveTo(baseX + TILE * 0.7, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.85, baseY + 8 + hillSway, baseX + TILE, baseY + TILE);
                     ctx.fill();
-                    ctx.fillStyle = '#7dba7d';
+                    
+                    // 山顶光照
+                    ctx.fillStyle = 'rgba(255,255,255,0.1)';
                     ctx.beginPath();
-                    ctx.ellipse(baseX + TILE * 0.4, baseY + 4 + hillOffset * 0.3, 4, 2, 0, 0, Math.PI * 2);
+                    ctx.ellipse(baseX + TILE * 0.5, baseY + 2 + hillSway * 0.5, 8, 4, 0, 0, Math.PI*2);
                     ctx.fill();
+                    
                 } else if (hillType === 1) {
-                    const grad = ctx.createRadialGradient(baseX + TILE * 0.3, baseY + TILE * 0.7, 2, baseX + TILE * 0.5, baseY + TILE * 0.5, TILE * 0.7);
-                    grad.addColorStop(0, '#5a9a5a');
-                    grad.addColorStop(1, '#3a6a3a');
+                    // 陡峭山丘
+                    const grad = ctx.createRadialGradient(baseX + TILE * 0.4, baseY + TILE * 0.4, 2, baseX + TILE * 0.5, baseY + TILE * 0.5, TILE * 0.6);
+                    grad.addColorStop(0, '#6aba6a');
+                    grad.addColorStop(0.5, '#4a8a4a');
+                    grad.addColorStop(1, '#1d3a1d');
                     ctx.fillStyle = grad;
                     ctx.beginPath();
                     ctx.moveTo(baseX + 2, baseY + TILE);
-                    ctx.quadraticCurveTo(baseX + TILE * 0.6, baseY - 4 + hillOffset, baseX + TILE - 2, baseY + TILE);
+                    ctx.lineTo(baseX + TILE * 0.35, baseY + 2 + hillSway);
+                    ctx.lineTo(baseX + TILE * 0.65, baseY + 2 + hillSway);
+                    ctx.lineTo(baseX + TILE - 2, baseY + TILE);
+                    ctx.closePath();
                     ctx.fill();
-                    ctx.fillStyle = '#68a868';
+                    
+                    // 岩石纹理
+                    ctx.fillStyle = '#5a8a5a';
                     ctx.beginPath();
-                    ctx.ellipse(baseX + TILE * 0.55, baseY + 8 + hillOffset * 0.4, 6, 3, 0.3, 0, Math.PI * 2);
+                    ctx.ellipse(baseX + TILE * 0.5, baseY + 10 + hillSway, 4, 2, 0, 0, Math.PI*2);
                     ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(baseX + TILE * 0.4, baseY + 16 + hillSway, 3, 1.5, 0, 0, Math.PI*2);
+                    ctx.fill();
+                    
                 } else if (hillType === 2) {
-                    const grad = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY + 4);
-                    grad.addColorStop(0, '#2d6a2d');
-                    grad.addColorStop(1, '#4d8a4d');
+                    // 缓坡山丘
+                    ctx.fillStyle = '#2d5a2d';
+                    ctx.beginPath();
+                    ctx.moveTo(baseX, baseY + TILE);
+                    ctx.bezierCurveTo(baseX + TILE * 0.2, baseY + 12 + hillSway, baseX + TILE * 0.4, baseY + 6 + hillSway, baseX + TILE * 0.5, baseY + 4 + hillSway);
+                    ctx.bezierCurveTo(baseX + TILE * 0.6, baseY + 6 + hillSway, baseX + TILE * 0.8, baseY + 12 + hillSway, baseX + TILE, baseY + TILE);
+                    ctx.fill();
+                    
+                    // 渐变层
+                    const grad = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY + 8);
+                    grad.addColorStop(0, '#3a6a3a');
+                    grad.addColorStop(1, '#6aaa6a');
                     ctx.fillStyle = grad;
                     ctx.beginPath();
                     ctx.moveTo(baseX + 4, baseY + TILE);
-                    ctx.quadraticCurveTo(baseX + TILE * 0.4, baseY + hillOffset, baseX + TILE - 4, baseY + TILE);
+                    ctx.bezierCurveTo(baseX + TILE * 0.25, baseY + 14 + hillSway, baseX + TILE * 0.45, baseY + 8 + hillSway, baseX + TILE * 0.5, baseY + 6 + hillSway);
+                    ctx.bezierCurveTo(baseX + TILE * 0.55, baseY + 8 + hillSway, baseX + TILE * 0.75, baseY + 14 + hillSway, baseX + TILE - 4, baseY + TILE);
                     ctx.fill();
-                    ctx.fillStyle = '#7dba7d';
-                    ctx.beginPath();
-                    ctx.ellipse(baseX + TILE * 0.35, baseY + 5 + hillOffset * 0.5, 5, 3, -0.2, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#5a9a5a';
-                    ctx.beginPath();
-                    ctx.ellipse(baseX + TILE * 0.6, baseY + 3 + hillOffset * 0.3, 4, 2, 0.2, 0, Math.PI * 2);
-                    ctx.fill();
+                    
+                    // 草皮细节
+                    ctx.fillStyle = '#8aca8a';
+                    for (let i = 0; i < 5; i++) {
+                        const gx = baseX + 8 + i * 5;
+                        const gy = baseY + 20 + Math.sin(time + i) * 0.5;
+                        ctx.beginPath();
+                        ctx.ellipse(gx, gy, 2, 1, 0, 0, Math.PI*2);
+                        ctx.fill();
+                    }
+                    
                 } else {
-                    ctx.fillStyle = '#3a7a3a';
+                    // 双峰山丘
+                    ctx.fillStyle = '#2d4a2d';
                     ctx.beginPath();
-                    ctx.moveTo(baseX + 6, baseY + TILE);
-                    ctx.quadraticCurveTo(baseX + TILE * 0.5, baseY - 6 + hillOffset, baseX + TILE - 6, baseY + TILE);
+                    ctx.moveTo(baseX, baseY + TILE);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.25, baseY + 8 + hillSway, baseX + TILE * 0.35, baseY + 2 + hillSway);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.42, baseY + 10 + hillSway, baseX + TILE * 0.5, baseY + 6 + hillSway);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.58, baseY + 10 + hillSway, baseX + TILE * 0.65, baseY + 2 + hillSway);
+                    ctx.quadraticCurveTo(baseX + TILE * 0.75, baseY + 8 + hillSway, baseX + TILE, baseY + TILE);
                     ctx.fill();
-                    const grad2 = ctx.createLinearGradient(baseX, baseY + TILE, baseX, baseY);
-                    grad2.addColorStop(0, '#4a8a4a');
-                    grad2.addColorStop(1, '#6aaa6a');
-                    ctx.fillStyle = grad2;
+                    
+                    // 高光
+                    ctx.fillStyle = '#6aba6a';
                     ctx.beginPath();
-                    ctx.moveTo(baseX + 10, baseY + TILE);
-                    ctx.quadraticCurveTo(baseX + TILE * 0.5, baseY - 2 + hillOffset, baseX + TILE - 10, baseY + TILE);
+                    ctx.ellipse(baseX + TILE * 0.35, baseY + 5 + hillSway, 4, 2, 0, 0, Math.PI*2);
                     ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(baseX + TILE * 0.65, baseY + 5 + hillSway, 4, 2, 0, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                
+                // 山底草丛
+                const grassOffset = Math.sin(time + x * 0.5) * 0.5;
+                ctx.fillStyle = '#1d4a1d';
+                for (let i = 0; i < 4; i++) {
+                    ctx.fillRect(baseX + 4 + i * 8, baseY + TILE - 6 + grassOffset, 2, 4);
                 }
             } else if (tile === 5) {
                 const treeType = (x * 7 + y * 13) % 5;
                 const sway = Math.sin(time * 1.5 + x * 0.7 + y * 0.5) * 1.5;
+                
                 ctx.fillStyle = GROUND_COLOR;
-                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                ctx.fillRect(baseX, baseY, TILE, TILE);
                 const grassOffset = Math.sin(time + x * 0.5 + y * 0.3) * 1;
                 ctx.fillStyle = '#3a7a3a';
-                ctx.fillRect(x * TILE + 4, y * TILE + 14 + grassOffset, 2, 8);
-                ctx.fillRect(x * TILE + 26, y * TILE + 12 + grassOffset, 2, 10);
+                ctx.fillRect(baseX + 4, baseY + 14 + grassOffset, 2, 8);
+                ctx.fillRect(baseX + 26, baseY + 12 + grassOffset, 2, 10);
+                
+                drawTreeShadow(ctx, baseX, baseY, TILE, shadowDir);
+                
                 if (treeType === 0) {
-                    ctx.fillStyle = '#5a4030';
-                    ctx.fillRect(x * TILE + 14 + sway * 0.3, y * TILE + 22, 4, 10);
+                    drawTreeTrunk(ctx, baseX + 14, baseY + 20, 4, 12, '#4a3525', sway);
+                    drawFoliageLayer(ctx, baseX + 16, baseY + 16, 11, '#2d6a2d', '#1d4a1d', sway);
+                    drawFoliageLayer(ctx, baseX + 14, baseY + 18, 8, '#3d7a3d', '#2d5a2d', sway * 0.8);
+                    drawFoliageLayer(ctx, baseX + 18, baseY + 17, 6, '#4d8a4d', '#3d6a3d', sway * 0.9);
+                } else if (treeType === 1) {
+                    drawTreeTrunk(ctx, baseX + 15, baseY + 18, 3, 14, '#4a3525', sway);
+                    const sway1 = sway * 0.8;
+                    ctx.fillStyle = '#1d4a1d';
+                    ctx.beginPath();
+                    ctx.moveTo(baseX + 5 + sway1, baseY + 26);
+                    ctx.lineTo(baseX + 16 + sway1, baseY + 2);
+                    ctx.lineTo(baseX + 27 + sway1, baseY + 26);
+                    ctx.fill();
                     ctx.fillStyle = '#2d5a2d';
                     ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + sway, y * TILE + 14, 10, 0, Math.PI * 2);
+                    ctx.moveTo(baseX + 7 + sway1, baseY + 24);
+                    ctx.lineTo(baseX + 16 + sway1, baseY + 6);
+                    ctx.lineTo(baseX + 25 + sway1, baseY + 24);
                     ctx.fill();
                     ctx.fillStyle = '#3d6a3d';
                     ctx.beginPath();
-                    ctx.arc(x * TILE + 14 + sway * 0.8, y * TILE + 16, 7, 0, Math.PI * 2);
+                    ctx.moveTo(baseX + 9 + sway1, baseY + 22);
+                    ctx.lineTo(baseX + 16 + sway1, baseY + 10);
+                    ctx.lineTo(baseX + 23 + sway1, baseY + 22);
                     ctx.fill();
-                } else if (treeType === 1) {
-                    ctx.fillStyle = '#5a4030';
-                    ctx.fillRect(x * TILE + 15 + sway * 0.2, y * TILE + 20, 3, 12);
-                    const sway1 = sway * 0.8;
-                    ctx.fillStyle = '#3a7a3a';
+                    ctx.fillStyle = '#4d8a4d';
                     ctx.beginPath();
-                    ctx.moveTo(x * TILE + 6 + sway1, y * TILE + 24);
-                    ctx.lineTo(x * TILE + 16 + sway1, y * TILE + 4);
-                    ctx.lineTo(x * TILE + 26 + sway1, y * TILE + 24);
-                    ctx.fill();
-                    ctx.fillStyle = '#3a6a3a';
-                    ctx.beginPath();
-                    ctx.moveTo(x * TILE + 8 + sway1, y * TILE + 20);
-                    ctx.lineTo(x * TILE + 16 + sway1, y * TILE + 8);
-                    ctx.lineTo(x * TILE + 24 + sway1, y * TILE + 20);
+                    ctx.moveTo(baseX + 11 + sway1, baseY + 20);
+                    ctx.lineTo(baseX + 16 + sway1, baseY + 14);
+                    ctx.lineTo(baseX + 21 + sway1, baseY + 20);
                     ctx.fill();
                 } else if (treeType === 2) {
-                    ctx.fillStyle = '#5a4030';
-                    ctx.fillRect(x * TILE + 13 + sway * 0.25, y * TILE + 20, 5, 12);
+                    drawTreeTrunk(ctx, baseX + 13, baseY + 18, 5, 14, '#4a3525', sway);
                     const sway2 = sway * 0.9;
-                    ctx.fillStyle = '#2e5e2e';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + sway2, y * TILE + 12, 11, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#4a7a4a';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 13 + sway2 * 0.7, y * TILE + 14, 6, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 20 + sway2 * 0.7, y * TILE + 13, 5, 0, Math.PI * 2);
-                    ctx.fill();
+                    drawFoliageLayer(ctx, baseX + 16, baseY + 14, 13, '#1d5a1d', '#0d3a0d', sway2);
+                    drawFoliageLayer(ctx, baseX + 12, baseY + 16, 9, '#2d6a2d', '#1d4a1d', sway2 * 0.7);
+                    drawFoliageLayer(ctx, baseX + 20, baseY + 15, 7, '#3d7a3d', '#2d5a2d', sway2 * 0.8);
+                    drawFoliageLayer(ctx, baseX + 14, baseY + 10, 6, '#4d8a4d', '#3d6a3d', sway2 * 0.6);
                 } else if (treeType === 3) {
-                    ctx.fillStyle = '#4a3525';
-                    ctx.fillRect(x * TILE + 15 + sway * 0.3, y * TILE + 18, 4, 14);
+                    drawTreeTrunk(ctx, baseX + 15, baseY + 16, 4, 16, '#3a2515', sway);
                     const sway3 = sway * 0.7;
-                    ctx.fillStyle = '#285028';
+                    ctx.fillStyle = '#0d3a0d';
                     ctx.beginPath();
-                    ctx.moveTo(x * TILE + 4 + sway3, y * TILE + 24);
-                    ctx.lineTo(x * TILE + 16 + sway3, y * TILE + 2);
-                    ctx.lineTo(x * TILE + 28 + sway3, y * TILE + 24);
+                    ctx.moveTo(baseX + 3 + sway3, baseY + 28);
+                    ctx.lineTo(baseX + 16 + sway3, baseY);
+                    ctx.lineTo(baseX + 29 + sway3, baseY + 28);
+                    ctx.fill();
+                    ctx.fillStyle = '#1d4a1d';
+                    ctx.beginPath();
+                    ctx.moveTo(baseX + 5 + sway3, baseY + 26);
+                    ctx.lineTo(baseX + 16 + sway3, baseY + 4);
+                    ctx.lineTo(baseX + 27 + sway3, baseY + 26);
+                    ctx.fill();
+                    ctx.fillStyle = '#2d5a2d';
+                    ctx.beginPath();
+                    ctx.moveTo(baseX + 7 + sway3, baseY + 24);
+                    ctx.lineTo(baseX + 16 + sway3, baseY + 8);
+                    ctx.lineTo(baseX + 25 + sway3, baseY + 24);
                     ctx.fill();
                 } else {
-                    ctx.fillStyle = '#5a4030';
-                    ctx.fillRect(x * TILE + 14 + sway * 0.35, y * TILE + 22, 5, 10);
+                    drawTreeTrunk(ctx, baseX + 14, baseY + 20, 5, 12, '#4a3525', sway);
                     const sway4 = sway * 1.1;
-                    ctx.fillStyle = '#2c5c2c';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + sway4, y * TILE + 14, 9, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#3c6c3c';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 12 + sway4 * 0.6, y * TILE + 16, 5, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 20 + sway4 * 0.6, y * TILE + 15, 4, 0, Math.PI * 2);
-                    ctx.fill();
+                    drawFoliageLayer(ctx, baseX + 16, baseY + 16, 10, '#1d5a1d', '#0d3a0d', sway4);
+                    drawFoliageLayer(ctx, baseX + 12, baseY + 18, 7, '#2d6a2d', '#1d4a1d', sway4 * 0.6);
+                    drawFoliageLayer(ctx, baseX + 20, baseY + 17, 5, '#3d7a3d', '#2d5a2d', sway4 * 0.7);
+                    drawFoliageLayer(ctx, baseX + 16, baseY + 12, 6, '#4d8a4d', '#3d6a3d', sway4 * 0.5);
                 }
             } else if (tile === 6) {
                 const flowerType = (x * 11 + y * 17) % 6;
                 const flowerSway = Math.sin(time * 2 + x * 0.5 + y * 0.3) * 2;
+                
                 ctx.fillStyle = GROUND_COLOR;
-                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                ctx.fillRect(baseX, baseY, TILE, TILE);
+                
+                drawFlowerShadow(ctx, baseX, baseY, shadowDir);
+                
                 if (flowerType === 0) {
-                    ctx.fillStyle = '#3a7a3a';
-                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
-                    ctx.fillStyle = '#f88';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#ff0';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
-                    ctx.fill();
+                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 5, '#ff6b6b', '#ffd93d', flowerSway);
                 } else if (flowerType === 1) {
-                    ctx.fillStyle = '#3a7a3a';
-                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
-                    ctx.fillStyle = '#f8f';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#ff0';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
-                    ctx.fill();
+                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 5, '#ff6bff', '#ffd93d', flowerSway);
                 } else if (flowerType === 2) {
-                    ctx.fillStyle = '#3a7a3a';
-                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
-                    ctx.fillStyle = '#ff8';
+                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 6, '#ffd93d', '#ff8c42', flowerSway);
                 } else if (flowerType === 3) {
-                    ctx.fillStyle = '#3a7a3a';
-                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
-                    ctx.fillStyle = '#8ff';
+                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 5, '#4ecdc4', '#ffd93d', flowerSway);
                 } else if (flowerType === 4) {
-                    ctx.fillStyle = '#3a7a3a';
-                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
-                    ctx.fillStyle = '#8f8';
+                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 4, '#95e1d3', '#ffd93d', flowerSway);
                 } else {
-                    ctx.fillStyle = '#3a7a3a';
-                    ctx.fillRect(x * TILE + 15 + flowerSway * 0.3, y * TILE + 20, 2, 10);
-                    ctx.fillStyle = '#8cf';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#fff';
-                    ctx.beginPath();
-                    ctx.arc(x * TILE + 16 + flowerSway, y * TILE + 16, 2, 0, Math.PI * 2);
-                    ctx.fill();
+                    drawFlowerPetal(ctx, baseX + 16, baseY + 20, 5, '#a8e6cf', '#ff8b94', flowerSway);
                 }
             } else if (tile === 2) {
+                // 重新设计的草丛 - 多层草丛带动态阴影
                 ctx.fillStyle = GROUND_COLOR;
-                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
-                const grassOffset = Math.sin(time + x * 0.5 + y * 0.3) * 1;
-                ctx.fillStyle = '#3a7a3a';
-                ctx.fillRect(x * TILE + 6, y * TILE + 10 + grassOffset, 3, 12);
-                ctx.fillRect(x * TILE + 14, y * TILE + 8 + grassOffset, 3, 14);
-                ctx.fillRect(x * TILE + 24, y * TILE + 12 + grassOffset, 3, 10);
+                ctx.fillRect(baseX, baseY, TILE, TILE);
+                
+                // 草丛阴影
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.beginPath();
+                ctx.ellipse(baseX + TILE/2 + shadowDir.x * 0.5, baseY + TILE - 2 + shadowDir.y * 0.5, TILE/2.5, TILE/6, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                const grassType = (x * 3 + y * 5) % 4;
+                const grassSway = Math.sin(time * 1.2 + x * 0.4 + y * 0.6) * 1.5;
+                
+                // 草丛底座
+                ctx.fillStyle = '#2d5a2d';
+                ctx.beginPath();
+                ctx.ellipse(baseX + TILE/2, baseY + TILE - 4, TILE/2.2, TILE/5, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                // 绘制多层草叶
+                const drawGrassBlade = (gx, gy, gw, gh, angle, color) => {
+                    ctx.fillStyle = color;
+                    ctx.save();
+                    ctx.translate(gx, gy + gh);
+                    ctx.rotate(angle + grassSway * 0.02);
+                    ctx.beginPath();
+                    ctx.moveTo(-gw/2, 0);
+                    ctx.quadraticCurveTo(0, -gh/2, 0, -gh);
+                    ctx.quadraticCurveTo(0, -gh/2, gw/2, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                };
+                
+                if (grassType === 0) {
+                    // 三叶草型
+                    drawGrassBlade(baseX + 8, baseY + 16, 4, 12, -0.3, '#4a8a4a');
+                    drawGrassBlade(baseX + 16, baseY + 18, 4, 14, 0, '#3d7a3d');
+                    drawGrassBlade(baseX + 24, baseY + 16, 4, 10, 0.3, '#4a8a4a');
+                    drawGrassBlade(baseX + 12, baseY + 20, 3, 8, -0.5, '#5a9a5a');
+                    drawGrassBlade(baseX + 20, baseY + 19, 3, 9, 0.4, '#5a9a5a');
+                } else if (grassType === 1) {
+                    // 茂密型
+                    for (let i = 0; i < 7; i++) {
+                        const gx = baseX + 6 + (i % 4) * 7 + Math.sin(time + i) * 0.5;
+                        const gy = baseY + 14 + Math.floor(i / 4) * 6;
+                        const gh = 10 + Math.sin(time * 0.8 + i * 0.5) * 3;
+                        const angle = (i % 2 === 0 ? -0.2 : 0.2) + grassSway * 0.015;
+                        drawGrassBlade(gx, gy, 3, gh, angle, i % 3 === 0 ? '#5a9a5a' : '#4a8a4a');
+                    }
+                } else if (grassType === 2) {
+                    // 芦苇型
+                    for (let i = 0; i < 5; i++) {
+                        const gx = baseX + 10 + i * 3;
+                        const gy = baseY + 16 + i * 2;
+                        const gh = 14 + i;
+                        drawGrassBlade(gx, gy, 2, gh, (i - 2) * 0.15 + grassSway * 0.02, i % 2 === 0 ? '#6aaa6a' : '#4a8a4a');
+                    }
+                } else {
+                    // 扇形
+                    drawGrassBlade(baseX + 10, baseY + 18, 3, 12, -0.6, '#4a8a4a');
+                    drawGrassBlade(baseX + 14, baseY + 20, 3, 10, -0.3, '#5a9a5a');
+                    drawGrassBlade(baseX + 18, baseY + 20, 3, 10, 0, '#6aaa6a');
+                    drawGrassBlade(baseX + 22, baseY + 18, 3, 12, 0.3, '#5a9a5a');
+                    drawGrassBlade(baseX + 26, baseY + 16, 3, 14, 0.6, '#4a8a4a');
+                }
+                
+                // 草叶高光
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.beginPath();
+                ctx.ellipse(baseX + TILE/2, baseY + TILE - 8, 4, 2, 0, 0, Math.PI*2);
+                ctx.fill();
             } else if (tile === 3) {
                 ctx.fillStyle = '#2a3a5a';
-                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                ctx.fillRect(baseX, baseY, TILE, TILE);
                 const waveOffset = Math.sin(time + x + y * 0.5) * 2;
                 ctx.fillStyle = '#4a6a8a';
-                ctx.fillRect(x * TILE + 4 + waveOffset, y * TILE + 8, 8, 2);
-                ctx.fillRect(x * TILE + 16 - waveOffset, y * TILE + 16, 10, 2);
-                ctx.fillRect(x * TILE + 8, y * TILE + 24, 6, 2);
+                ctx.fillRect(baseX + 4 + waveOffset, baseY + 8, 8, 2);
+                ctx.fillRect(baseX + 16 - waveOffset, baseY + 16, 10, 2);
+                ctx.fillRect(baseX + 8, baseY + 24, 6, 2);
+            } else if (tile === 7) {
+                // 新石头堆类型
+                ctx.fillStyle = GROUND_COLOR;
+                ctx.fillRect(baseX, baseY, TILE, TILE);
+                drawStonePile(ctx, baseX, baseY, TILE, shadowDir);
             } else {
                 ctx.fillStyle = GROUND_COLOR;
-                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+                ctx.fillRect(baseX, baseY, TILE, TILE);
                 if ((x + y) % 5 === 0) {
                     ctx.fillStyle = '#3a7a3a';
-                    ctx.fillRect(x * TILE + 10, y * TILE + 12, 4, 4);
+                    ctx.fillRect(baseX + 10, baseY + 12, 4, 4);
                 }
             }
         }
@@ -830,12 +1138,21 @@ function drawProjectiles(ctx, projectiles) {
  * 绘制敌人
  * 遍历敌人数组，绘制每个敌人
  */
+function drawCharacterShadow(ctx, x, y, w, h, shadowDir) {
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(x + w/2 + shadowDir.x, y + h - 4 + shadowDir.y, w/2.5, h/5, 0, 0, Math.PI*2);
+    ctx.fill();
+}
+
 function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
     const time = Date.now();
+    const shadowDir = getShadowDirection();
     enemies.forEach((e, i) => {
         const breathe = Math.sin(time / 400 + i) * 1;
         
-        // 使用详细的怪物图标
+        drawCharacterShadow(ctx, e.x, e.y + breathe, e.w, e.h, shadowDir);
+        
         if (window.renderEnemyIcon && window.getEnemyByType) {
             const enemyType = window.getEnemyByType(e.type);
             if (enemyType) {
@@ -847,17 +1164,14 @@ function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
                         throw new Error('Invalid canvas');
                     }
                 } catch (err) {
-                    // 备用：简单渲染
                     const color = e.color || '#4a4';
                     drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
                 }
             } else {
-                // 备用：简单渲染
                 const color = e.color || '#4a4';
                 drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
             }
         } else {
-            // 备用：简单渲染
             const color = e.color || '#4a4';
             drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
         }
@@ -880,8 +1194,13 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
     if (!boss) return;
     const time = Date.now();
     const breathe = Math.sin(time / 400 + 100) * 2;
+    const shadowDir = getShadowDirection();
     
-    // 使用详细的Boss图标
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.ellipse(boss.x + boss.w/2 + shadowDir.x, boss.y + boss.h - 6 + breathe + shadowDir.y, boss.w/2.2, boss.h/4, 0, 0, Math.PI*2);
+    ctx.fill();
+    
     if (window.renderEnemyIcon) {
         try {
             const bossType = { 
@@ -896,11 +1215,9 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
                 throw new Error('Invalid canvas');
             }
         } catch (err) {
-            // 备用：简单渲染
             drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
         }
     } else {
-        // 备用：简单渲染
         drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
     }
     
@@ -1016,6 +1333,13 @@ function drawParticles(ctx, particles) {
 function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     if (invulnerable && invulnerable % 4 < 2) return;
     const breathe = Math.sin(Date.now() / 300) * 1;
+    const shadowDir = getShadowDirection();
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(player.x + player.w/2 + shadowDir.x, player.y + player.h - 4 + breathe + shadowDir.y, player.w/2.5, player.h/5, 0, 0, Math.PI*2);
+    ctx.fill();
+    
     drawPixelSpriteFn(ctx, player.x, player.y + breathe, player.w, player.h, '#fa0', 'player', player);
 }
 
@@ -1039,6 +1363,8 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
     if (!cloudData || !cloudData.length) return;
     
     const time = Date.now() / 1000;
+    const shadowDir = getShadowDirection();
+    
     cloudData.forEach(cloud => {
         cloud.x += cloud.speedX;
         cloud.y += cloud.speedY + Math.sin(time * cloud.wobbleSpeed + cloud.wobblePhase) * 0.15;
@@ -1058,6 +1384,26 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
         
         const breathe = Math.sin(time * 0.3 + cloud.phase) * 0.08 + 1;
         
+        const baseX = cloud.x + Math.sin(time * cloud.wobbleSpeed * 0.7 + cloud.wobblePhase) * 3;
+        const baseY = cloud.y;
+        const size = cloud.size;
+        
+        // 云朵阴影 - 投射到地面
+        const shadowY = canvasHeight * 0.85; // 阴影投射到地面位置
+        const cloudToGroundDistance = shadowY - baseY;
+        const shadowScale = 1.0 + cloudToGroundDistance * 0.002;
+        const shadowAlpha = Math.max(0.05, 0.15 - cloudToGroundDistance * 0.0003);
+        
+        ctx.fillStyle = `rgba(0,0,0,${shadowAlpha})`;
+        cloud.circles.forEach(c => {
+            ctx.beginPath();
+            ctx.arc(baseX + c.ox * size * shadowScale + shadowDir.x * 0.5, 
+                   shadowY, 
+                   c.r * size * breathe * shadowScale * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        
+        // 云朵主体
         if (cloud.type === 'storm') {
             ctx.fillStyle = '#2a2a2a';
         } else if (cloud.type === 'dark') {
@@ -1066,14 +1412,32 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
             ctx.fillStyle = '#e8e8f0';
         }
         
-        const baseX = cloud.x + Math.sin(time * cloud.wobbleSpeed * 0.7 + cloud.wobblePhase) * 3;
-        const baseY = cloud.y;
-        const size = cloud.size;
+        // 绘制云朵本体 - 分层渲染增加立体感
+        cloud.circles.forEach((c, i) => {
+            // 底层阴影
+            ctx.fillStyle = cloud.type === 'storm' ? '#1a1a1a' : 
+                          cloud.type === 'dark' ? '#3a3a4a' : '#c8c8d0';
+            ctx.beginPath();
+            ctx.arc(baseX + c.ox * size + 2, baseY + c.oy * size + 2, c.r * size * breathe * 0.95, 0, Math.PI * 2);
+            ctx.fill();
+        });
         
-        cloud.circles.forEach(c => {
+        cloud.circles.forEach((c, i) => {
+            // 主体
+            ctx.fillStyle = cloud.type === 'storm' ? '#2a2a2a' : 
+                          cloud.type === 'dark' ? '#5a5a6a' : '#e8e8f0';
             ctx.beginPath();
             ctx.arc(baseX + c.ox * size, baseY + c.oy * size, c.r * size * breathe, 0, Math.PI * 2);
             ctx.fill();
+            
+            // 高光（只在白云上）
+            if (cloud.type === 'white') {
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.beginPath();
+                ctx.arc(baseX + c.ox * size - c.r * size * 0.3, baseY + c.oy * size - c.r * size * 0.3, 
+                       c.r * size * breathe * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+            }
         });
         
         // 雷电云逻辑

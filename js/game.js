@@ -191,11 +191,13 @@ function generateMap() {
         map[y] = [];
         for (let x = 0; x < window.MAP_W; x++) {
             if (x === 0 || x === window.MAP_W - 1 || y === 0 || y === window.MAP_H - 1) {
+                // 只在边界生成墙壁
                 map[y][x] = 1;
             } else {
                 const rand = Math.random();
                 if (rand < 0.03 + mapLevel * 0.005) {
-                    map[y][x] = 1;
+                    // 石头堆 - 取代内部墙壁
+                    map[y][x] = 7;
                 } else if (rand < 0.06 + mapLevel * 0.008) {
                     map[y][x] = 5;
                 } else if (rand < 0.09 + mapLevel * 0.008) {

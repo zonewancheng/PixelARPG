@@ -351,6 +351,13 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     
     // 辅助函数：绘制武器
     function drawWeapon(ctx, wx, wy, wCanvas, wSize, wColor) {
+        // 武器阴影
+        const shadowDir = window.getShadowDirection ? window.getShadowDirection() : {x: 4, y: 6};
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.ellipse(wx + shadowDir.x, wy + wSize/3 + shadowDir.y, wSize/3, wSize/6, 0, 0, Math.PI*2);
+        ctx.fill();
+        
         ctx.save();
         ctx.translate(wx, wy);
         ctx.rotate(Math.PI); // 垂直朝下
