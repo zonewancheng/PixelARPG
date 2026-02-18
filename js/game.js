@@ -1176,6 +1176,9 @@ function updateCamera() {
 function render() {
     const player = window.player;
     
+    // 清除画布
+    ctx.clearRect(0, 0, gameWidth, gameHeight);
+    
     // 更新摄像机位置，使玩家居中
     updateCamera();
     
