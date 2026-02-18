@@ -799,10 +799,19 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
 function drawDrops(ctx, drops) {
     drops.forEach(d => {
         if (!d.item) return;
+        const time = Date.now() / 200;
+        const bounce = Math.sin(time + d.x * 0.1) * 2;
+        const drawY = d.y + bounce;
         const glowSize = 18 + Math.sin(Date.now() / 150) * 3;
         const qualityColor = d.item.color || '#fff';
         
-        const gradient = ctx.createRadialGradient(d.x, d.y + 8, 0, d.x, d.y + 8, glowSize);
+        // 药水特殊效果
+        if (d.item.type === 'consumable') {
+            drawConsumableDrop(ctx, d, drawY, glowSize, time);
+            return;
+        }
+        
+        const gradient = ctx.createRadialGradient(d.x, drawY + 8, 0, d.x, drawY + 8, glowSize);
         if (d.item.type === 'treasure') {
             gradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
             gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
@@ -816,24 +825,134 @@ function drawDrops(ctx, drops) {
         }
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(d.x, d.y + 8, glowSize, 0, Math.PI * 2);
+        ctx.arc(d.x, drawY + 8, glowSize, 0, Math.PI * 2);
         ctx.fill();
         
         // 使用像素渲染装备图标
         if (window.renderEquipmentIcon && ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'].includes(d.item.type)) {
             const itemCanvas = window.renderEquipmentIcon(d.item, 20);
-            ctx.drawImage(itemCanvas, d.x - 10, d.y + 4, 20, 20);
+            ctx.drawImage(itemCanvas, d.x - 10, drawY + 4, 20, 20);
         } else {
             ctx.font = '24px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(d.item.icon || '?', d.x, d.y + 16);
+            ctx.fillText(d.item.icon || '?', d.x, drawY + 16);
         }
         
         ctx.strokeStyle = qualityColor;
         ctx.lineWidth = 2;
-        ctx.strokeRect(d.x - 10, d.y + 2, 20, 20);
+        ctx.strokeRect(d.x - 10, drawY + 2, 20, 20);
         ctx.textAlign = 'left';
     });
+}
+
+/**
+ * 绘制药水类掉落物
+ */
+function drawConsumableDrop(ctx, d, drawY, glowSize, time) {
+    const item = d.item;
+    const id = item.id || '';
+    
+    // 根据药水类型设置颜色和效果
+    let potionColor, glowColor, liquidColor, bubbleColor;
+    
+    if (id.includes('potion2') || id.includes('super')) {
+        // 超级药水 - 金色/橙色
+        potionColor = '#ffaa44';
+        glowColor = 'rgba(255, 170, 68, 0.8)';
+        liquidColor = '#ffcc88';
+        bubbleColor = '#ffeeaa';
+    } else if (id.includes('potion') || item.heal) {
+        // 生命药水 - 红色
+        potionColor = '#ff4444';
+        glowColor = 'rgba(255, 68, 68, 0.8)';
+        liquidColor = '#ff8888';
+        bubbleColor = '#ffaaaa';
+    } else if (id.includes('mpotion2')) {
+        // 超级魔法药水 - 深蓝色
+        potionColor = '#4444ff';
+        glowColor = 'rgba(68, 68, 255, 0.8)';
+        liquidColor = '#8888ff';
+        bubbleColor = '#aaaaff';
+    } else if (id.includes('mpotion') || item.mp) {
+        // 魔法药水 - 青色
+        potionColor = '#44ffff';
+        glowColor = 'rgba(68, 255, 255, 0.8)';
+        liquidColor = '#88ffff';
+        bubbleColor = '#aaffff';
+    } else {
+        // 默认
+        potionColor = '#aaaaaa';
+        glowColor = 'rgba(170, 170, 170, 0.8)';
+        liquidColor = '#cccccc';
+        bubbleColor = '#eeeeee';
+    }
+    
+    // 发光效果
+    const pulseGlow = glowSize + Math.sin(time * 2) * 3;
+    const gradient = ctx.createRadialGradient(d.x, drawY + 8, 0, d.x, drawY + 8, pulseGlow);
+    gradient.addColorStop(0, glowColor);
+    gradient.addColorStop(0.5, glowColor.replace('0.8)', '0.3)'));
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(d.x, drawY + 8, pulseGlow, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 药水瓶主体
+    const bottleX = d.x - 8;
+    const bottleY = drawY + 2;
+    const bottleW = 16;
+    const bottleH = 20;
+    
+    // 瓶身阴影
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(bottleX + 2, bottleY + 2, bottleW, bottleH);
+    
+    // 瓶身液体
+    const liquidLevel = 0.7 + Math.sin(time * 3) * 0.1;
+    ctx.fillStyle = potionColor;
+    ctx.beginPath();
+    ctx.roundRect(bottleX, bottleY + bottleH * (1 - liquidLevel), bottleW, bottleH * liquidLevel, 4);
+    ctx.fill();
+    
+    // 液体高光
+    ctx.fillStyle = liquidColor;
+    ctx.beginPath();
+    ctx.roundRect(bottleX + 2, bottleY + bottleH * (1 - liquidLevel) + 2, bottleW - 4, (bottleH * liquidLevel) / 2, 2);
+    ctx.fill();
+    
+    // 气泡效果
+    for (let i = 0; i < 3; i++) {
+        const bubbleY = bottleY + bottleH - 4 - ((time * 2 + i * 2) % 10);
+        const bubbleX = bottleX + 4 + i * 4;
+        const bubbleSize = 2 + Math.sin(time * 4 + i) * 0.5;
+        ctx.fillStyle = bubbleColor;
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.arc(bubbleX, bubbleY, bubbleSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    
+    // 瓶口
+    ctx.fillStyle = '#888888';
+    ctx.fillRect(bottleX + 4, bottleY - 2, bottleW - 8, 3);
+    
+    // 瓶塞
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(bottleX + 5, bottleY - 4, bottleW - 10, 3);
+    
+    // 瓶身边框
+    ctx.strokeStyle = potionColor;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bottleX, bottleY, bottleW, bottleH);
+    
+    // 高光反射
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(bottleX + 3, bottleY + 4, 2, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 function hexToRgb(hex) {
@@ -1421,6 +1540,7 @@ function drawEnemyAttack(ctx, enemy) {
     
     // 根据怪物类型选择攻击效果
     const attackType = enemy.attackType || 'claw';
+    const enemyType = enemy.type;
     
     ctx.save();
     ctx.translate(baseX, baseY);
@@ -1435,108 +1555,322 @@ function drawEnemyAttack(ctx, enemy) {
     
     ctx.rotate(attackAngle);
     
-    if (attackType === 'claw' || enemy.type === 'wolf' || enemy.type === 'goblin' || enemy.type === 'skeleton') {
-        // 爪击效果
-        const slashAlpha = Math.sin(progress * Math.PI);
-        
-        // 爪痕1
-        ctx.strokeStyle = `rgba(255, 100, 100, ${slashAlpha})`;
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(15, -10);
-        ctx.quadraticCurveTo(30 + progress * 10, -5, 35 + progress * 15, 5);
-        ctx.stroke();
-        
-        // 爪痕2
-        ctx.beginPath();
-        ctx.moveTo(15, 0);
-        ctx.quadraticCurveTo(30 + progress * 10, 5, 35 + progress * 15, 15);
-        ctx.stroke();
-        
-        // 爪痕3
-        ctx.beginPath();
-        ctx.moveTo(15, 10);
-        ctx.quadraticCurveTo(30 + progress * 10, 15, 35 + progress * 15, 25);
-        ctx.stroke();
-        
-        // 爪尖闪光
-        if (progress > 0.5) {
-            ctx.fillStyle = `rgba(255, 200, 200, ${slashAlpha})`;
-            ctx.beginPath();
-            ctx.arc(35 + progress * 15, 5, 3, 0, Math.PI * 2);
-            ctx.arc(35 + progress * 15, 15, 3, 0, Math.PI * 2);
-            ctx.arc(35 + progress * 15, 25, 3, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-    } else if (attackType === 'bite' || enemy.type === 'slime' || enemy.type === 'spider') {
-        // 咬击/毒液效果
-        const biteAlpha = Math.sin(progress * Math.PI);
-        
-        // 毒液飞溅
-        ctx.fillStyle = `rgba(150, 255, 100, ${biteAlpha * 0.7})`;
-        for (let i = 0; i < 5; i++) {
-            const angle = (i / 5) * Math.PI / 2 - Math.PI / 4;
-            const dist = 20 + progress * 15 + Math.random() * 5;
-            const bx = Math.cos(angle) * dist;
-            const by = Math.sin(angle) * dist;
-            const size = 3 + Math.random() * 3;
-            ctx.beginPath();
-            ctx.arc(bx, by, size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // 牙齿轨迹
-        ctx.strokeStyle = `rgba(255, 255, 255, ${biteAlpha})`;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(10, -8);
-        ctx.lineTo(25 + progress * 10, -5);
-        ctx.moveTo(10, 8);
-        ctx.lineTo(25 + progress * 10, 5);
-        ctx.stroke();
-        
-    } else if (attackType === 'stab' || enemy.type === 'scorpion' || enemy.type === 'snake') {
-        // 刺击/尾刺效果
-        const stabAlpha = Math.sin(progress * Math.PI);
-        
-        // 刺击轨迹
-        ctx.strokeStyle = `rgba(255, 50, 50, ${stabAlpha})`;
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(10, 0);
-        ctx.lineTo(30 + progress * 20, 0);
-        ctx.stroke();
-        
-        // 尖端闪光
-        if (progress > 0.6) {
-            ctx.fillStyle = `rgba(255, 100, 100, ${stabAlpha})`;
-            ctx.beginPath();
-            ctx.arc(30 + progress * 20, 0, 4, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-    } else {
-        // 默认圆形冲击波
-        const waveRadius = 10 + progress * 25;
-        const waveAlpha = 1 - progress;
-        
-        ctx.strokeStyle = `rgba(255, 100, 100, ${waveAlpha})`;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(0, 0, waveRadius, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        ctx.strokeStyle = `rgba(255, 150, 150, ${waveAlpha * 0.5})`;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(0, 0, waveRadius - 5, 0, Math.PI * 2);
-        ctx.stroke();
+    // 每个敌人独特的攻击效果
+    switch(enemyType) {
+        case 'slime':
+            // 史莱姆：粘液飞溅 + 弹跳撞击
+            drawSlimeAttack(ctx, progress);
+            break;
+            
+        case 'goblin':
+            // 哥布林：匕首刺击 + 偷窃动作
+            drawGoblinAttack(ctx, progress);
+            break;
+            
+        case 'bat':
+            // 蝙蝠：声波攻击 + 俯冲
+            drawBatAttack(ctx, progress);
+            break;
+            
+        case 'spider':
+            // 蜘蛛：毒液喷射 + 蛛网
+            drawSpiderAttack(ctx, progress);
+            break;
+            
+        case 'skeleton':
+            // 骷髅：骨剑斩击 + 骨头碎片
+            drawSkeletonAttack(ctx, progress);
+            break;
+            
+        case 'wolf':
+            // 狼：凶猛撕咬 + 血爪
+            drawWolfAttack(ctx, progress);
+            break;
+            
+        case 'snake':
+            // 蛇：毒牙突刺 + 毒液轨迹
+            drawSnakeAttack(ctx, progress);
+            break;
+            
+        case 'scorpion':
+            // 蝎子：尾刺突刺 + 毒液注射
+            drawScorpionAttack(ctx, progress);
+            break;
+            
+        default:
+            // 默认爪击
+            drawDefaultClawAttack(ctx, progress);
     }
     
     ctx.restore();
+}
+
+// 史莱姆攻击：粘液飞溅
+function drawSlimeAttack(ctx, progress) {
+    const alpha = Math.sin(progress * Math.PI);
+    
+    // 弹跳轨迹
+    ctx.fillStyle = `rgba(100, 200, 100, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(0, -10 * Math.sin(progress * Math.PI), 8 + progress * 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 粘液飞溅
+    for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI - Math.PI / 2;
+        const dist = 15 + progress * 20 + Math.sin(progress * Math.PI * 2 + i) * 5;
+        const size = 4 - i * 0.5;
+        ctx.fillStyle = `rgba(150, 255, 150, ${alpha * 0.8})`;
+        ctx.beginPath();
+        ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+// 哥布林攻击：匕首刺击
+function drawGoblinAttack(ctx, progress) {
+    const alpha = Math.sin(progress * Math.PI);
+    
+    // 匕首轨迹
+    ctx.strokeStyle = `rgba(180, 180, 200, ${alpha})`;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    
+    // 快速刺击
+    ctx.beginPath();
+    ctx.moveTo(10, 0);
+    ctx.lineTo(25 + progress * 15, -5 + Math.sin(progress * Math.PI) * 3);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(10, 5);
+    ctx.lineTo(25 + progress * 15, 5 + Math.sin(progress * Math.PI) * 3);
+    ctx.stroke();
+    
+    // 匕首闪光
+    if (progress > 0.6) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(30, -8);
+        ctx.lineTo(35, 0);
+        ctx.lineTo(30, 8);
+        ctx.fill();
+    }
+}
+
+// 蝙蝠攻击：声波
+function drawBatAttack(ctx, progress) {
+    const alpha = Math.sin(progress * Math.PI);
+    
+    // 声波扩散
+    for (let i = 0; i < 3; i++) {
+        const waveProgress = progress + i * 0.2;
+        if (waveProgress <= 1) {
+            const radius = 10 + waveProgress * 25;
+            const waveAlpha = alpha * (1 - waveProgress);
+            
+            ctx.strokeStyle = `rgba(150, 150, 200, ${waveAlpha})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, -Math.PI/3, Math.PI/3);
+            ctx.stroke();
+        }
+    }
+    
+    // 俯冲轨迹
+    ctx.strokeStyle = `rgba(100, 100, 150, ${alpha * 0.5})`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(-15, -20);
+    ctx.quadraticCurveTo(0, -10 + progress * 10, 20, 0);
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+// 蜘蛛攻击：毒液 + 蛛网
+function drawSpiderAttack(ctx, progress) {
+    const alpha = Math.sin(progress * Math.PI);
+    
+    // 毒液喷射
+    ctx.fillStyle = `rgba(100, 255, 100, ${alpha * 0.8})`;
+    for (let i = 0; i < 5; i++) {
+        const spread = (i - 2) * 0.3;
+        const dist = 15 + progress * 20;
+        const size = 4 - Math.abs(i - 2);
+        ctx.beginPath();
+        ctx.arc(dist, spread * 8, size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // 蛛网丝线
+    ctx.strokeStyle = `rgba(200, 200, 220, ${alpha * 0.6})`;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI / 2 - Math.PI / 4;
+        ctx.beginPath();
+        ctx.moveTo(10, 0);
+        ctx.lineTo(25 + progress * 15, Math.sin(angle) * 10);
+        ctx.stroke();
+    }
+}
+
+// 骷髅攻击：骨剑斩击
+function drawSkeletonAttack(ctx, progress) {
+    const alpha = Math.sin(progress * Math.PI);
+    
+    // 骨剑轨迹
+    ctx.strokeStyle = `rgba(220, 220, 200, ${alpha})`;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    
+    // 斩击弧线
+    ctx.beginPath();
+    ctx.moveTo(10, -15);
+    ctx.quadraticCurveTo(25 + progress * 15, -5, 30 + progress * 15, 10);
+    ctx.stroke();
+    
+    // 骨头碎片
+    if (progress > 0.5) {
+        ctx.fillStyle = `rgba(240, 240, 220, ${alpha})`;
+        for (let i = 0; i < 4; i++) {
+            const bx = 25 + progress * 15 + Math.cos(i * 1.5) * 8;
+            const by = Math.sin(i * 1.5) * 8;
+            ctx.fillRect(bx - 2, by - 2, 4, 4);
+        }
+    }
+}
+
+// 狼攻击：凶猛撕咬
+function drawWolfAttack(ctx, progress) {
+    const alpha = Math.sin(progress * Math.PI);
+    
+    // 血爪
+    ctx.strokeStyle = `rgba(200, 50, 50, ${alpha})`;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    
+    // 四道爪痕
+    for (let i = 0; i < 4; i++) {
+        const offset = (i - 1.5) * 6;
+        ctx.beginPath();
+        ctx.moveTo(12, offset - 3);
+        ctx.quadraticCurveTo(25 + progress * 12, offset, 35 + progress * 15, offset + 8);
+        ctx.stroke();
+    }
+    
+    // 牙齿咬痕
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(20, -12);
+    ctx.lineTo(25 + progress * 5, -8);
+    ctx.lineTo(22, -5);
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(20, 12);
+    ctx.lineTo(25 + progress * 5, 8);
+    ctx.lineTo(22, 5);
+    ctx.fill();
+    
+    // 血腥效果
+    if (progress > 0.7) {
+        ctx.fillStyle = `rgba(180, 0, 0, ${alpha * 0.8})`;
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.arc(35 + Math.random() * 10, (Math.random() - 0.5) * 20, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+}
+
+// 蛇攻击：毒牙突刺
+function drawSnakeAttack(ctx, progress) {
+    const alpha = Math.sin(progress * Math.PI);
+    
+    // 快速突刺
+    ctx.strokeStyle = `rgba(100, 200, 100, ${alpha})`;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    
+    // 蛇形轨迹
+    ctx.beginPath();
+    ctx.moveTo(10, 0);
+    for (let i = 0; i <= 5; i++) {
+        const t = i / 5;
+        const x = 10 + t * (20 + progress * 15);
+        const y = Math.sin(t * Math.PI * 2 + progress * Math.PI) * 5;
+        ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    
+    // 毒牙
+    ctx.fillStyle = `rgba(255, 255, 200, ${alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(30 + progress * 15, -3);
+    ctx.lineTo(35 + progress * 15, 0);
+    ctx.lineTo(30 + progress * 15, 3);
+    ctx.fill();
+    
+    // 毒液滴落
+    if (progress > 0.6) {
+        ctx.fillStyle = `rgba(150, 255, 100, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(32 + progress * 15, 5 + (progress - 0.6) * 10, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+// 蝎子攻击：尾刺突刺
+function drawScorpionAttack(ctx, progress) {
+    const alpha = Math.sin(progress * Math.PI);
+    
+    // 尾刺轨迹
+    ctx.strokeStyle = `rgba(150, 100, 50, ${alpha})`;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    
+    // 弯曲的尾刺
+    ctx.beginPath();
+    ctx.moveTo(5, 10);
+    ctx.quadraticCurveTo(15, 0, 20 + progress * 20, -5 + Math.sin(progress * Math.PI) * 3);
+    ctx.stroke();
+    
+    // 刺尖
+    const tipX = 20 + progress * 20;
+    const tipY = -5 + Math.sin(progress * Math.PI) * 3;
+    
+    ctx.fillStyle = `rgba(50, 50, 50, ${alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(tipX - 3, tipY - 3);
+    ctx.lineTo(tipX + 5, tipY);
+    ctx.lineTo(tipX - 3, tipY + 3);
+    ctx.fill();
+    
+    // 毒液注射效果
+    if (progress > 0.8) {
+        ctx.fillStyle = `rgba(200, 50, 200, ${alpha * 0.7})`;
+        ctx.beginPath();
+        ctx.arc(tipX + 3, tipY, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+// 默认爪击
+function drawDefaultClawAttack(ctx, progress) {
+    const alpha = Math.sin(progress * Math.PI);
+    
+    ctx.strokeStyle = `rgba(255, 100, 100, ${alpha})`;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    
+    for (let i = 0; i < 3; i++) {
+        const offset = (i - 1) * 8;
+        ctx.beginPath();
+        ctx.moveTo(15, offset);
+        ctx.quadraticCurveTo(25 + progress * 10, offset + 3, 35 + progress * 15, offset + 10);
+        ctx.stroke();
+    }
 }
 
 /**
@@ -1554,13 +1888,40 @@ function drawEnemiesAttack(ctx, enemies) {
 
 /**
  * 绘制粒子效果
- * 血液、火花等
+ * 血液、火花、药水效果等
  */
 function drawParticles(ctx, particles) {
     particles.forEach(p => {
-        ctx.globalAlpha = p.life / 30;
+        const alpha = p.life / (p.maxLife || 30);
+        ctx.globalAlpha = alpha;
         ctx.fillStyle = p.color;
-        ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+        
+        if (p.type === 'potion') {
+            // 药水粒子 - 圆形发光
+            ctx.shadowColor = p.color;
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size || 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        } else if (p.type === 'potion_glow') {
+            // 药水光点 - 小圆形
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size || 2, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (p.type === 'potion_ring') {
+            // 药水光环 - 扩散的圆环
+            const ringProgress = 1 - alpha;
+            const ringSize = (p.size || 20) * (1 + ringProgress * 2);
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = 3 * alpha;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, ringSize, 0, Math.PI * 2);
+            ctx.stroke();
+        } else {
+            // 默认粒子 - 矩形
+            ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+        }
     });
     ctx.globalAlpha = 1;
 }

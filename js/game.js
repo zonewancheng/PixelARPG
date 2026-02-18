@@ -463,6 +463,65 @@ function spawnDamageNumber(x, y, value, isHeal = false) {
     });
 }
 
+/**
+ * 生成药水效果
+ * @param {number} x - x坐标
+ * @param {number} y - y坐标
+ * @param {string} type - 'heal' 或 'mana'
+ */
+function spawnPotionEffect(x, y, type) {
+    const colors = type === 'heal' 
+        ? ['#ff4444', '#ff6666', '#ff8888', '#ffaaaa'] 
+        : ['#44ffff', '#66ffff', '#88ffff', '#aaffff'];
+    
+    const glowColors = type === 'heal'
+        ? ['#ff2222', '#ff0000']
+        : ['#00ffff', '#0088ff'];
+    
+    // 创建大量粒子
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        const speed = 2 + Math.random() * 3;
+        particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 2, // 向上飘散
+            life: 40 + Math.random() * 20,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            size: 3 + Math.random() * 3,
+            type: 'potion'
+        });
+    }
+    
+    // 上升的光点
+    for (let i = 0; i < 8; i++) {
+        particles.push({
+            x: x + (Math.random() - 0.5) * 30,
+            y: y + (Math.random() - 0.5) * 20,
+            vx: (Math.random() - 0.5) * 1,
+            vy: -3 - Math.random() * 2,
+            life: 30 + Math.random() * 15,
+            color: glowColors[Math.floor(Math.random() * glowColors.length)],
+            size: 2 + Math.random() * 2,
+            type: 'potion_glow'
+        });
+    }
+    
+    // 治疗/魔法光环效果
+    particles.push({
+        x: x,
+        y: y,
+        vx: 0,
+        vy: -1,
+        life: 25,
+        color: type === 'heal' ? '#ff6666' : '#66ffff',
+        size: 20,
+        type: 'potion_ring',
+        maxLife: 25
+    });
+}
+
 window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
     // 对怪物造成伤害
     enemies.forEach(e => {
@@ -816,15 +875,23 @@ function update() {
                 player.gold += d.item.value;
                 showMessage(`+${d.item.value} Gold!`);
             } else if (d.item.type === 'consumable') {
-                if (d.item.heal) {
+                // 药水视觉效果
+                const isHealPotion = d.item.heal > 0;
+                const isManaPotion = d.item.mp > 0;
+                
+                if (isHealPotion) {
                     player.hp = Math.min(player.maxHp, player.hp + d.item.heal);
                     spawnDamageNumber(player.x + player.w/2, player.y, d.item.heal, true);
                     showMessage(`+${d.item.heal} HP!`);
+                    // 生命药水特效 - 红色粒子
+                    spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'heal');
                 }
-                if (d.item.mp) {
+                if (isManaPotion) {
                     player.mp = Math.min(player.maxMp, player.mp + d.item.mp);
                     spawnDamageNumber(player.x + player.w/2, player.y - 15, d.item.mp, true);
                     showMessage(`+${d.item.mp} MP!`);
+                    // 魔法药水特效 - 蓝色粒子
+                    spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'mana');
                 }
             } else {
                 player.inventory.push(d.item);

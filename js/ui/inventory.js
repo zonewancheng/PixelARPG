@@ -310,10 +310,26 @@ window.UIInventory = {
         if (item.heal) {
             player.hp = Math.min(player.maxHp, player.hp + item.heal);
             window.showMessage(`恢复 ${item.heal} HP`);
+            // 添加生命药水视觉效果
+            if (window.spawnPotionEffect) {
+                window.spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'heal');
+            }
+            // 显示治疗数字
+            if (window.spawnDamageNumber) {
+                window.spawnDamageNumber(player.x + player.w/2, player.y, item.heal, true);
+            }
         }
         if (item.mp) {
             player.mp = Math.min(player.maxMp, player.mp + item.mp);
             window.showMessage(`恢复 ${item.mp} MP`);
+            // 添加魔法药水视觉效果
+            if (window.spawnPotionEffect) {
+                window.spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'mana');
+            }
+            // 显示魔法数字
+            if (window.spawnDamageNumber) {
+                window.spawnDamageNumber(player.x + player.w/2, player.y - 15, item.mp, true);
+            }
         }
         
         // 减少数量
