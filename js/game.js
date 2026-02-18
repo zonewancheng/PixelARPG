@@ -81,6 +81,10 @@ function getAudioContext() {
     return globalAudioCtx;
 }
 
+// 游戏画布尺寸（逻辑像素）
+let gameWidth = 480;
+let gameHeight = 640;
+
 function initGame() {
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
@@ -92,18 +96,18 @@ function initGame() {
     
     // 计算合适的画布大小（保留一定边距）
     const margin = 0;
-    const baseWidth = Math.min(480, screenWidth - margin);
-    const baseHeight = Math.min(640, screenHeight - margin);
+    gameWidth = Math.min(480, screenWidth - margin);
+    gameHeight = Math.min(640, screenHeight - margin);
     
-    canvas.width = baseWidth * dpr;
-    canvas.height = baseHeight * dpr;
-    canvas.style.width = baseWidth + 'px';
-    canvas.style.height = baseHeight + 'px';
+    canvas.width = gameWidth * dpr;
+    canvas.height = gameHeight * dpr;
+    canvas.style.width = gameWidth + 'px';
+    canvas.style.height = gameHeight + 'px';
     ctx.scale(dpr, dpr);
     
     // 根据画布大小自动计算地图参数
     if (window.initMapSize) {
-        window.initMapSize(baseWidth, baseHeight);
+        window.initMapSize(gameWidth, gameHeight);
     }
     
     window.boss = null;
@@ -1116,7 +1120,7 @@ function render() {
     
     if (damageFlash > 0) {
         ctx.fillStyle = `rgba(255, 0, 0, ${damageFlash / 30})`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, gameWidth, gameHeight);
         damageFlash--;
     }
     
@@ -1129,16 +1133,16 @@ function render() {
     drawPlayer(ctx, player, drawPixelSprite, player.invulnerable);
     drawPlayerAttack(ctx, player);
     drawParticles(ctx, particles);
-    drawClouds(ctx, canvas.width, canvas.height, player);
+    drawClouds(ctx, gameWidth, gameHeight, player);
     drawDamageNumbers(ctx, damageNumbers);
     
     if (message) {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(80, 40, 320, 40);
+        ctx.fillRect(gameWidth * 0.17, 40, gameWidth * 0.67, 40);
         ctx.fillStyle = '#fff';
         ctx.font = '18px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText(message, 240, 68);
+        ctx.fillText(message, gameWidth / 2, 68);
         ctx.textAlign = 'left';
         if (messageTimer > 0) messageTimer--;
         else message = '';
@@ -1146,14 +1150,14 @@ function render() {
     
     if (gameState === 'gameover') {
         ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, gameWidth, gameHeight);
         ctx.fillStyle = '#f00';
         ctx.font = '36px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', 240, 300);
+        ctx.fillText('GAME OVER', gameWidth / 2, gameHeight / 2);
         ctx.fillStyle = '#fff';
         ctx.font = '18px Courier New';
-        ctx.fillText('Tap to restart', 240, 340);
+        ctx.fillText('Tap to restart', gameWidth / 2, gameHeight / 2 + 40);
         ctx.textAlign = 'left';
     }
 }
