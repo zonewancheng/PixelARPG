@@ -1080,14 +1080,14 @@ function update() {
     
     if (player.exp >= player.level * 120) {
         player.level++;
-        player.maxHp += 25;
+        player.maxHp += 20;
         player.hp = player.maxHp;
-        player.maxMp += 12;
+        player.maxMp += 10;
         player.mp = player.maxMp;
-        player.atk += 4;
-        player.def += 2;
-        player.hpRegen += 0.3;
-        player.mpRegen += 0.2;
+        player.atk += 3;
+        player.def += 1;
+        player.hpRegen += 0.2;
+        player.mpRegen += 0.1;
         player.invulnerable = 60;
         showMessage(`LEVEL UP! Now level ${player.level}! (+HP +MP +ATK +DEF)`);
         playSound('levelup');
