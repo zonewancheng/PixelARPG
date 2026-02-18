@@ -1947,10 +1947,10 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     const flashAlpha = 0.5 + Math.sin(flashTime) * 0.5; // 0到1之间闪烁
     const shadowBlur = 8 + Math.sin(flashTime * 2) * 6; // 8到14之间变化
     
-    // 发光效果 - 动态闪烁
-    ctx.shadowColor = '#0ff';
+        // 发光效果 - 动态闪烁，改为金黄色
+    ctx.shadowColor = '#ffd700';
     ctx.shadowBlur = shadowBlur;
-    ctx.fillStyle = `rgba(0, 255, 255, ${0.7 + flashAlpha * 0.3})`;
+    ctx.fillStyle = `rgba(255, 215, 0, ${0.7 + flashAlpha * 0.3})`;
     ctx.beginPath();
     ctx.moveTo(centerX, markerY + 8);  // 朝下
     ctx.lineTo(centerX - 6, markerY - 2);
@@ -1960,7 +1960,7 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     
     // 内部高光 - 反向闪烁
     ctx.shadowBlur = 0;
-    ctx.fillStyle = `rgba(170, 255, 255, ${0.6 + (1 - flashAlpha) * 0.4})`;
+    ctx.fillStyle = `rgba(255, 255, 200, ${0.6 + (1 - flashAlpha) * 0.4})`;
     ctx.beginPath();
     ctx.moveTo(centerX, markerY + 5);
     ctx.lineTo(centerX - 3, markerY - 1);
@@ -2062,6 +2062,42 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player) {
                 ctx.fill();
             }
         });
+        
+        // 添加线条纹理 - 使云朵看起来更有层次感
+        ctx.strokeStyle = cloud.type === 'storm' ? 'rgba(255,255,255,0.1)' : 
+                         cloud.type === 'dark' ? 'rgba(200,200,220,0.2)' : 'rgba(255,255,255,0.4)';
+        ctx.lineWidth = 1.5;
+        
+        // 绘制弧线纹理
+        for (let i = 0; i < 4; i++) {
+            const lineY = baseY + (i - 1.5) * size * 0.25;
+            ctx.beginPath();
+            ctx.moveTo(baseX - size * 0.8, lineY);
+            ctx.quadraticCurveTo(baseX, lineY - size * 0.1, baseX + size * 0.8, lineY);
+            ctx.stroke();
+        }
+        
+        // 添加竖向线条增加细节
+        ctx.strokeStyle = cloud.type === 'storm' ? 'rgba(255,255,255,0.05)' : 
+                         cloud.type === 'dark' ? 'rgba(200,200,220,0.1)' : 'rgba(255,255,255,0.25)';
+        for (let i = 0; i < 5; i++) {
+            const lineX = baseX + (i - 2) * size * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(lineX, baseY - size * 0.4);
+            ctx.quadraticCurveTo(lineX + size * 0.05, baseY, lineX - size * 0.05, baseY + size * 0.4);
+            ctx.stroke();
+        }
+        
+        // 添加装饰性的小圆点
+        ctx.fillStyle = cloud.type === 'storm' ? 'rgba(255,255,255,0.15)' : 
+                       cloud.type === 'dark' ? 'rgba(220,220,240,0.25)' : 'rgba(255,255,255,0.5)';
+        for (let i = 0; i < 6; i++) {
+            const dotX = baseX + Math.cos(i * Math.PI / 3) * size * 0.5;
+            const dotY = baseY + Math.sin(i * Math.PI / 3) * size * 0.3;
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, size * 0.06, 0, Math.PI * 2);
+            ctx.fill();
+        }
         
         // 雷电云逻辑
         if (cloud.type === 'storm') {
