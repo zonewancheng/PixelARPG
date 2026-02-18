@@ -74,10 +74,14 @@ let currentLanguage = 'zh';
 let globalAudioCtx = null;
 function getAudioContext() {
     if (!globalAudioCtx) {
+        // 检查是否在用户交互后创建
+        if (!window.audioContextAllowed) {
+            return null;
+        }
         globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-    if (globalAudioCtx.state === 'suspended') {
-        globalAudioCtx.resume();
+    if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+        globalAudioCtx.resume().catch(() => {});
     }
     return globalAudioCtx;
 }
@@ -1245,6 +1249,7 @@ function updateUI() {
 function setupInput() {
     // 首次用户交互时恢复音频上下文
     const resumeAudio = () => {
+        window.audioContextAllowed = true;
         getAudioContext();
     };
     document.addEventListener('click', resumeAudio, { once: true });
@@ -1665,7 +1670,7 @@ function setupUI() {
             e.preventDefault();
             e.stopPropagation();
             useSkill(0);
-        });
+        }, { passive: false });
     }
     
     if (window.renderPlayerIcon) {
@@ -1694,26 +1699,26 @@ function setupUI() {
     const attackBtn = document.getElementById('attack');
     
     if (upBtn) {
-        upBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowUp'] = true; });
-        upBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowUp'] = false; });
+        upBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowUp'] = true; }, { passive: false });
+        upBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowUp'] = false; }, { passive: false });
         upBtn.addEventListener('mousedown', (e) => { keys['ArrowUp'] = true; });
         upBtn.addEventListener('mouseup', (e) => { keys['ArrowUp'] = false; });
     }
     if (downBtn) {
-        downBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowDown'] = true; });
-        downBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowDown'] = false; });
+        downBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowDown'] = true; }, { passive: false });
+        downBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowDown'] = false; }, { passive: false });
         downBtn.addEventListener('mousedown', (e) => { keys['ArrowDown'] = true; });
         downBtn.addEventListener('mouseup', (e) => { keys['ArrowDown'] = false; });
     }
     if (leftBtn) {
-        leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowLeft'] = true; });
-        leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowLeft'] = false; });
+        leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowLeft'] = true; }, { passive: false });
+        leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowLeft'] = false; }, { passive: false });
         leftBtn.addEventListener('mousedown', (e) => { keys['ArrowLeft'] = true; });
         leftBtn.addEventListener('mouseup', (e) => { keys['ArrowLeft'] = false; });
     }
     if (rightBtn) {
-        rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowRight'] = true; });
-        rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowRight'] = false; });
+        rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowRight'] = true; }, { passive: false });
+        rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowRight'] = false; }, { passive: false });
         rightBtn.addEventListener('mousedown', (e) => { keys['ArrowRight'] = true; });
         rightBtn.addEventListener('mouseup', (e) => { keys['ArrowRight'] = false; });
     }
@@ -1853,7 +1858,7 @@ function setupUI() {
             initJoystick();
             const touch = e.touches[0];
             handleJoystickMove(touch.clientX, touch.clientY);
-        });
+        }, { passive: false });
         
         joystickArea.addEventListener('touchmove', (e) => {
             e.preventDefault();
@@ -1861,13 +1866,13 @@ function setupUI() {
                 const touch = e.touches[0];
                 handleJoystickMove(touch.clientX, touch.clientY);
             }
-        });
+        }, { passive: false });
         
         joystickArea.addEventListener('touchend', (e) => {
             e.preventDefault();
             joystickActive = false;
             resetJoystick();
-        });
+        }, { passive: false });
         
         // 鼠标支持
         joystickArea.addEventListener('mousedown', (e) => {
@@ -2146,6 +2151,8 @@ async function loadGame() {
 function playSound(type) {
     try {
         const audioCtx = getAudioContext();
+        if (!audioCtx) return;
+        
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         
