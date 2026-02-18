@@ -1267,11 +1267,32 @@ function attack() {
     
     player.attacking = 20;
     
+    // 摇杆模式下自动锁定最近敌人
+    let dirX = player.dirX;
+    let dirY = player.dirY;
+    
+    if (window.controlMode === 'joystick') {
+        const target = getAutoTarget();
+        if (target) {
+            const targetX = target.x + (target.w || 0) / 2;
+            const targetY = target.y + (target.h || 0) / 2;
+            const baseX = player.x + player.w / 2;
+            const baseY = player.y + player.h / 2;
+            const dx = targetX - baseX;
+            const dy = targetY - baseY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+                dirX = dx / dist;
+                dirY = dy / dist;
+                player.dirX = dirX;
+                player.dirY = dirY;
+            }
+        }
+    }
+    
     const px = player.x + player.w/2;
     const py = player.y + player.h/2;
     const range = 50;
-    const dirX = player.dirX;
-    const dirY = player.dirY;
     
     function isTargetInDirection(targetX, targetY) {
         const dx = targetX - px;
@@ -1340,6 +1361,74 @@ function attack() {
     playSound('attack');
 }
 
+// 技能自动锁定最近的敌人
+function getAutoTarget() {
+    const player = window.player;
+    if (!player) return null;
+    
+    const playerX = player.x + player.w / 2;
+    const playerY = player.y + player.h / 2;
+    
+    let nearestEnemy = null;
+    let nearestDist = Infinity;
+    
+    // 检查普通敌人
+    enemies.forEach(e => {
+        const ex = e.x + e.w / 2;
+        const ey = e.y + e.h / 2;
+        const dist = Math.sqrt((ex - playerX) ** 2 + (ey - playerY) ** 2);
+        if (dist < nearestDist && e.hp > 0) {
+            nearestDist = dist;
+            nearestEnemy = e;
+        }
+    });
+    
+    // 检查Boss
+    if (window.boss && window.boss.hp > 0) {
+        const bossX = window.boss.x + window.boss.w / 2;
+        const bossY = window.boss.y + window.boss.h / 2;
+        const dist = Math.sqrt((bossX - playerX) ** 2 + (bossY - playerY) ** 2);
+        if (dist < nearestDist) {
+            nearestEnemy = window.boss;
+        }
+    }
+    
+    return nearestEnemy;
+}
+
+// 技能栏扇形布局
+function updateSkillFanLayout() {
+    const container = document.getElementById('skills-container');
+    const skills = window.playerSkills || [];
+    if (!container || skills.length === 0) return;
+    
+    const radius = 80;
+    const startAngle = -Math.PI * 0.7;
+    const endAngle = Math.PI * 0.3;
+    const angleStep = (endAngle - startAngle) / (skills.length - 1 || 1);
+    
+    skills.forEach((skill, i) => {
+        const slot = container.querySelector(`[data-skill-index="${i}"]`);
+        if (slot) {
+            const angle = startAngle + angleStep * i;
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            slot.style.left = `calc(50% + ${x}px)`;
+            slot.style.bottom = `calc(50% + ${y}px)`;
+        }
+    });
+}
+
+// 重置技能栏布局
+function resetSkillLayout() {
+    const slots = document.querySelectorAll('#skills-container .skill-slot');
+    slots.forEach(slot => {
+        slot.style.left = '';
+        slot.style.bottom = '';
+        slot.style.position = '';
+    });
+}
+
 function useSkill(index) {
     const skill = window.playerSkills[index];
     if (!skill) return;
@@ -1354,14 +1443,36 @@ function useSkill(index) {
         return;
     }
     
+    // 摇杆模式下自动锁定最近敌人
+    let dirX = player.dirX;
+    let dirY = player.dirY;
+    
+    if (window.controlMode === 'joystick') {
+        const target = getAutoTarget();
+        if (target) {
+            const targetX = target.x + (target.w || 0) / 2;
+            const targetY = target.y + (target.h || 0) / 2;
+            const baseX = player.x + player.w / 2;
+            const baseY = player.y + player.h / 2;
+            const dx = targetX - baseX;
+            const dy = targetY - baseY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+                dirX = dx / dist;
+                dirY = dy / dist;
+                // 更新玩家朝向
+                player.dirX = dirX;
+                player.dirY = dirY;
+            }
+        }
+    }
+    
     player.mp -= skill.mp;
     window.skillCooldowns[skill.id] = skill.cd;
     window.discoverSkill?.(skill.id);
     
     const baseX = player.x + player.w/2;
     const baseY = player.y + player.h/2;
-    const dirX = player.dirX;
-    const dirY = player.dirY;
     
     function isTargetInDirection(targetX, targetY) {
         const dx = targetX - baseX;
@@ -1447,6 +1558,7 @@ function setupUI() {
     window.playerSkills.forEach((skill, i) => {
         const slot = document.createElement('div');
         slot.className = 'skill-slot';
+        slot.dataset.skillIndex = i;
         let iconHtml = skill.icon;
         if (window.renderSkillIcon) {
             const iconUrl = window.renderSkillIcon(skill, 28);
@@ -1548,6 +1660,18 @@ function setupUI() {
         }
         if (joystickArea) {
             joystickArea.classList.toggle('show', window.controlMode === 'joystick');
+        }
+        
+        // 更新技能栏布局
+        const skillsContainer = document.getElementById('skills-container');
+        if (skillsContainer) {
+            if (window.controlMode === 'joystick') {
+                skillsContainer.classList.add('joystick-mode');
+                updateSkillFanLayout();
+            } else {
+                skillsContainer.classList.remove('joystick-mode');
+                resetSkillLayout();
+            }
         }
         
         // 保存设置
