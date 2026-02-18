@@ -1938,28 +1938,28 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     
     drawPixelSpriteFn(ctx, player.x, player.y + breathe, player.w, player.h, '#ff6', 'player', player);
     
-    // 玩家头顶标识 - 发光的三角形
-    const markerY = player.y - 8 + breathe;
+    // 玩家标识 - 朝下的发光三角形
+    const markerY = player.y - 10 + breathe;
     const centerX = player.x + player.w / 2;
     
-    // 发光效果
-    ctx.shadowColor = '#ff0';
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = '#ff6';
+    // 发光效果 - 更鲜艳
+    ctx.shadowColor = '#0ff';
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = '#0ff';
     ctx.beginPath();
-    ctx.moveTo(centerX, markerY - 6);
-    ctx.lineTo(centerX - 5, markerY + 3);
-    ctx.lineTo(centerX + 5, markerY + 3);
+    ctx.moveTo(centerX, markerY + 8);  // 朝下
+    ctx.lineTo(centerX - 6, markerY - 2);
+    ctx.lineTo(centerX + 6, markerY - 2);
     ctx.closePath();
     ctx.fill();
     
     // 内部高光
     ctx.shadowBlur = 0;
-    ctx.fillStyle = '#ff8';
+    ctx.fillStyle = '#aff';
     ctx.beginPath();
-    ctx.moveTo(centerX, markerY - 3);
-    ctx.lineTo(centerX - 2, markerY + 2);
-    ctx.lineTo(centerX + 2, markerY + 2);
+    ctx.moveTo(centerX, markerY + 5);
+    ctx.lineTo(centerX - 3, markerY - 1);
+    ctx.lineTo(centerX + 3, markerY - 1);
     ctx.closePath();
     ctx.fill();
 }

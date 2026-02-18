@@ -478,21 +478,21 @@ window.renderEquipmentIcon = function(item, size = 32) {
         const bladeW = w * 0.15;
         
         if (sprite === 'fire_sword') {
-            // 火焰剑 - 红色系
+            // 火焰剑 - 红色系 - 更鲜艳
             // 1. 把手 (handle)
-            ctx.fillStyle = '#4a2a1a';
-            ctx.fillRect(cx - bladeW*0.4, y + h*0.75, bladeW*0.8, h*0.22);
             ctx.fillStyle = '#6a3a2a';
+            ctx.fillRect(cx - bladeW*0.4, y + h*0.75, bladeW*0.8, h*0.22);
+            ctx.fillStyle = '#8a5a4a';
             ctx.fillRect(cx - bladeW*0.25, y + h*0.78, bladeW*0.5, h*0.16);
             
             // 2. 刀镡 (guard)
-            ctx.fillStyle = '#800';
+            ctx.fillStyle = '#c00';
             ctx.fillRect(cx - bladeW*1.5, y + h*0.7, bladeW*3, h*0.08);
-            ctx.fillStyle = '#f00';
+            ctx.fillStyle = '#ff0';
             ctx.fillRect(cx - bladeW, y + h*0.71, bladeW*2, h*0.06);
             
-            // 3. 刃 (blade) - 逐渐变窄
-            ctx.fillStyle = '#c00';
+            // 3. 刃 (blade) - 逐渐变窄 - 更鲜艳的红色
+            ctx.fillStyle = '#f00';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW, y + h*0.7);
             ctx.lineTo(cx - bladeW*0.6, y + h*0.25);
@@ -502,8 +502,8 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             
-            // 4. 刃的亮部
-            ctx.fillStyle = '#f44';
+            // 4. 刃的亮部 - 亮橙色
+            ctx.fillStyle = '#ff6';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW*0.3, y + h*0.65);
             ctx.lineTo(cx - bladeW*0.15, y + h*0.3);
@@ -513,8 +513,8 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             
-            // 5. 尖尖 (tip)
-            ctx.fillStyle = '#ff6';
+            // 5. 尖尖 (tip) - 亮黄色
+            ctx.fillStyle = '#ff8';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.02);
             ctx.lineTo(cx - bladeW*0.3, y + h*0.12);
@@ -523,17 +523,17 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
         } else if (sprite === 'thunder_sword') {
-            // 雷电剑 - 黄色/青色系
+            // 雷电剑 - 黄色/青色系 - 更鲜艳
             // 1. 把手
-            ctx.fillStyle = '#224';
+            ctx.fillStyle = '#336';
             ctx.fillRect(cx - bladeW*0.35, y + h*0.75, bladeW*0.7, h*0.22);
-            ctx.fillStyle = '#446';
+            ctx.fillStyle = '#558';
             ctx.fillRect(cx - bladeW*0.2, y + h*0.78, bladeW*0.4, h*0.16);
             
             // 2. 刀镡 - 闪电形状
-            ctx.fillStyle = '#cc0';
+            ctx.fillStyle = '#fd0';
             ctx.fillRect(cx - bladeW*1.8, y + h*0.7, bladeW*3.6, h*0.08);
-            ctx.fillStyle = '#ff0';
+            ctx.fillStyle = '#ff6';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW, y + h*0.69);
             ctx.lineTo(cx - bladeW*0.3, y + h*0.75);
@@ -546,7 +546,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
             // 3. 刃 - 闪电纹理
-            ctx.fillStyle = '#aa0';
+            ctx.fillStyle = '#dc0';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW*0.9, y + h*0.7);
             ctx.lineTo(cx - bladeW*0.5, y + h*0.35);
@@ -559,7 +559,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
             // 4. 闪电亮部
-            ctx.fillStyle = '#ff4';
+            ctx.fillStyle = '#ff8';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW*0.25, y + h*0.65);
             ctx.lineTo(cx - bladeW*0.1, y + h*0.4);
@@ -570,7 +570,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
             // 5. 尖尖
-            ctx.fillStyle = '#aff';
+            ctx.fillStyle = '#cff';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.03);
             ctx.lineTo(cx - bladeW*0.25, y + h*0.13);
@@ -579,17 +579,17 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
         } else if (sprite === 'ice_sword') {
-            // 寒冰剑 - 蓝白色系
+            // 寒冰剑 - 蓝白色系 - 更鲜艳
             // 1. 把手 - 冰晶质感
-            ctx.fillStyle = '#246';
+            ctx.fillStyle = '#358';
             ctx.fillRect(cx - bladeW*0.4, y + h*0.75, bladeW*0.8, h*0.22);
             for(let i=0; i<3; i++) {
-                ctx.fillStyle = i%2===0 ? '#468' : '#8cf';
+                ctx.fillStyle = i%2===0 ? '#57a' : '#adf';
                 ctx.fillRect(cx - bladeW*0.3 + i*bladeW*0.2, y + h*0.76 + i*h*0.06, bladeW*0.25, h*0.05);
             }
             
             // 2. 刀镡 - 雪花形状
-            ctx.fillStyle = '#8cf';
+            ctx.fillStyle = '#adf';
             for(let i=0; i<6; i++) {
                 const angle = (i * Math.PI) / 3;
                 const r1 = bladeW * 1.5;
@@ -601,13 +601,13 @@ window.renderEquipmentIcon = function(item, size = 32) {
                 ctx.closePath();
                 ctx.fill();
             }
-            ctx.fillStyle = '#cef';
+            ctx.fillStyle = '#dff';
             ctx.beginPath();
             ctx.arc(cx, y + h*0.73, bladeW*0.4, 0, Math.PI*2);
             ctx.fill();
             
-            // 3. 刃 - 冰晶形状
-            ctx.fillStyle = '#6af';
+            // 3. 刃 - 冰晶形状 - 更亮的蓝色
+            ctx.fillStyle = '#8cf';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW*0.8, y + h*0.7);
             ctx.lineTo(cx - bladeW*0.5, y + h*0.45);
@@ -621,8 +621,8 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             
-            // 4. 冰晶亮部
-            ctx.fillStyle = '#def';
+            // 4. 冰晶亮部 - 更亮
+            ctx.fillStyle = '#eff';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW*0.2, y + h*0.6);
             ctx.lineTo(cx - bladeW*0.1, y + h*0.35);
@@ -642,20 +642,20 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
         } else if (sprite === 'demon_sword') {
-            // 恶魔剑 - 紫色/暗色系
+            // 恶魔剑 - 紫色/暗色系 - 更鲜艳
             // 1. 把手 - 骨质纹理
-            ctx.fillStyle = '#212';
+            ctx.fillStyle = '#323';
             ctx.fillRect(cx - bladeW*0.45, y + h*0.72, bladeW*0.9, h*0.26);
             // 骨节
             for(let i=0; i<4; i++) {
-                ctx.fillStyle = i%2===0 ? '#434' : '#212';
+                ctx.fillStyle = i%2===0 ? '#545' : '#323';
                 ctx.beginPath();
                 ctx.arc(cx, y + h*0.75 + i*h*0.05, bladeW*(0.4 - i*0.05), 0, Math.PI*2);
                 ctx.fill();
             }
             
             // 2. 刀镡 - 恶魔翅膀形状
-            ctx.fillStyle = '#505';
+            ctx.fillStyle = '#707';
             // 左翼
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.72);
@@ -674,7 +674,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.lineTo(cx, y + h*0.78);
             ctx.closePath();
             ctx.fill();
-            // 中心宝石
+            // 中心宝石 - 更亮的紫色
             ctx.fillStyle = '#f0f';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.68);
@@ -684,8 +684,8 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             
-            // 3. 刃 - 弯曲的恶魔刀
-            ctx.fillStyle = '#404';
+            // 3. 刃 - 弯曲的恶魔刀 - 更鲜艳的紫色
+            ctx.fillStyle = '#606';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW*0.7, y + h*0.72);
             ctx.quadraticCurveTo(cx - bladeW*0.5, y + h*0.4, cx - bladeW*0.3, y + h*0.25);
@@ -695,8 +695,8 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             
-            // 4. 血槽
-            ctx.fillStyle = '#808';
+            // 4. 血槽 - 更亮的紫色
+            ctx.fillStyle = '#a0a';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.68);
             ctx.quadraticCurveTo(cx - bladeW*0.15, y + h*0.4, cx, y + h*0.15);
@@ -704,8 +704,8 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             
-            // 5. 尖尖 - 恶魔角
-            ctx.fillStyle = '#f6f';
+            // 5. 尖尖 - 恶魔角 - 更亮的粉色
+            ctx.fillStyle = '#f8f';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.03);
             ctx.lineTo(cx - bladeW*0.25, y + h*0.15);
@@ -717,21 +717,21 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
         } else {
-            // 默认铁剑
+            // 默认铁剑 - 更鲜艳的金属色
             // 1. 把手
-            ctx.fillStyle = '#543';
+            ctx.fillStyle = '#654';
             ctx.fillRect(cx - bladeW*0.35, y + h*0.75, bladeW*0.7, h*0.22);
-            ctx.fillStyle = '#765';
+            ctx.fillStyle = '#876';
             ctx.fillRect(cx - bladeW*0.2, y + h*0.78, bladeW*0.4, h*0.16);
             
             // 2. 刀镡
-            ctx.fillStyle = '#888';
+            ctx.fillStyle = '#999';
             ctx.fillRect(cx - bladeW*1.3, y + h*0.71, bladeW*2.6, h*0.06);
-            ctx.fillStyle = '#aaa';
+            ctx.fillStyle = '#bbb';
             ctx.fillRect(cx - bladeW, y + h*0.72, bladeW*2, h*0.04);
             
             // 3. 刃
-            ctx.fillStyle = '#999';
+            ctx.fillStyle = '#aaa';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW*0.7, y + h*0.71);
             ctx.lineTo(cx - bladeW*0.4, y + h*0.3);
@@ -742,7 +742,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
             // 4. 刃亮部
-            ctx.fillStyle = '#ccc';
+            ctx.fillStyle = '#ddd';
             ctx.beginPath();
             ctx.moveTo(cx - bladeW*0.2, y + h*0.65);
             ctx.lineTo(cx - bladeW*0.1, y + h*0.35);
@@ -753,7 +753,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
             // 5. 尖尖
-            ctx.fillStyle = '#eee';
+            ctx.fillStyle = '#fff';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.06);
             ctx.lineTo(cx - bladeW*0.2, y + h*0.15);
@@ -766,9 +766,9 @@ window.renderEquipmentIcon = function(item, size = 32) {
     else if (item.type === 'armor') {
         const cx = x + w * 0.5;
         if (sprite === 'dragon') {
-            // 龙鳞甲 - 带尖刺和鳞片纹理
+            // 龙鳞甲 - 带尖刺和鳞片纹理 - 更鲜艳
             // 主体护甲
-            ctx.fillStyle = '#833';
+            ctx.fillStyle = '#a33';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.15);
             ctx.lineTo(x + w*0.85, y + h*0.3);
@@ -779,7 +779,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             // 龙鳞纹理
-            ctx.fillStyle = '#a55';
+            ctx.fillStyle = '#c66';
             for(let row=0; row<3; row++) {
                 for(let col=0; col<3-row; col++) {
                     ctx.beginPath();
@@ -788,7 +788,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
                 }
             }
             // 肩部尖刺
-            ctx.fillStyle = '#c77';
+            ctx.fillStyle = '#e88';
             ctx.beginPath();
             ctx.moveTo(x + w*0.15, y + h*0.3);
             ctx.lineTo(x + w*0.05, y + h*0.2);
@@ -806,9 +806,9 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
         } else if (sprite === 'iron') {
-            // 铁甲 - 金属板甲样式
+            // 铁甲 - 金属板甲样式 - 更鲜艳的金属色
             // 胸甲主体
-            ctx.fillStyle = '#666';
+            ctx.fillStyle = '#777';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.15);
             ctx.lineTo(x + w*0.8, y + h*0.25);
@@ -819,7 +819,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             // 金属光泽
-            ctx.fillStyle = '#888';
+            ctx.fillStyle = '#999';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.18);
             ctx.lineTo(x + w*0.7, y + h*0.27);
@@ -830,21 +830,21 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             // 铆钉装饰
-            ctx.fillStyle = '#444';
+            ctx.fillStyle = '#555';
             for(let i=0; i<3; i++) {
                 ctx.beginPath();
                 ctx.arc(cx, y + h*0.35 + i*h*0.15, w*0.04, 0, Math.PI*2);
                 ctx.fill();
             }
             // 肩甲
-            ctx.fillStyle = '#555';
+            ctx.fillStyle = '#666';
             ctx.fillRect(x + w*0.1, y + h*0.22, w*0.15, h*0.25);
             ctx.fillRect(x + w*0.75, y + h*0.22, w*0.15, h*0.25);
             
         } else if (sprite === 'leather') {
-            // 皮甲 - 皮革背心样式
+            // 皮甲 - 皮革背心样式 - 更鲜艳的棕色
             // 主体
-            ctx.fillStyle = '#864';
+            ctx.fillStyle = '#a75';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.18);
             ctx.lineTo(x + w*0.75, y + h*0.28);
@@ -855,7 +855,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             // 缝线
-            ctx.strokeStyle = '#642';
+            ctx.strokeStyle = '#753';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(x + w*0.3, y + h*0.3);
@@ -866,12 +866,12 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.lineTo(x + w*0.68, y + h*0.75);
             ctx.stroke();
             // 皮带扣
-            ctx.fillStyle = '#432';
+            ctx.fillStyle = '#543';
             ctx.fillRect(cx - w*0.08, y + h*0.4, w*0.16, h*0.08);
-            ctx.fillStyle = '#ca8';
+            ctx.fillStyle = '#dba';
             ctx.fillRect(cx - w*0.04, y + h*0.42, w*0.08, h*0.04);
             // 肩部护垫
-            ctx.fillStyle = '#753';
+            ctx.fillStyle = '#864';
             ctx.beginPath();
             ctx.arc(x + w*0.2, y + h*0.35, w*0.1, 0, Math.PI*2);
             ctx.fill();
@@ -880,9 +880,9 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.fill();
             
         } else {
-            // 布衣 - 简单长袍
+            // 布衣 - 简单长袍 - 更鲜艳
             // 袍子主体
-            ctx.fillStyle = '#b96';
+            ctx.fillStyle = '#ca7';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.15);
             ctx.lineTo(x + w*0.7, y + h*0.25);
@@ -893,7 +893,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             // 衣领
-            ctx.fillStyle = '#dcb';
+            ctx.fillStyle = '#edc';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.15);
             ctx.lineTo(x + w*0.6, y + h*0.22);
@@ -902,9 +902,9 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             // 腰带
-            ctx.fillStyle = '#864';
+            ctx.fillStyle = '#975';
             ctx.fillRect(x + w*0.28, y + h*0.55, w*0.44, h*0.06);
-            ctx.fillStyle = '#a86';
+            ctx.fillStyle = '#ba8';
             ctx.fillRect(cx - w*0.05, y + h*0.56, w*0.1, h*0.04);
         }
     }
@@ -912,22 +912,22 @@ window.renderEquipmentIcon = function(item, size = 32) {
     else if (item.type === 'helmet') {
         const cx = x + w * 0.5;
         if (sprite === 'iron_helm') {
-            // 铁头盔 - 全覆式骑士头盔
+            // 铁头盔 - 全覆式骑士头盔 - 更鲜艳的金属色
             // 头盔主体
-            ctx.fillStyle = '#666';
+            ctx.fillStyle = '#777';
             ctx.beginPath();
             ctx.arc(cx, y + h*0.45, w*0.35, Math.PI, 0);
             ctx.closePath();
             ctx.fill();
             // 面甲
-            ctx.fillStyle = '#777';
+            ctx.fillStyle = '#888';
             ctx.fillRect(x + w*0.25, y + h*0.45, w*0.5, h*0.25);
             // 观察缝
-            ctx.fillStyle = '#222';
+            ctx.fillStyle = '#333';
             ctx.fillRect(x + w*0.3, y + h*0.5, w*0.15, h*0.05);
             ctx.fillRect(x + w*0.55, y + h*0.5, w*0.15, h*0.05);
             // 顶部装饰
-            ctx.fillStyle = '#888';
+            ctx.fillStyle = '#999';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.08);
             ctx.lineTo(cx - w*0.08, y + h*0.18);
@@ -935,48 +935,48 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             // 护颈
-            ctx.fillStyle = '#555';
+            ctx.fillStyle = '#666';
             ctx.fillRect(x + w*0.2, y + h*0.7, w*0.6, h*0.12);
             
         } else if (sprite === 'leather_helm') {
-            // 皮帽 - 带护耳的冒险者帽子
+            // 皮帽 - 带护耳的冒险者帽子 - 更鲜艳
             // 主体
-            ctx.fillStyle = '#864';
+            ctx.fillStyle = '#975';
             ctx.beginPath();
             ctx.arc(cx, y + h*0.4, w*0.3, Math.PI, 0);
             ctx.closePath();
             ctx.fill();
             // 帽檐
-            ctx.fillStyle = '#753';
+            ctx.fillStyle = '#864';
             ctx.fillRect(x + w*0.15, y + h*0.38, w*0.7, h*0.08);
             // 护耳
-            ctx.fillStyle = '#642';
+            ctx.fillStyle = '#753';
             ctx.beginPath();
             ctx.arc(x + w*0.2, y + h*0.55, w*0.12, 0, Math.PI*2);
             ctx.fill();
             ctx.beginPath();
             ctx.arc(x + w*0.8, y + h*0.55, w*0.12, 0, Math.PI*2);
             ctx.fill();
-            // 装饰羽毛
-            ctx.fillStyle = '#a53';
+            // 装饰羽毛 - 更鲜艳的红色
+            ctx.fillStyle = '#c64';
             ctx.beginPath();
             ctx.ellipse(cx + w*0.15, y + h*0.25, w*0.04, h*0.12, -0.3, 0, Math.PI*2);
             ctx.fill();
-            ctx.fillStyle = '#c75';
+            ctx.fillStyle = '#e86';
             ctx.beginPath();
             ctx.ellipse(cx + w*0.18, y + h*0.22, w*0.03, h*0.1, -0.3, 0, Math.PI*2);
             ctx.fill();
             
         } else {
-            // 布帽 - 简单的头巾
+            // 布帽 - 简单的头巾 - 更鲜艳
             // 主体
-            ctx.fillStyle = '#b96';
+            ctx.fillStyle = '#ca7';
             ctx.beginPath();
             ctx.arc(cx, y + h*0.4, w*0.28, Math.PI, 0);
             ctx.closePath();
             ctx.fill();
             // 头巾下垂部分
-            ctx.fillStyle = '#a85';
+            ctx.fillStyle = '#b96';
             ctx.beginPath();
             ctx.moveTo(x + w*0.25, y + h*0.45);
             ctx.lineTo(x + w*0.15, y + h*0.75);
@@ -990,7 +990,7 @@ window.renderEquipmentIcon = function(item, size = 32) {
             ctx.closePath();
             ctx.fill();
             // 装饰图案
-            ctx.fillStyle = '#dcb';
+            ctx.fillStyle = '#edc';
             ctx.beginPath();
             ctx.arc(cx, y + h*0.32, w*0.06, 0, Math.PI*2);
             ctx.fill();
