@@ -336,7 +336,12 @@ function bossUseSkill(skill) {
             size: skill.size || 10,
             life: 120,
             isBoss: true,
-            skillName: skill.name
+            skillName: skill.name,
+            isFire: skill.isFire,
+            isLightning: skill.isLightning,
+            isVine: skill.isVine,
+            isTornado: skill.isTornado,
+            isIce: skill.isIce
         });
         showMessage(`BOSS uses ${skill.name}!`);
     }
@@ -576,7 +581,7 @@ function update() {
         if (e.frozen > 0) e.frozen--;
         if (e.aggro > 0) e.aggro--;
         
-        let speed = 0.4;
+        const speed = 0.2;
         if (e.slowed > 0) speed *= 0.5;
         if (e.frozen > 0) speed = 0;
         
@@ -668,13 +673,18 @@ function update() {
         if (!window.boss.wanderTimer) window.boss.wanderTimer = 0;
         if (!window.boss.wanderDir) window.boss.wanderDir = Math.random() * Math.PI * 2;
         
-        const dx = player.x - window.boss.x;
-        const dy = player.y - window.boss.y;
+        // 使用中心点计算距离
+        const playerCenterX = player.x + player.w / 2;
+        const playerCenterY = player.y + player.h / 2;
+        const bossCenterX = window.boss.x + window.boss.w / 2;
+        const bossCenterY = window.boss.y + window.boss.h / 2;
+        const dx = playerCenterX - bossCenterX;
+        const dy = playerCenterY - bossCenterY;
         const dist = Math.sqrt(dx*dx + dy*dy);
         
         // Boss chases player when in range but maintains distance
         if (dist < 250 && dist > 40) {
-            const chaseSpeed = window.boss.aggro > 0 ? 0.6 : 0.4;
+            const chaseSpeed = 0.3;
             window.boss.x += (dx / dist) * chaseSpeed;
             window.boss.y += (dy / dist) * chaseSpeed;
         } else if (dist >= 250) {
@@ -684,33 +694,42 @@ function update() {
                 window.boss.wanderDir = Math.random() * Math.PI * 2;
                 window.boss.wanderTimer = 60 + Math.random() * 60;
             }
-            const wanderSpeed = 0.2;
+            const wanderSpeed = 0.1;
             window.boss.x += Math.cos(window.boss.wanderDir) * wanderSpeed;
             window.boss.y += Math.sin(window.boss.wanderDir) * wanderSpeed;
         }
         
-        window.boss.x = Math.max(window.TILE, Math.min((window.MAP_W - 1) * window.TILE - window.boss.w, window.boss.x));
-        window.boss.y = Math.max(window.TILE, Math.min((window.MAP_H - 1) * window.TILE - window.boss.h, window.boss.y));
+        // 边界限制 - 平滑限制
+        window.boss.x = Math.max(window.TILE, Math.min((window.MAP_W - 2) * window.TILE, window.boss.x));
+        window.boss.y = Math.max(window.TILE, Math.min((window.MAP_H - 2) * window.TILE, window.boss.y));
         
+        // Boss碰到墙壁则反弹
         const bossTileX = Math.floor((window.boss.x + window.boss.w/2) / window.TILE);
         const bossTileY = Math.floor((window.boss.y + window.boss.h/2) / window.TILE);
         if (map[bossTileY] && map[bossTileY][bossTileX] === 1) {
-            window.boss.x = 7 * window.TILE;
-            window.boss.y = 3 * window.TILE;
+            window.boss.x = Math.max(window.TILE, Math.min((window.MAP_W - 2) * window.TILE, window.boss.x - 10));
+            window.boss.y = Math.max(window.TILE, Math.min((window.MAP_H - 2) * window.TILE, window.boss.y - 10));
+            window.boss.wanderDir = Math.random() * Math.PI * 2;
         }
         
-        // Boss技能攻击 - 在技能范围内即可释放
+        // Boss技能攻击 - 在技能范围内即可释放，随机选择技能
         if (window.boss.skills && window.boss.skills.length > 0 && window.boss.attackCooldown <= 0) {
-            const readySkill = window.boss.skills.find(s => {
+            // 找出所有冷却好的技能
+            const readySkills = window.boss.skills.filter(s => {
                 const cd = window.boss.skillCooldowns[s.id] || 0;
                 return cd <= 0;
             });
             
-            if (readySkill && dist < readySkill.range) {
-                bossUseSkill(readySkill);
-                window.boss.skillCooldowns[readySkill.id] = readySkill.cd;
-                window.boss.attackCooldown = 45;
-                return;
+            // 随机选择一个技能
+            if (readySkills.length > 0) {
+                const readySkill = readySkills[Math.floor(Math.random() * readySkills.length)];
+                
+                if (dist < readySkill.range) {
+                    bossUseSkill(readySkill);
+                    window.boss.skillCooldowns[readySkill.id] = readySkill.cd;
+                    window.boss.attackCooldown = 45;
+                    return;
+                }
             }
         }
         

@@ -719,7 +719,7 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
     const time = Date.now();
     const breathe = Math.sin(time / 400 + 100) * 2;
     drawPixelSpriteFn(ctx, boss.x, boss.y + breathe, boss.w, boss.h, boss.color || '#a22', boss.render || 'boss', window.player);
-    const hpPercent = Math.max(0, boss.hp / boss.maxHp);
+    const hpPercent = Math.min(1, Math.max(0, boss.hp / boss.maxHp));
     ctx.fillStyle = '#300';
     ctx.fillRect(boss.x, boss.y - 16, boss.w, 8);
     ctx.fillStyle = '#f00';
