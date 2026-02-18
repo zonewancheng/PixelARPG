@@ -1938,10 +1938,10 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     
     drawPixelSpriteFn(ctx, player.x, player.y + breathe, player.w, player.h, '#ff6', 'player', player);
     
-    // 玩家标识 - 朝下的发光三角形
-    const markerY = player.y - 10 + breathe;
+    // 玩家标识 - 朝下的发光三角形，与头顶有更多距离
+    const markerY = player.y - 18 + breathe;
     const centerX = player.x + player.w / 2;
-    
+
     // 发光效果 - 更鲜艳
     ctx.shadowColor = '#0ff';
     ctx.shadowBlur = 12;
@@ -1952,7 +1952,7 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     ctx.lineTo(centerX + 6, markerY - 2);
     ctx.closePath();
     ctx.fill();
-    
+
     // 内部高光
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#aff';

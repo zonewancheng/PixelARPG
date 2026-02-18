@@ -198,7 +198,9 @@ window.createCloud = function(canvasWidth, canvasHeight) {
  */
 window.initClouds = function(canvasWidth, canvasHeight) {
     window.clouds = [];
-    const cloudCount = 5;
+    // 根据地图大小动态计算云朵数量
+    const mapArea = canvasWidth * canvasHeight;
+    const cloudCount = Math.min(Math.floor(mapArea / 50000) + 3, 12); // 每50000像素1个云，最少3个，最多12个
     for (let i = 0; i < cloudCount; i++) {
         window.clouds.push(window.createCloud(canvasWidth, canvasHeight));
     }

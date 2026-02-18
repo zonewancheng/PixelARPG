@@ -68,23 +68,37 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     // ========== 计算武器位置（用于层级判断）==========
     let weaponBehind = false;
     let weaponX, weaponY, weaponCanvas, weaponSize = 22;
-    
+    let weaponAngle = 0;
+
     if (player.weapon && window.renderEquipmentIcon) {
-        const weaponTime = Date.now() / 1500;
         const orbitRadius = w * 0.45;
-        const angle = weaponTime + (dir > 0 ? 0 : Math.PI);
         
-        weaponX = cx + Math.cos(angle) * orbitRadius;
-        weaponY = y + h * 0.5 + Math.sin(angle) * orbitRadius * 0.4;
+        // 计算武器旋转角度：旋转一周（2秒）后停顿5秒
+        const cycleDuration = 7000; // 2秒旋转 + 5秒停顿 = 7秒一个周期
+        const currentTime = Date.now() % cycleDuration;
+        const rotationDuration = 2000; // 2秒旋转时间
+        
+        let angle;
+        if (currentTime < rotationDuration) {
+            // 旋转阶段
+            angle = (currentTime / rotationDuration) * Math.PI * 2;
+        } else {
+            // 停顿阶段，保持在最后的角度
+            angle = Math.PI * 2;
+        }
+        
+        weaponAngle = angle + (dir > 0 ? 0 : Math.PI);
+        weaponX = cx + Math.cos(weaponAngle) * orbitRadius;
+        weaponY = y + h * 0.5 + Math.sin(weaponAngle) * orbitRadius * 0.4;
         weaponCanvas = window.renderEquipmentIcon(player.weapon, weaponSize);
-        
+
         // 判断武器是否在身体后面（y坐标大于身体中心）
         weaponBehind = weaponY > y + h * 0.55;
     }
-    
+
     // ========== 绘制背后的武器 ==========
     if (weaponBehind && weaponCanvas) {
-        drawWeapon(ctx, weaponX, weaponY, weaponCanvas, weaponSize, player.weapon.color);
+        drawWeapon(ctx, weaponX, weaponY, weaponCanvas, weaponSize, player.weapon.color, player.attacking > 0, player.attacking ? (20 - player.attacking) / 20 : 0);
     }
     
     // ========== 头部（动漫风格）==========
@@ -377,22 +391,8 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     
     // ========== 绘制前面的武器（在所有身体元素之后，确保显示在最上层）==========
     if (!weaponBehind && weaponCanvas) {
-        drawWeapon(ctx, weaponX, weaponY, weaponCanvas, weaponSize, player.weapon.color);
-        
-        // 绘制武器到手的连线
-        if (player.weapon && window.renderEquipmentIcon) {
-            const weaponTime = Date.now() / 1500;
-            ctx.strokeStyle = player.weapon.color || '#fff';
-            ctx.lineWidth = 2;
-            ctx.globalAlpha = 0.3 + Math.sin(weaponTime * 5) * 0.2;
-            ctx.beginPath();
-            const handX = dir > 0 ? x + w*0.88 : x + w*0.12;
-            const handY = y + h*0.6;
-            ctx.moveTo(handX, handY);
-            ctx.lineTo(weaponX, weaponY);
-            ctx.stroke();
-            ctx.globalAlpha = 1;
-        }
+        drawWeapon(ctx, weaponX, weaponY, weaponCanvas, weaponSize, player.weapon.color, player.attacking > 0, player.attacking ? (20 - player.attacking) / 20 : 0);
+        // 移除武器到手的连线
     }
     
     // 元素光芒效果（风元素）
@@ -402,31 +402,37 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     ctx.fill();
     
     // 辅助函数：绘制武器
-    function drawWeapon(ctx, wx, wy, wCanvas, wSize, wColor) {
+    function drawWeapon(ctx, wx, wy, wCanvas, wSize, wColor, isAttacking = false, attackProgress = 0) {
         // 武器阴影
         const shadowDir = window.getShadowDirection ? window.getShadowDirection() : {x: 4, y: 6};
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.beginPath();
         ctx.ellipse(wx + shadowDir.x, wy + wSize/3 + shadowDir.y, wSize/3, wSize/6, 0, 0, Math.PI*2);
         ctx.fill();
-        
+
         ctx.save();
         ctx.translate(wx, wy);
-        ctx.rotate(Math.PI); // 垂直朝下
-        
-        // 武器发光效果
-        ctx.shadowColor = wColor || '#fff';
-        ctx.shadowBlur = 12;
-        ctx.globalAlpha = 0.9;
-        
+
+        // 如果正在攻击，添加挥舞效果
+        if (isAttacking && attackProgress > 0) {
+            const swingAngle = Math.sin(attackProgress * Math.PI) * Math.PI * 0.5;
+            ctx.rotate(Math.PI + swingAngle);
+        } else {
+            ctx.rotate(Math.PI); // 垂直朝下
+        }
+
+        // 移除发光效果，改为描边
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1.0;
+
+        // 绘制武器描边
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-wSize/2 - 1, -wSize/2 - 1, wSize + 2, wSize + 2);
+
         // 绘制武器
         ctx.drawImage(wCanvas, -wSize/2, -wSize/2);
-        
-        // 额外发光层
-        ctx.globalAlpha = 0.3;
-        ctx.scale(1.3, 1.3);
-        ctx.drawImage(wCanvas, -wSize/2, -wSize/2);
-        
+
         ctx.restore();
     }
 };

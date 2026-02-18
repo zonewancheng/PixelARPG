@@ -1548,28 +1548,11 @@ function useSkill(index) {
         showMessage('Skill on cooldown!');
         return;
     }
-    
-    // 摇杆模式下总是自动锁定最近敌人
-    let dirX = player.dirX;
-    let dirY = player.dirY;
-    
-    if (window.controlMode === 'joystick') {
-        const target = getAutoTarget();
-        if (target) {
-            const targetX = target.x + (target.w || 0) / 2;
-            const targetY = target.y + (target.h || 0) / 2;
-            const baseX = player.x + player.w / 2;
-            const baseY = player.y + player.h / 2;
-            const dx = targetX - baseX;
-            const dy = targetY - baseY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist > 0) {
-                dirX = dx / dist;
-                dirY = dy / dist;
-            }
-        }
-    }
-    
+
+    // 技能释放方向使用玩家当前朝向
+    let dirX = player.dirX || 1;
+    let dirY = player.dirY || 0;
+
     player.mp -= skill.mp;
     window.skillCooldowns[skill.id] = skill.cd;
     window.discoverSkill?.(skill.id);
