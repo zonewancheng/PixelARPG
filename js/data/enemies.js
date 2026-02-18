@@ -660,7 +660,6 @@ window.renderEnemyIcon = function(enemyType, size = 32) {
             ctx.closePath();
             ctx.fill();
         }
-        return canvas.toDataURL();
     }
     
     // 普通怪物渲染 - 精美像素设计
