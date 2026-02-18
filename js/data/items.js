@@ -294,61 +294,76 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     // 判断是否在移动
     const isMoving = (dir !== 0) || (keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'] || keys['w'] || keys['s'] || keys['a'] || keys['d']);
     
-    // 腿部摆动动画
-    let leftLegOffset = 0;
-    let rightLegOffset = 0;
+    // 腿部摆动动画 - 更明显的旋转摆动
+    let leftLegAngle = 0;
+    let rightLegAngle = 0;
     if (isMoving) {
-        const legSwing = Math.sin(time * 8) * 3;
-        leftLegOffset = legSwing;
-        rightLegOffset = -legSwing;
+        const legSwing = Math.sin(time * 12) * 0.2; // 旋转角度 ±0.2弧度
+        leftLegAngle = legSwing;
+        rightLegAngle = -legSwing;
     }
     
-    // 裤子 - 左腿
+    // 裤子 - 左腿（带旋转动画）
     ctx.fillStyle = '#345';
-    ctx.beginPath();
-    ctx.moveTo(x + w*0.25, y + h*0.72);
-    ctx.lineTo(x + w*0.43, y + h*0.72);
-    ctx.lineTo(x + w*0.43 + leftLegOffset, y + h*0.92);
-    ctx.lineTo(x + w*0.25 + leftLegOffset, y + h*0.92);
-    ctx.closePath();
-    ctx.fill();
+    ctx.save();
+    ctx.translate(x + w*0.34, y + h*0.82);
+    ctx.rotate(leftLegAngle);
+    ctx.fillRect(-w*0.09, -h*0.1, w*0.18, h*0.2);
+    ctx.restore();
     
-    // 裤子 - 右腿
-    ctx.beginPath();
-    ctx.moveTo(x + w*0.57, y + h*0.72);
-    ctx.lineTo(x + w*0.75, y + h*0.72);
-    ctx.lineTo(x + w*0.75 + rightLegOffset, y + h*0.92);
-    ctx.lineTo(x + w*0.57 + rightLegOffset, y + h*0.92);
-    ctx.closePath();
-    ctx.fill();
+    // 裤子 - 右腿（带旋转动画）
+    ctx.save();
+    ctx.translate(x + w*0.66, y + h*0.82);
+    ctx.rotate(rightLegAngle);
+    ctx.fillRect(-w*0.09, -h*0.1, w*0.18, h*0.2);
+    ctx.restore();
     
     // 腿部高光
     ctx.fillStyle = '#456';
-    ctx.fillRect(x + w*0.28 + leftLegOffset * 0.5, y + h*0.75, w*0.05, h*0.15);
-    ctx.fillRect(x + w*0.67 + rightLegOffset * 0.5, y + h*0.75, w*0.05, h*0.15);
+    ctx.save();
+    ctx.translate(x + w*0.34, y + h*0.82);
+    ctx.rotate(leftLegAngle);
+    ctx.fillRect(-w*0.06, -h*0.08, w*0.04, h*0.16);
+    ctx.restore();
     
-    // 如果有靴子，在腿部显示靴子效果
+    ctx.save();
+    ctx.translate(x + w*0.66, y + h*0.82);
+    ctx.rotate(rightLegAngle);
+    ctx.fillRect(-w*0.06, -h*0.08, w*0.04, h*0.16);
+    ctx.restore();
+    
+    // 如果有靴子，在腿部显示靴子效果（带腿部旋转动画）
     if (player.boots && window.renderEquipmentIcon) {
         const bootCanvas = window.renderEquipmentIcon(player.boots, 16);
+        // 左靴子 - 跟随左腿旋转
         ctx.save();
-        // 靴子动画 - 轻微上下浮动
-        const bootBob = Math.sin(time * 3) * 1;
-        ctx.save();
-        ctx.translate(x + w*0.34, y + h*0.88 + bootBob);
+        ctx.translate(x + w*0.34, y + h*0.88);
+        ctx.rotate(leftLegAngle);
         ctx.scale(0.5, 0.5);
         ctx.drawImage(bootCanvas, -8, -8);
         ctx.restore();
         
+        // 右靴子 - 跟随右腿旋转
         ctx.save();
-        ctx.translate(x + w*0.66, y + h*0.88 - bootBob);
+        ctx.translate(x + w*0.66, y + h*0.88);
+        ctx.rotate(rightLegAngle);
         ctx.scale(0.5, 0.5);
         ctx.drawImage(bootCanvas, -8, -8);
         ctx.restore();
     } else {
-        // 默认靴子
+        // 默认靴子 - 跟随腿部旋转
         ctx.fillStyle = '#432';
-        ctx.fillRect(x + w*0.22, y + h*0.88, w*0.22, h*0.1);
-        ctx.fillRect(x + w*0.56, y + h*0.88, w*0.22, h*0.1);
+        ctx.save();
+        ctx.translate(x + w*0.34, y + h*0.88);
+        ctx.rotate(leftLegAngle);
+        ctx.fillRect(-w*0.11, -h*0.05, w*0.22, h*0.1);
+        ctx.restore();
+        
+        ctx.save();
+        ctx.translate(x + w*0.66, y + h*0.88);
+        ctx.rotate(rightLegAngle);
+        ctx.fillRect(-w*0.11, -h*0.05, w*0.22, h*0.1);
+        ctx.restore();
     }
     
     // ========== 头盔（叠加）==========
