@@ -594,7 +594,7 @@ function update() {
         
         if ((dist < chaseRange && dist > 0) && (e.aggro > 0 || dist < detectRange)) {
             if (e.frozen <= 0) {
-                const chaseSpeed = e.aggro > 0 ? speed * 1.2 : speed * 0.8;
+                const chaseSpeed = speed;
                 e.x += (dx / dist) * chaseSpeed;
                 e.y += (dy / dist) * chaseSpeed;
             }
