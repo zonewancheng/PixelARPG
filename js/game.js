@@ -15,6 +15,9 @@ let messageTimer = 0;
 let damageFlash = 0;
 let keys = {};
 
+// 视口/摄像机系统
+let camera = { x: 0, y: 0 };
+
 const DB_NAME = 'PixelHeroDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'save';
@@ -1111,8 +1114,33 @@ function update() {
     updateUI();
 }
 
+// 更新摄像机位置
+function updateCamera() {
+    const player = window.player;
+    if (!player) return;
+    
+    const mapWidth = window.MAP_W * window.TILE;
+    const mapHeight = window.MAP_H * window.TILE;
+    
+    // 目标摄像机位置（玩家中心）
+    let targetX = player.x + player.w / 2 - gameWidth / 2;
+    let targetY = player.y + player.h / 2 - gameHeight / 2;
+    
+    // 限制在地图范围内
+    targetX = Math.max(0, Math.min(targetX, mapWidth - gameWidth));
+    targetY = Math.max(0, Math.min(targetY, mapHeight - gameHeight));
+    
+    // 平滑移动摄像机
+    const smoothing = 0.15;
+    camera.x += (targetX - camera.x) * smoothing;
+    camera.y += (targetY - camera.y) * smoothing;
+}
+
 function render() {
     const player = window.player;
+    
+    // 更新摄像机位置，使玩家居中
+    updateCamera();
     
     if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen) {
         update();
@@ -1124,6 +1152,9 @@ function render() {
         damageFlash--;
     }
     
+    ctx.save();
+    ctx.translate(-camera.x, -camera.y);
+    
     drawMap(ctx, map, window.TILE, window.MAP_W, window.MAP_H);
     drawDrops(ctx, drops);
     drawProjectiles(ctx, projectiles);
@@ -1133,8 +1164,11 @@ function render() {
     drawPlayer(ctx, player, drawPixelSprite, player.invulnerable);
     drawPlayerAttack(ctx, player);
     drawParticles(ctx, particles);
-    drawClouds(ctx, gameWidth, gameHeight, player);
     drawDamageNumbers(ctx, damageNumbers);
+    
+    ctx.restore();
+    
+    drawClouds(ctx, gameWidth, gameHeight, player);
     
     if (message) {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
