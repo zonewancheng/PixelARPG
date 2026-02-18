@@ -1648,9 +1648,9 @@ function useSkill(index) {
     } else if (skill.type === 'projectile') {
         let vx = 0, vy = 0;
         const speed = skill.speed || 6;
-        if (dirX !== 0) vx = dirX * speed;
-        else if (dirY !== 0) vy = dirY * speed;
-        else vx = speed;
+        // 使用玩家朝向同时设置vx和vy
+        vx = dirX * speed;
+        vy = dirY * speed;
         projectiles.push({
             x: baseX, y: baseY,
             vx: vx, vy: vy,
