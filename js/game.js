@@ -1427,25 +1427,49 @@ function getAutoTarget() {
     return nearestEnemy;
 }
 
-// 技能栏扇形布局
+// 技能栏扇形布局 - 摇杆模式
+// 最里面: 普通攻击
+// 第二层: 2、3、4技能
+// 5技能: 最左侧
+// 6技能: 4技能上方
 function updateSkillFanLayout() {
     const container = document.getElementById('skills-container');
     const skills = window.playerSkills || [];
-    if (!container || skills.length === 0) return;
+    if (!container) return;
     
-    const radius = 80;
-    const startAngle = -Math.PI * 0.7;
-    const endAngle = Math.PI * 0.3;
-    const angleStep = (endAngle - startAngle) / (skills.length - 1 || 1);
+    // 清除之前的布局
+    container.querySelectorAll('.skill-slot').forEach(slot => {
+        slot.style.position = '';
+        slot.style.left = '';
+        slot.style.bottom = '';
+        slot.style.transform = '';
+    });
     
-    skills.forEach((skill, i) => {
-        const slot = container.querySelector(`[data-skill-index="${i}"]`);
+    // 布局配置: [index, radius, angle(度), isCenter]
+    const layout = [
+        [0, 0, 0, true],      // 普通攻击 - 中心
+        [1, 55, -45],          // 技能2 - 右下45度
+        [2, 55, 0],            // 技能3 - 右
+        [3, 55, 45],           // 技能4 - 右下-45度
+        [4, 55, -135],         // 技能5 - 左侧
+        [5, 80, 90],           // 技能6 - 右上方
+    ];
+    
+    layout.forEach(([idx, radius, angleDeg, isCenter]) => {
+        const slot = container.querySelector(`[data-skill-index="${idx}"]`);
         if (slot) {
-            const angle = startAngle + angleStep * i;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-            slot.style.left = `calc(50% + ${x}px)`;
-            slot.style.bottom = `calc(50% + ${y}px)`;
+            if (isCenter) {
+                slot.style.position = 'absolute';
+                slot.style.left = 'calc(50% - 18px)';
+                slot.style.bottom = 'calc(50% - 18px)';
+            } else {
+                const angle = angleDeg * Math.PI / 180;
+                const x = Math.cos(angle) * radius;
+                const y = -Math.sin(angle) * radius;
+                slot.style.position = 'absolute';
+                slot.style.left = `calc(50% + ${x - 18}px)`;
+                slot.style.bottom = `calc(50% + ${y - 18}px)`;
+            }
         }
     });
 }
@@ -1604,6 +1628,20 @@ function setupUI() {
         skillsContainer.appendChild(slot);
     });
     
+    // 摇杆模式攻击按钮
+    const joystickAttack = document.getElementById('joystick-attack');
+    if (joystickAttack) {
+        joystickAttack.addEventListener('click', (e) => {
+            e.stopPropagation();
+            attack();
+        });
+        joystickAttack.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            attack();
+        });
+    }
+    
     if (window.renderPlayerIcon) {
         const avatarBtn = document.getElementById('characterBtn');
         if (avatarBtn) {
@@ -1693,6 +1731,12 @@ function setupUI() {
         }
         if (joystickArea) {
             joystickArea.classList.toggle('show', window.controlMode === 'joystick');
+        }
+        
+        // 摇杆模式显示攻击按钮
+        const joystickAttack = document.getElementById('joystick-attack');
+        if (joystickAttack) {
+            joystickAttack.style.display = window.controlMode === 'joystick' ? 'block' : 'none';
         }
         
         // 更新技能栏布局
