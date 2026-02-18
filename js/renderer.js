@@ -395,13 +395,10 @@ function drawFlowerPetal(ctx, x, y, size, color, centerColor, sway) {
     ctx.fill();
 }
 
-function drawWallWithBricks(ctx, x, y, size, shadowDir) {
+function drawWallWithBricks(ctx, x, y, size) {
     const baseColor = '#5a5a7a';
     const highlightColor = '#6a6a8a';
     const shadowColor = '#3a3a5a';
-    
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.fillRect(x + shadowDir.x, y + shadowDir.y, size, size);
     
     drawBrickPattern(ctx, x, y, size, baseColor, highlightColor);
     
@@ -427,7 +424,7 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
             const baseY = y * TILE;
             
             if (tile === 1) {
-                drawWallWithBricks(ctx, baseX, baseY, TILE, shadowDir);
+                drawWallWithBricks(ctx, baseX, baseY, TILE);
             } else if (tile === 4) {
                 // 重新设计的小山 - 更自然的地形效果
                 ctx.fillStyle = GROUND_COLOR;
