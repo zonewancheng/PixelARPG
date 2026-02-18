@@ -278,7 +278,12 @@ function getEnemyAttackType(enemyType) {
 
 function spawnEnemies() {
     enemies = [];
-    const count = Math.min(3 + Math.floor(mapLevel * 0.5), 8);
+    // 根据地图大小和等级动态计算怪物数量
+    const mapSize = window.MAP_W * window.MAP_H;
+    const baseCount = Math.floor(mapSize / 80); // 每80格1个怪物
+    const levelBonus = Math.floor(mapLevel * 0.5);
+    const count = Math.min(baseCount + levelBonus, 15);
+    
     const moveModes = ['patrol_h', 'patrol_v', 'circle', 'idle', 'wander'];
     for (let i = 0; i < count; i++) {
         let ex, ey;
@@ -323,50 +328,77 @@ function spawnEnemies() {
 }
 
 function spawnBoss() {
-    // 随机选择一个Boss
-    const idx = Math.floor(Math.random() * window.bossTypes.length);
-    const bossType = window.bossTypes[idx];
+    window.bosses = [];
     
-    // 使用Boss自带的技能（从玩家技能中获取）
-    const bossSkills = [];
-    if (bossType.skills) {
-        bossType.skills.forEach(skillId => {
-            const skill = window.getSkillById(skillId);
-            if (skill) bossSkills.push(skill);
+    // 根据地图大小决定生成几个boss
+    const mapSize = window.MAP_W * window.MAP_H;
+    const bossCount = Math.min(Math.floor(mapSize / 300) + 1, 3); // 最多3个boss
+    
+    for (let i = 0; i < bossCount; i++) {
+        // 随机选择一个Boss
+        const idx = Math.floor(Math.random() * window.bossTypes.length);
+        const bossType = window.bossTypes[idx];
+        
+        // 使用Boss自带的技能（从玩家技能中获取）
+        const bossSkills = [];
+        if (bossType.skills) {
+            bossType.skills.forEach(skillId => {
+                const skill = window.getSkillById(skillId);
+                if (skill) bossSkills.push(skill);
+            });
+        }
+        
+        // 计算boss位置，多个boss时分散放置
+        let bx, by;
+        if (bossCount === 1) {
+            bx = 7 * window.TILE;
+            by = 3 * window.TILE;
+        } else {
+            // 分散放置
+            const angle = (i / bossCount) * Math.PI * 2;
+            const radius = Math.min(window.MAP_W, window.MAP_H) * window.TILE * 0.3;
+            bx = (window.MAP_W / 2) * window.TILE + Math.cos(angle) * radius - bossType.size / 2;
+            by = (window.MAP_H / 2) * window.TILE + Math.sin(angle) * radius - bossType.size / 2;
+        }
+        
+        const boss = {
+            x: bx,
+            y: by,
+            w: bossType.size, h: bossType.size,
+            hp: bossType.hp + mapLevel * 40,
+            maxHp: bossType.hp + mapLevel * 40,
+            atk: bossType.atk + mapLevel * 6,
+            def: bossType.def + mapLevel * 4,
+            type: 'boss',
+            render: bossType.render,
+            vx: 0, vy: 0,
+            attackCooldown: 0,
+            aggro: 60,
+            exp: bossType.exp + mapLevel * 20,
+            gold: bossType.gold + mapLevel * 40,
+            name: bossType.name,
+            color: bossType.color,
+            skills: bossSkills,
+            skillCooldowns: {}
+        };
+        
+        bossSkills.forEach(s => {
+            boss.skillCooldowns[s.id] = 0;
         });
+        
+        window.bosses.push(boss);
+        
+        const skillNames = bossSkills.map(s => s.name).join(', ');
+        if (i === 0) {
+            showMessage(`BOSS: ${bossType.name}! [${skillNames}]`, 180);
+            if (bossCount > 1) {
+                setTimeout(() => showMessage(`警告：${bossCount}个Boss出现！`, 180), 2000);
+            }
+        }
     }
     
-    window.boss = {
-        x: 7 * window.TILE,
-        y: 3 * window.TILE,
-        w: bossType.size, h: bossType.size,
-        hp: bossType.hp + mapLevel * 40,
-        maxHp: bossType.hp + mapLevel * 40,
-        atk: bossType.atk + mapLevel * 6,
-        def: bossType.def + mapLevel * 4,
-        type: 'boss',
-        render: bossType.render,
-        vx: 0, vy: 0,
-        attackCooldown: 0,
-        aggro: 60,
-        exp: bossType.exp + mapLevel * 20,
-        gold: bossType.gold + mapLevel * 40,
-        name: bossType.name,
-        color: bossType.color,
-        skills: bossSkills,
-        skillCooldowns: {}
-    };
-    
-    bossSkills.forEach(s => {
-        window.boss.skillCooldowns[s.id] = 0;
-    });
-    
-    const skillNames = bossSkills.map(s => s.name).join(', ');
-    const skillDescs = bossSkills.map(s => s.desc || '').join(' | ');
-    showMessage(`BOSS: ${bossType.name}! [${skillNames}]`, 180);
-    if (skillDescs) {
-        setTimeout(() => showMessage(skillDescs, 120), 2000);
-    }
+    // 兼容旧代码，保留window.boss指向第一个boss
+    window.boss = window.bosses[0] || null;
     playSound('boss');
 }
 
@@ -1023,17 +1055,20 @@ function update() {
         p.life--;
         
         let hit = false;
-        enemies.forEach(e => {
-            const dx = p.x - (e.x + e.w/2);
-            const dy = p.y - (e.y + e.h/2);
-            if (Math.sqrt(dx*dx + dy*dy) < 20) {
-                e.hp -= p.damage;
-                e.aggro = 120;
-                spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f84', 5);
-                spawnDamageNumber(e.x + e.w/2, e.y, p.damage);
-                hit = true;
-            }
-        });
+        // Boss的投射物不会对怪物造成伤害
+        if (!p.isBoss) {
+            enemies.forEach(e => {
+                const dx = p.x - (e.x + e.w/2);
+                const dy = p.y - (e.y + e.h/2);
+                if (Math.sqrt(dx*dx + dy*dy) < 20) {
+                    e.hp -= p.damage;
+                    e.aggro = 120;
+                    spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f84', 5);
+                    spawnDamageNumber(e.x + e.w/2, e.y, p.damage);
+                    hit = true;
+                }
+            });
+        }
         
         enemies = enemies.filter(e => {
             if (e.hp <= 0) {

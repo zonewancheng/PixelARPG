@@ -555,7 +555,7 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.fillRect(baseX + TILE * 0.12 + i * TILE * 0.25, baseY + TILE - TILE * 0.19 + grassOffset, TILE * 0.06, TILE * 0.12);
                 }
             } else if (tile === 5) {
-                const treeType = (x * 7 + y * 13) % 5;
+                const treeType = (x * 7 + y * 13) % 7;
                 const sway = Math.sin(time * 1.5 + x * 0.7 + y * 0.5) * (TILE / 24);
                 
                 ctx.fillStyle = GROUND_COLOR;
@@ -572,11 +572,13 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 drawTreeShadow(ctx, baseX, baseY, TILE, shadowDir);
                 
                 if (treeType === 0) {
+                    // 圆形树冠树
                     drawTreeTrunk(ctx, trunkX - 2 * treeScale, trunkY, 4 * treeScale, 12 * treeScale, '#4a3525', sway);
                     drawFoliageLayer(ctx, foliageX, foliageY, 11 * treeScale, '#2d6a2d', '#1d4a1d', sway);
                     drawFoliageLayer(ctx, foliageX - 2 * treeScale, foliageY + 2 * treeScale, 8 * treeScale, '#3d7a3d', '#2d5a2d', sway * 0.8);
                     drawFoliageLayer(ctx, foliageX + 2 * treeScale, foliageY + 1 * treeScale, 6 * treeScale, '#4d8a4d', '#3d6a3d', sway * 0.9);
                 } else if (treeType === 1) {
+                    // 三角形松树
                     const sway1 = sway * 0.8;
                     const treeScale = TILE / 32;
                     ctx.fillStyle = '#1d4a1d';
@@ -604,6 +606,7 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.lineTo(baseX + TILE * 0.65 + sway1, baseY + TILE * 0.75);
                     ctx.fill();
                 } else if (treeType === 2) {
+                    // 多层圆形树
                     const treeScale = TILE / 32;
                     drawTreeTrunk(ctx, baseX + TILE * 0.4, baseY + TILE * 0.55, 5 * treeScale, 14 * treeScale, '#4a3525', sway);
                     const sway2 = sway * 0.9;
@@ -612,6 +615,7 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     drawFoliageLayer(ctx, baseX + TILE * 0.6, baseY + TILE * 0.42, 7 * treeScale, '#3d7a3d', '#2d5a2d', sway2 * 0.8);
                     drawFoliageLayer(ctx, baseX + TILE * 0.42, baseY + TILE * 0.25, 6 * treeScale, '#4d8a4d', '#3d6a3d', sway2 * 0.6);
                 } else if (treeType === 3) {
+                    // 尖顶树
                     const treeScale = TILE / 32;
                     drawTreeTrunk(ctx, baseX + TILE * 0.45, baseY + TILE * 0.45, 4 * treeScale, 16 * treeScale, '#3a2515', sway);
                     const sway3 = sway * 0.7;
@@ -633,14 +637,63 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                     ctx.lineTo(baseX + TILE * 0.5 + sway3, baseY + TILE * 0.2);
                     ctx.lineTo(baseX + TILE * 0.8 + sway3, baseY + TILE * 0.9);
                     ctx.fill();
+                } else if (treeType === 4) {
+                    // 三角形枫叶树
+                    const treeScale = TILE / 32;
+                    const trunkX = baseX + TILE * 0.48;
+                    const trunkY = baseY + TILE * 0.7;
+                    drawTreeTrunk(ctx, trunkX, trunkY, 4 * treeScale, 12 * treeScale, '#5a3a25', sway);
+                    const sway4 = sway * 0.8;
+                    
+                    // 枫叶树冠 - 红色/橙色渐变三角形
+                    const grad = ctx.createLinearGradient(baseX + TILE * 0.5, baseY + TILE * 0.1, baseX + TILE * 0.5, baseY + TILE * 0.7);
+                    grad.addColorStop(0, '#f64');
+                    grad.addColorStop(0.5, '#d42');
+                    grad.addColorStop(1, '#a31');
+                    
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(baseX + TILE * 0.5 + sway4, baseY + TILE * 0.1);
+                    ctx.lineTo(baseX + TILE * 0.15 + sway4 * 0.5, baseY + TILE * 0.7);
+                    ctx.lineTo(baseX + TILE * 0.85 + sway4 * 0.5, baseY + TILE * 0.7);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // 枫叶高光
+                    ctx.fillStyle = 'rgba(255,200,100,0.3)';
+                    ctx.beginPath();
+                    ctx.moveTo(baseX + TILE * 0.5 + sway4, baseY + TILE * 0.2);
+                    ctx.lineTo(baseX + TILE * 0.3 + sway4 * 0.5, baseY + TILE * 0.55);
+                    ctx.lineTo(baseX + TILE * 0.7 + sway4 * 0.5, baseY + TILE * 0.55);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (treeType === 5) {
+                    // 柳树 - 下垂枝条
+                    const treeScale = TILE / 32;
+                    drawTreeTrunk(ctx, baseX + TILE * 0.48, baseY + TILE * 0.5, 5 * treeScale, 18 * treeScale, '#4a3525', sway);
+                    const sway5 = sway * 0.6;
+                    
+                    // 下垂的柳条
+                    for (let i = 0; i < 7; i++) {
+                        const startX = baseX + TILE * 0.2 + i * TILE * 0.1;
+                        const startY = baseY + TILE * 0.35;
+                        const length = 8 + i * 2;
+                        ctx.strokeStyle = i % 2 === 0 ? '#3d7a3d' : '#4d9a4d';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(startX + sway5, startY);
+                        ctx.quadraticCurveTo(startX + sway5 * 1.5, startY + length * 0.5, startX + sway5 * 2, startY + length);
+                        ctx.stroke();
+                    }
                 } else {
+                    // 阔叶树
                     const treeScale = TILE / 32;
                     drawTreeTrunk(ctx, baseX + TILE * 0.42, baseY + TILE * 0.6, 5 * treeScale, 12 * treeScale, '#4a3525', sway);
-                    const sway4 = sway * 1.1;
-                    drawFoliageLayer(ctx, baseX + TILE * 0.48, baseY + TILE * 0.45, 10 * treeScale, '#1d5a1d', '#0d3a0d', sway4);
-                    drawFoliageLayer(ctx, baseX + TILE * 0.35, baseY + TILE * 0.5, 7 * treeScale, '#2d6a2d', '#1d4a1d', sway4 * 0.6);
-                    drawFoliageLayer(ctx, baseX + TILE * 0.58, baseY + TILE * 0.47, 5 * treeScale, '#3d7a3d', '#2d5a2d', sway4 * 0.7);
-                    drawFoliageLayer(ctx, baseX + TILE * 0.48, baseY + TILE * 0.32, 6 * treeScale, '#4d8a4d', '#3d6a3d', sway4 * 0.5);
+                    const sway6 = sway * 1.1;
+                    drawFoliageLayer(ctx, baseX + TILE * 0.48, baseY + TILE * 0.45, 10 * treeScale, '#1d5a1d', '#0d3a0d', sway6);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.35, baseY + TILE * 0.5, 7 * treeScale, '#2d6a2d', '#1d4a1d', sway6 * 0.6);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.58, baseY + TILE * 0.47, 5 * treeScale, '#3d7a3d', '#2d5a2d', sway6 * 0.7);
+                    drawFoliageLayer(ctx, baseX + TILE * 0.48, baseY + TILE * 0.32, 6 * treeScale, '#4d8a4d', '#3d6a3d', sway6 * 0.5);
                 }
             } else if (tile === 6) {
                 const flowerType = (x * 11 + y * 17) % 6;
@@ -1884,6 +1937,31 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     ctx.fill();
     
     drawPixelSpriteFn(ctx, player.x, player.y + breathe, player.w, player.h, '#ff6', 'player', player);
+    
+    // 玩家头顶标识 - 发光的三角形
+    const markerY = player.y - 8 + breathe;
+    const centerX = player.x + player.w / 2;
+    
+    // 发光效果
+    ctx.shadowColor = '#ff0';
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = '#ff6';
+    ctx.beginPath();
+    ctx.moveTo(centerX, markerY - 6);
+    ctx.lineTo(centerX - 5, markerY + 3);
+    ctx.lineTo(centerX + 5, markerY + 3);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 内部高光
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ff8';
+    ctx.beginPath();
+    ctx.moveTo(centerX, markerY - 3);
+    ctx.lineTo(centerX - 2, markerY + 2);
+    ctx.lineTo(centerX + 2, markerY + 2);
+    ctx.closePath();
+    ctx.fill();
 }
 
 // ===== 云朵获取 =====
