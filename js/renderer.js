@@ -293,96 +293,6 @@ function getShadowDirection() {
     return { x: shadowX, y: shadowY };
 }
 
-function drawStonePile(ctx, x, y, size, shadowDir) {
-    const cx = x + size/2;
-    const cy = y + size/2;
-    
-    // 石头堆阴影
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.beginPath();
-    ctx.ellipse(cx + shadowDir.x, y + size - 3 + shadowDir.y, size/2.2, size/5, 0, 0, Math.PI*2);
-    ctx.fill();
-    
-    // 石头堆设计 - 多层石头
-    const stoneType = (Math.floor(x/32) * 7 + Math.floor(y/32) * 13) % 3;
-    
-    if (stoneType === 0) {
-        // 三层石头堆
-        // 底层大石
-        ctx.fillStyle = '#6a6a7a';
-        ctx.beginPath();
-        ctx.ellipse(cx, cy + 6, 10, 7, 0, 0, Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle = '#7a7a8a';
-        ctx.beginPath();
-        ctx.ellipse(cx - 2, cy + 4, 7, 5, 0, 0, Math.PI*2);
-        ctx.fill();
-        
-        // 中层中石
-        ctx.fillStyle = '#5a5a6a';
-        ctx.beginPath();
-        ctx.ellipse(cx + 2, cy - 2, 7, 5, 0, 0, Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle = '#6a6a7a';
-        ctx.beginPath();
-        ctx.ellipse(cx + 1, cy - 3, 5, 3, 0, 0, Math.PI*2);
-        ctx.fill();
-        
-        // 顶层小石
-        ctx.fillStyle = '#4a4a5a';
-        ctx.beginPath();
-        ctx.ellipse(cx - 1, cy - 8, 5, 4, 0, 0, Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle = '#5a5a6a';
-        ctx.beginPath();
-        ctx.ellipse(cx - 2, cy - 9, 3, 2, 0, 0, Math.PI*2);
-        ctx.fill();
-        
-    } else if (stoneType === 1) {
-        // 散乱石头
-        const positions = [[-6, 4, 5], [4, 6, 4], [0, -2, 6], [-3, -8, 4], [6, -4, 3]];
-        const colors = ['#6a6a7a', '#5a5a6a', '#7a7a8a', '#5a5a6a', '#6a6a7a'];
-        
-        positions.forEach((pos, i) => {
-            ctx.fillStyle = colors[i];
-            ctx.beginPath();
-            ctx.ellipse(cx + pos[0], cy + pos[1], pos[2], pos[2]*0.7, 0, 0, Math.PI*2);
-            ctx.fill();
-            ctx.fillStyle = '#8a8a9a';
-            ctx.beginPath();
-            ctx.ellipse(cx + pos[0] - 1, cy + pos[1] - 1, pos[2]*0.5, pos[2]*0.35, 0, 0, Math.PI*2);
-            ctx.fill();
-        });
-        
-    } else {
-        // 巨石
-        ctx.fillStyle = '#5a5a6a';
-        ctx.beginPath();
-        ctx.ellipse(cx, cy + 2, 12, 9, 0, 0, Math.PI*2);
-        ctx.fill();
-        
-        // 裂缝
-        ctx.strokeStyle = '#3a3a4a';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(cx - 4, cy - 2);
-        ctx.lineTo(cx - 2, cy + 2);
-        ctx.lineTo(cx + 1, cy + 1);
-        ctx.stroke();
-        
-        ctx.fillStyle = '#7a7a8a';
-        ctx.beginPath();
-        ctx.ellipse(cx - 3, cy - 1, 6, 4, 0, 0, Math.PI*2);
-        ctx.fill();
-    }
-    
-    // 石头高光细节
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    ctx.beginPath();
-    ctx.ellipse(cx - 3, cy - 6, 3, 2, 0, 0, Math.PI*2);
-    ctx.fill();
-}
-
 function drawBrickPattern(ctx, x, y, size, color, highlight) {
     ctx.fillStyle = color;
     ctx.fillRect(x, y, size, size);
@@ -391,14 +301,18 @@ function drawBrickPattern(ctx, x, y, size, color, highlight) {
     ctx.fillStyle = highlight;
     for (let row = 0; row < 4; row++) {
         const offset = (row % 2) * (brickW / 2);
-        for (let col = -1; col < 3; col++) {
+        // 从0开始，避免砖块超出边界
+        for (let col = 0; col < 2; col++) {
             const bx = x + offset + col * brickW;
             const by = y + row * brickH;
-            ctx.fillRect(bx + 1, by + 1, brickW - 2, brickH - 2);
-            ctx.fillStyle = 'rgba(0,0,0,0.2)';
-            ctx.fillRect(bx + brickW - 2, by + 1, 2, brickH - 2);
-            ctx.fillRect(bx + 1, by + brickH - 2, brickW - 2, 2);
-            ctx.fillStyle = highlight;
+            // 确保砖块不会超出边界
+            if (bx >= x && bx + brickW <= x + size) {
+                ctx.fillRect(bx + 1, by + 1, brickW - 2, brickH - 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(bx + brickW - 2, by + 1, 2, brickH - 2);
+                ctx.fillRect(bx + 1, by + brickH - 2, brickW - 2, 2);
+                ctx.fillStyle = highlight;
+            }
         }
     }
 }
@@ -814,18 +728,59 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 ctx.ellipse(baseX + TILE/2, baseY + TILE - 8, 4, 2, 0, 0, Math.PI*2);
                 ctx.fill();
             } else if (tile === 3) {
-                ctx.fillStyle = '#2a3a5a';
+                // 重新设计的水域 - 波光粼粼效果
+                // 基础水色渐变
+                const waterGrad = ctx.createLinearGradient(baseX, baseY, baseX, baseY + TILE);
+                waterGrad.addColorStop(0, '#1a3a5a');
+                waterGrad.addColorStop(0.5, '#2a4a6a');
+                waterGrad.addColorStop(1, '#1a3a5a');
+                ctx.fillStyle = waterGrad;
                 ctx.fillRect(baseX, baseY, TILE, TILE);
-                const waveOffset = Math.sin(time + x + y * 0.5) * 2;
-                ctx.fillStyle = '#4a6a8a';
-                ctx.fillRect(baseX + 4 + waveOffset, baseY + 8, 8, 2);
-                ctx.fillRect(baseX + 16 - waveOffset, baseY + 16, 10, 2);
-                ctx.fillRect(baseX + 8, baseY + 24, 6, 2);
+                
+                // 多层波纹动画
+                const waveTime = Date.now() / 800;
+                const waveColors = ['#3a6a9a', '#4a7aaa', '#5a8aba'];
+                
+                for (let i = 0; i < 3; i++) {
+                    const waveY = baseY + 8 + i * 9;
+                    const waveOffset = Math.sin(waveTime + x * 0.5 + y * 0.3 + i) * 4;
+                    const waveWidth = 10 + Math.sin(waveTime * 0.7 + i) * 3;
+                    const waveX = baseX + 6 + waveOffset + i * 3;
+                    
+                    ctx.fillStyle = waveColors[i];
+                    ctx.globalAlpha = 0.6 + Math.sin(waveTime * 2 + i) * 0.3;
+                    
+                    // 波浪形状
+                    ctx.beginPath();
+                    ctx.moveTo(waveX, waveY);
+                    ctx.quadraticCurveTo(waveX + waveWidth/2, waveY - 2, waveX + waveWidth, waveY);
+                    ctx.quadraticCurveTo(waveX + waveWidth/2, waveY + 2, waveX, waveY);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+                
+                // 高光反射
+                const shineTime = Date.now() / 1200;
+                const shineOffset = Math.sin(shineTime + x * 0.3 + y * 0.2) * 8;
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.beginPath();
+                ctx.ellipse(baseX + TILE/2 + shineOffset, baseY + TILE/2, 6, 3, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                // 小水花
+                const splashTime = Date.now() / 600;
+                const splashX = baseX + 10 + Math.sin(splashTime + x) * 6;
+                const splashY = baseY + 20 + Math.cos(splashTime * 0.8 + y) * 4;
+                ctx.fillStyle = 'rgba(200,230,255,0.3)';
+                ctx.beginPath();
+                ctx.arc(splashX, splashY, 2, 0, Math.PI*2);
+                ctx.fill();
+                
             } else if (tile === 7) {
                 // 新石头堆类型
                 ctx.fillStyle = GROUND_COLOR;
                 ctx.fillRect(baseX, baseY, TILE, TILE);
-                drawStonePile(ctx, baseX, baseY, TILE, shadowDir);
+                window.drawStonePile(ctx, baseX, baseY, TILE, shadowDir, x, y);
             } else {
                 ctx.fillStyle = GROUND_COLOR;
                 ctx.fillRect(baseX, baseY, TILE, TILE);
