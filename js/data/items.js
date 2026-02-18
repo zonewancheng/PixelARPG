@@ -47,100 +47,327 @@ window.ITEM_TYPES = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace', '
  */
 window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     const dir = player.dirX > 0 ? 1 : (player.dirX < 0 ? -1 : 1);
+    const cx = x + w / 2;
     
-    // 基础身体（根据护甲类型调整颜色）
-    let skinColor = '#fa0';
-    let bodyColor = '#f80';
+    // 原神风格角色基础设计
+    // 皮肤颜色
+    const skinColor = '#fdb';
+    const skinShadow = '#eaa';
     
-    // 如果有护甲，身体颜色变暗以突出护甲
-    if (player.armor) {
-        skinColor = '#d90';
-        bodyColor = '#d70';
+    // 头发颜色（深棕色，类似旅行者）
+    const hairColor = '#654';
+    const hairHighlight = '#875';
+    
+    // 衣服基础色
+    const clothesColor = '#567';
+    const clothesDark = '#456';
+    const clothesLight = '#789';
+    
+    // ========== 计算武器位置（用于层级判断）==========
+    let weaponBehind = false;
+    let weaponX, weaponY, weaponCanvas, weaponSize = 22;
+    
+    if (player.weapon && window.renderEquipmentIcon) {
+        const time = Date.now() / 1500;
+        const orbitRadius = w * 0.45;
+        const angle = time + (dir > 0 ? 0 : Math.PI);
+        
+        weaponX = cx + Math.cos(angle) * orbitRadius;
+        weaponY = y + h * 0.5 + Math.sin(angle) * orbitRadius * 0.4;
+        weaponCanvas = window.renderEquipmentIcon(player.weapon, weaponSize);
+        
+        // 判断武器是否在身体后面（y坐标大于身体中心）
+        weaponBehind = weaponY > y + h * 0.55;
     }
     
-    // 基础身体
-    ctx.fillStyle = skinColor;
-    ctx.fillRect(x + 8, y, 8, 4);
-    ctx.fillStyle = bodyColor;
-    ctx.fillRect(x + 4, y + 4, 16, 12);
+    // ========== 绘制背后的武器 ==========
+    if (weaponBehind && weaponCanvas) {
+        drawWeapon(ctx, weaponX, weaponY, weaponCanvas, weaponSize, player.weapon.color);
+    }
     
-    // 根据 armor 渲染衣服 - 使用装备图标
+    // ========== 头部（动漫风格）==========
+    
+    // 脸部基础
+    ctx.fillStyle = skinColor;
+    ctx.beginPath();
+    ctx.arc(cx, y + h*0.18, w*0.18, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 头发 - 后层
+    ctx.fillStyle = hairColor;
+    ctx.beginPath();
+    ctx.arc(cx, y + h*0.15, w*0.2, Math.PI, 0);
+    ctx.lineTo(x + w*0.85, y + h*0.25);
+    ctx.lineTo(x + w*0.15, y + h*0.25);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 头发 - 前刘海
+    ctx.beginPath();
+    ctx.moveTo(x + w*0.2, y + h*0.08);
+    ctx.quadraticCurveTo(x + w*0.35, y + h*0.15, x + w*0.4, y + h*0.12);
+    ctx.quadraticCurveTo(x + w*0.5, y + h*0.18, x + w*0.6, y + h*0.12);
+    ctx.quadraticCurveTo(x + w*0.65, y + h*0.15, x + w*0.8, y + h*0.08);
+    ctx.lineTo(x + w*0.75, y + h*0.03);
+    ctx.quadraticCurveTo(cx, y - h*0.02, x + w*0.25, y + h*0.03);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 头发高光
+    ctx.fillStyle = hairHighlight;
+    ctx.beginPath();
+    ctx.ellipse(x + w*0.35, y + h*0.08, w*0.04, h*0.03, -0.3, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(x + w*0.55, y + h*0.1, w*0.03, h*0.02, 0.3, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 眼睛 - 动漫风格大眼睛
+    const eyeY = y + h*0.2;
+    const leftEyeX = x + w*0.38;
+    const rightEyeX = x + w*0.62;
+    
+    // 眼白
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(leftEyeX, eyeY, w*0.05, h*0.06, 0, 0, Math.PI*2);
+    ctx.ellipse(rightEyeX, eyeY, w*0.05, h*0.06, 0, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 眼珠（青色，类似风元素）
+    ctx.fillStyle = '#0aa';
+    ctx.beginPath();
+    ctx.arc(leftEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.035, 0, Math.PI*2);
+    ctx.arc(rightEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.035, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 眼睛高光
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(leftEyeX + (dir > 0 ? 2 : 0), eyeY - 1, w*0.015, 0, Math.PI*2);
+    ctx.arc(rightEyeX + (dir > 0 ? 2 : 0), eyeY - 1, w*0.015, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 眉毛
+    ctx.strokeStyle = hairColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(leftEyeX - 3, eyeY - 6);
+    ctx.lineTo(leftEyeX + 3, eyeY - 7);
+    ctx.moveTo(rightEyeX - 3, eyeY - 7);
+    ctx.lineTo(rightEyeX + 3, eyeY - 6);
+    ctx.stroke();
+    
+    // 鼻子
+    ctx.fillStyle = skinShadow;
+    ctx.beginPath();
+    ctx.arc(cx, y + h*0.23, 1, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 嘴巴（微笑）
+    ctx.strokeStyle = '#c99';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, y + h*0.26, 3, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+    
+    // 耳朵
+    ctx.fillStyle = skinColor;
+    ctx.beginPath();
+    ctx.ellipse(x + w*0.22, y + h*0.2, w*0.03, h*0.05, 0, 0, Math.PI*2);
+    ctx.ellipse(x + w*0.78, y + h*0.2, w*0.03, h*0.05, 0, 0, Math.PI*2);
+    ctx.fill();
+    
+    // ========== 身体 ==========
+    
+    // 脖子
+    ctx.fillStyle = skinColor;
+    ctx.fillRect(cx - 3, y + h*0.3, 6, h*0.05);
+    
+    // 基础衣服（高领设计）
+    ctx.fillStyle = clothesColor;
+    ctx.beginPath();
+    ctx.moveTo(cx - 8, y + h*0.35);
+    ctx.lineTo(cx + 8, y + h*0.35);
+    ctx.lineTo(cx + 10, y + h*0.45);
+    ctx.lineTo(cx - 10, y + h*0.45);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 衣服装饰线条
+    ctx.fillStyle = clothesLight;
+    ctx.fillRect(cx - 2, y + h*0.36, 4, h*0.08);
+    
+    // 身体主体
+    ctx.fillStyle = clothesColor;
+    ctx.beginPath();
+    ctx.moveTo(cx - 10, y + h*0.45);
+    ctx.lineTo(cx + 10, y + h*0.45);
+    ctx.lineTo(cx + 12, y + h*0.7);
+    ctx.lineTo(cx - 12, y + h*0.7);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 衣服阴影/褶皱
+    ctx.fillStyle = clothesDark;
+    ctx.beginPath();
+    ctx.moveTo(cx - 8, y + h*0.5);
+    ctx.lineTo(cx - 6, y + h*0.65);
+    ctx.lineTo(cx - 10, y + h*0.68);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx + 8, y + h*0.5);
+    ctx.lineTo(cx + 6, y + h*0.65);
+    ctx.lineTo(cx + 10, y + h*0.68);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 腰带
+    ctx.fillStyle = '#432';
+    ctx.fillRect(cx - 11, y + h*0.68, 22, h*0.04);
+    ctx.fillStyle = '#ca8';
+    ctx.fillRect(cx - 3, y + h*0.69, 6, h*0.02);
+    
+    // 根据 armor 渲染护甲（叠加在基础衣服上）
     if (player.armor && window.renderEquipmentIcon) {
         const armorCanvas = window.renderEquipmentIcon(player.armor, 24);
-        // 将护甲绘制在身体上，稍微缩小
         ctx.save();
-        ctx.translate(x + 12, y + 10);
-        ctx.scale(0.8, 0.8);
+        ctx.globalAlpha = 0.9;
+        ctx.translate(x + 12, y + h*0.55);
+        ctx.scale(0.75, 0.75);
         ctx.drawImage(armorCanvas, -12, -12);
         ctx.restore();
     }
     
-    // 腿部
-    ctx.fillStyle = bodyColor;
-    ctx.fillRect(x + 8, y + 16, 8, 12);
+    // ========== 手臂 ==========
+    
+    // 左臂
+    ctx.fillStyle = skinColor;
+    ctx.beginPath();
+    ctx.ellipse(x + w*0.15, y + h*0.5, w*0.04, h*0.12, -0.2, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 右臂
+    ctx.beginPath();
+    ctx.ellipse(x + w*0.85, y + h*0.5, w*0.04, h*0.12, 0.2, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 手套/护腕
+    ctx.fillStyle = clothesDark;
+    ctx.fillRect(x + w*0.1, y + h*0.58, w*0.08, h*0.06);
+    ctx.fillRect(x + w*0.82, y + h*0.58, w*0.08, h*0.06);
+    
+    // ========== 腿部 ==========
+    
+    // 裤子
+    ctx.fillStyle = '#345';
+    ctx.fillRect(x + w*0.25, y + h*0.72, w*0.18, h*0.2);
+    ctx.fillRect(x + w*0.57, y + h*0.72, w*0.18, h*0.2);
     
     // 如果有靴子，在腿部显示靴子效果
     if (player.boots && window.renderEquipmentIcon) {
         const bootCanvas = window.renderEquipmentIcon(player.boots, 16);
         ctx.save();
-        ctx.translate(x + 12, y + 22);
-        ctx.scale(0.6, 0.6);
+        ctx.translate(x + w*0.34, y + h*0.88);
+        ctx.scale(0.5, 0.5);
         ctx.drawImage(bootCanvas, -8, -8);
         ctx.restore();
-    }
-    
-    ctx.fillStyle = '#a52';
-    if (dir > 0) {
-        ctx.fillRect(x + 14, y + 20, 4, 8);
-        ctx.fillRect(x + 10, y + 26, 4, 4);
-    } else {
-        ctx.fillRect(x + 6, y + 20, 4, 8);
-        ctx.fillRect(x + 10, y + 26, 4, 4);
-    }
-    
-    // 武器 - 使用装备图标渲染（旋转180度）
-    if (player.weapon && player.attacking === 0 && window.renderEquipmentIcon) {
-        const weaponSize = 20;
-        const weaponCanvas = window.renderEquipmentIcon(player.weapon, weaponSize);
-        
-        const handX = dir > 0 ? x + 20 : x - 4;
-        const handY = y + 8;
         
         ctx.save();
-        ctx.translate(handX + weaponSize/2, handY + weaponSize/2);
-        ctx.rotate(Math.PI);
-        ctx.drawImage(weaponCanvas, -weaponSize/2, -weaponSize/2);
+        ctx.translate(x + w*0.66, y + h*0.88);
+        ctx.scale(0.5, 0.5);
+        ctx.drawImage(bootCanvas, -8, -8);
         ctx.restore();
+    } else {
+        // 默认靴子
+        ctx.fillStyle = '#432';
+        ctx.fillRect(x + w*0.22, y + h*0.88, w*0.22, h*0.1);
+        ctx.fillRect(x + w*0.56, y + h*0.88, w*0.22, h*0.1);
     }
     
-    // 头盔 - 使用装备图标
+    // ========== 头盔（叠加）==========
+    
     if (player.helmet && window.renderEquipmentIcon) {
         const helmCanvas = window.renderEquipmentIcon(player.helmet, 20);
         ctx.save();
-        ctx.translate(x + 12, y + 2);
-        ctx.scale(0.7, 0.7);
+        ctx.globalAlpha = 0.95;
+        ctx.translate(x + w*0.5, y + h*0.12);
+        ctx.scale(0.8, 0.8);
         ctx.drawImage(helmCanvas, -10, -10);
         ctx.restore();
     }
     
-    // 戒指 - 在左手显示（如果朝右）或右手（如果朝左）
+    // ========== 饰品 ==========
+    
+    // 戒指
     if (player.ring && window.renderEquipmentIcon) {
         const ringCanvas = window.renderEquipmentIcon(player.ring, 12);
-        const ringX = dir > 0 ? x + 6 : x + 16;
+        // 戴在右手（武器手）
+        const ringX = dir > 0 ? x + w*0.88 : x + w*0.12;
         ctx.save();
-        ctx.translate(ringX, y + 14);
-        ctx.scale(0.5, 0.5);
+        ctx.translate(ringX, y + h*0.62);
+        ctx.scale(0.4, 0.4);
         ctx.drawImage(ringCanvas, -6, -6);
         ctx.restore();
     }
     
-    // 项链 - 在胸前显示
+    // 项链
     if (player.necklace && window.renderEquipmentIcon) {
         const neckCanvas = window.renderEquipmentIcon(player.necklace, 14);
         ctx.save();
-        ctx.translate(x + 12, y + 6);
-        ctx.scale(0.5, 0.5);
+        ctx.translate(x + w*0.5, y + h*0.4);
+        ctx.scale(0.45, 0.45);
         ctx.drawImage(neckCanvas, -7, -7);
+        ctx.restore();
+    }
+    
+    // ========== 绘制前面的武器（在所有身体元素之后，确保显示在最上层）==========
+    if (!weaponBehind && weaponCanvas) {
+        drawWeapon(ctx, weaponX, weaponY, weaponCanvas, weaponSize, player.weapon.color);
+        
+        // 绘制武器到手的连线
+        if (player.weapon && window.renderEquipmentIcon) {
+            const time = Date.now() / 1500;
+            ctx.strokeStyle = player.weapon.color || '#fff';
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.3 + Math.sin(time * 5) * 0.2;
+            ctx.beginPath();
+            const handX = dir > 0 ? x + w*0.88 : x + w*0.12;
+            const handY = y + h*0.6;
+            ctx.moveTo(handX, handY);
+            ctx.lineTo(weaponX, weaponY);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+    }
+    
+    // 元素光芒效果（风元素）
+    const time = Date.now() / 1000;
+    ctx.fillStyle = `rgba(0, 200, 200, ${0.1 + Math.sin(time * 3) * 0.05})`;
+    ctx.beginPath();
+    ctx.arc(cx, y + h*0.5, w*0.25 + Math.sin(time * 2) * 2, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 辅助函数：绘制武器
+    function drawWeapon(ctx, wx, wy, wCanvas, wSize, wColor) {
+        ctx.save();
+        ctx.translate(wx, wy);
+        ctx.rotate(Math.PI); // 垂直朝下
+        
+        // 武器发光效果
+        ctx.shadowColor = wColor || '#fff';
+        ctx.shadowBlur = 12;
+        ctx.globalAlpha = 0.9;
+        
+        // 绘制武器
+        ctx.drawImage(wCanvas, -wSize/2, -wSize/2);
+        
+        // 额外发光层
+        ctx.globalAlpha = 0.3;
+        ctx.scale(1.3, 1.3);
+        ctx.drawImage(wCanvas, -wSize/2, -wSize/2);
+        
         ctx.restore();
     }
 };
