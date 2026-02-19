@@ -1574,13 +1574,24 @@ function attack() {
 
     player.attacking = 20;
 
-    // 使用玩家当前朝向，移除自动索敌（使用 ?? 避免将 0 视为假值）
-    let dirX = player.dirX ?? 1;
-    let dirY = player.dirY ?? 0;
+    // 使用玩家当前朝向，确保有默认值
+    let dirX = player.dirX;
+    let dirY = player.dirY;
+    
+    // 确保方向有有效值
+    if (dirX === undefined || dirX === null) dirX = 1;
+    if (dirY === undefined || dirY === null) dirY = 0;
+    
+    // 如果方向是对角线（dx和dy都不为0），归一化
+    if (dirX !== 0 && dirY !== 0) {
+        const len = Math.sqrt(dirX * dirX + dirY * dirY);
+        dirX /= len;
+        dirY /= len;
+    }
 
     const px = player.x + player.w/2;
     const py = player.y + player.h/2;
-    const range = 80; // 增大攻击范围，与动画匹配
+    const range = 80;
 
     function isTargetInDirection(targetX, targetY) {
         const dx = targetX - px;
@@ -2207,18 +2218,18 @@ function setupUI() {
 
         const dx = clientX - joystickCenter.x;
         const dy = clientY - joystickCenter.y;
-        const maxDist = 35;
+        const maxDist = 50;
         const dist = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
         const angle = Math.atan2(dy, dx);
 
         const knobX = Math.cos(angle) * dist;
         const knobY = Math.sin(angle) * dist;
 
-        joystickKnob.style.left = (25 + knobX) + 'px';
-        joystickKnob.style.top = (25 + knobY) + 'px';
+        joystickKnob.style.left = (50 + knobX) + 'px';
+        joystickKnob.style.top = (50 + knobY) + 'px';
 
         // 转换为方向键
-        const threshold = 15;
+        const threshold = 25;
         keys['ArrowUp'] = dy < -threshold;
         keys['ArrowDown'] = dy > threshold;
         keys['ArrowLeft'] = dx < -threshold;
@@ -2233,12 +2244,15 @@ function setupUI() {
     
     function resetJoystick() {
         if (!joystickKnob) return;
-        joystickKnob.style.left = '25px';
-        joystickKnob.style.top = '25px';
+        joystickKnob.style.left = '50px';
+        joystickKnob.style.top = '50px';
         keys['ArrowUp'] = false;
         keys['ArrowDown'] = false;
         keys['ArrowLeft'] = false;
         keys['ArrowRight'] = false;
+        // 重置玩家朝向为向右
+        window.player.dirX = 1;
+        window.player.dirY = 0;
     }
     
     if (joystickArea) {

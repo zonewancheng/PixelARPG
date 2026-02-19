@@ -1498,12 +1498,11 @@ function drawPlayerAttack(ctx, player) {
         slashGlow = player.weapon.color + '80';
     }
     
-    // 计算攻击方向角度（角色朝向）
+    // 计算攻击方向角度（角色朝向）- 支持连续方向
     let attackAngle = 0;
-    if (dirX > 0) attackAngle = 0;
-    else if (dirX < 0) attackAngle = Math.PI;
-    else if (dirY < 0) attackAngle = -Math.PI/2;
-    else if (dirY > 0) attackAngle = Math.PI/2;
+    if (dirX !== 0 || dirY !== 0) {
+        attackAngle = Math.atan2(dirY, dirX);
+    }
     
     ctx.save();
     ctx.translate(baseX, baseY);
