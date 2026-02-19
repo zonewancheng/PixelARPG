@@ -28,10 +28,13 @@ window.UICharacter = {
         if (!this.element) return;
         
         const player = window.player;
-        const expToLevel = player.level * 100;
+        const expToLevel = player.level * 100 + player.level * player.level * 20;
         const expPercent = Math.floor((player.exp / expToLevel) * 100);
         
         const equipSlots = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
+        
+        // 获取被动技能
+        const passiveSkills = window.SKILLS ? window.SKILLS.filter(s => s.passive) : [];
         
         this.element.innerHTML = `
             <div class="panel-header">
@@ -97,6 +100,23 @@ window.UICharacter = {
                         <span class="stat-label">MP恢复</span>
                         <span class="stat-value">${player.mpRegen || 0}/s</span>
                     </div>
+                </div>
+                <div class="stats-panel">
+                    <div class="stat-row">
+                        <span class="stat-label">被动技能</span>
+                        <span class="stat-value"></span>
+                    </div>
+                    ${passiveSkills.map(skill => {
+                        const iconUrl = window.renderSkillIcon ? window.renderSkillIcon(skill, 20) : null;
+                        return `
+                        <div class="stat-row">
+                            <span class="stat-label" style="display: flex; align-items: center; gap: 8px;">
+                                ${iconUrl ? `<img src="${iconUrl}" style="width: 20px; height: 20px; image-rendering: pixelated;">` : ''}
+                                ${skill.name}
+                            </span>
+                            <span class="stat-value" style="font-size: 12px; color: #aabbcc;">${skill.desc}</span>
+                        </div>
+                    `}).join('')}
                 </div>
             </div>
         `;

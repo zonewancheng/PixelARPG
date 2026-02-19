@@ -58,7 +58,7 @@
     width: 90%;
     max-width: 380px;
     max-height: 90%;
-    background: linear-gradient(145deg, #1a1d26 0%, #12151c 100%);
+    background: linear-gradient(145deg, rgba(26, 29, 38, 0.92) 0%, rgba(18, 21, 28, 0.95) 100%);
     border-radius: 16px;
     border: 1px solid rgba(100, 140, 180, 0.15);
     box-shadow: 
@@ -69,6 +69,8 @@
     flex-direction: column;
     overflow: hidden;
     animation: slideUp 0.25s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 /* ========== 面板标题栏 ========== */

@@ -873,14 +873,19 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
 /**
  * 绘制掉落物品
  * 显示物品图标和发光效果
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Array} drops
+ * @param {boolean} animate - 是否播放动画
  */
-function drawDrops(ctx, drops) {
+function drawDrops(ctx, drops, animate = true) {
+    const time = animate ? Date.now() / 200 : 0;
+    const bounce = animate ? Math.sin(time + (drops[0]?.x || 0) * 0.1) * 2 : 0;
+    const glowSize = animate ? 18 + Math.sin(Date.now() / 150) * 3 : 18;
+    
     drops.forEach(d => {
         if (!d.item) return;
-        const time = Date.now() / 200;
-        const bounce = Math.sin(time + d.x * 0.1) * 2;
-        const drawY = d.y + bounce;
-        const glowSize = 18 + Math.sin(Date.now() / 150) * 3;
+        const drawY = d.y + (animate ? Math.sin(time + d.x * 0.1) * 2 : 0);
+        
         const qualityColor = d.item.color || '#fff';
         
         // 药水特殊效果
@@ -889,24 +894,25 @@ function drawDrops(ctx, drops) {
             return;
         }
         
-        const gradient = ctx.createRadialGradient(d.x, drawY + 8, 0, d.x, drawY + 8, glowSize);
-        if (d.item.type === 'treasure') {
-            gradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
-            gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
-        } else if (d.item.quality) {
-            const rgb = hexToRgb(qualityColor);
-            gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.7)`);
-            gradient.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
-        } else {
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        // 金币特殊效果
+        if (d.item.type === 'treasure' && d.item.id === 'gold') {
+            // 使用道具图标
+            if (window.renderConsumableIcon) {
+                const iconUrl = window.renderConsumableIcon(d.item, 24);
+                if (iconUrl) {
+                    const img = new Image();
+                    img.src = iconUrl;
+                    ctx.drawImage(img, d.x - 12, drawY + 2, 24, 24);
+                }
+            } else {
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(d.item.icon || '💰', d.x, drawY + 16);
+            }
+            return;
         }
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(d.x, drawY + 8, glowSize, 0, Math.PI * 2);
-        ctx.fill();
         
-        // 使用像素渲染装备图标
+        // 装备类道具 - 只显示图标，无边框
         if (window.renderEquipmentIcon && ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'].includes(d.item.type)) {
             const itemCanvas = window.renderEquipmentIcon(d.item, 20);
             ctx.drawImage(itemCanvas, d.x - 10, drawY + 4, 20, 20);
@@ -915,10 +921,6 @@ function drawDrops(ctx, drops) {
             ctx.textAlign = 'center';
             ctx.fillText(d.item.icon || '?', d.x, drawY + 16);
         }
-        
-        ctx.strokeStyle = qualityColor;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(d.x - 10, drawY + 2, 20, 20);
         ctx.textAlign = 'left';
     });
 }
@@ -1350,6 +1352,26 @@ function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
  * 绘制 Boss
  * 特殊外观和血条
  */
+// 技能图标Image缓存
+const skillIconCache = {};
+
+function getSkillIconImage(skill, size) {
+    const cacheKey = `${skill.id}_${size}`;
+    if (!skillIconCache[cacheKey] && window.renderSkillIcon) {
+        try {
+            const iconUrl = window.renderSkillIcon(skill, size);
+            if (iconUrl) {
+                const img = new Image();
+                img.src = iconUrl;
+                skillIconCache[cacheKey] = img;
+            }
+        } catch(e) {
+            console.error('Failed to create skill icon:', e);
+        }
+    }
+    return skillIconCache[cacheKey];
+}
+
 function drawBoss(ctx, boss, drawPixelSpriteFn) {
     if (!boss) return;
     const time = Date.now();
@@ -1386,6 +1408,42 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
     ctx.fillRect(boss.x - 1, boss.y - 18, boss.w + 2, 10);
     ctx.fillStyle = '#f55';
     ctx.fillRect(boss.x, boss.y - 18, boss.w * hpPercent, 8);
+    
+    // 显示Boss技能图标（在名字上方）
+    if (boss.skills && boss.skills.length > 0) {
+        const iconSize = 16;
+        const iconGap = 4;
+        const totalWidth = boss.skills.length * iconSize + (boss.skills.length - 1) * iconGap;
+        const startX = boss.x + boss.w / 2 - totalWidth / 2;
+        const iconY = boss.y - 55; // 在名字上方
+        
+        boss.skills.forEach((skill, i) => {
+            const iconX = startX + i * (iconSize + iconGap);
+            
+            // 绘制技能图标背景
+            ctx.fillStyle = 'rgba(30, 40, 60, 0.9)';
+            ctx.fillRect(iconX - 2, iconY - 2, iconSize + 4, iconSize + 4);
+            ctx.strokeStyle = 'rgba(100, 120, 160, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(iconX - 2, iconY - 2, iconSize + 4, iconSize + 4);
+            
+            // 使用缓存的技能图标
+            const img = getSkillIconImage(skill, iconSize);
+            if (img && img.complete && img.naturalWidth > 0) {
+                ctx.drawImage(img, iconX, iconY, iconSize, iconSize);
+            } else {
+                // 如果图标还没加载完成，先显示emoji
+                ctx.font = `${iconSize - 2}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#fff';
+                ctx.fillText(skill.icon || '?', iconX + iconSize/2, iconY + iconSize/2);
+            }
+        });
+        
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+    }
     
     // Boss名称显示
     if (boss.name) {
@@ -1933,9 +1991,56 @@ function drawParticles(ctx, particles) {
  * 带呼吸动画和无敌闪烁
  */
 function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
-    if (invulnerable && invulnerable % 4 < 2) return;
+    // 无敌期间不闪烁，持续显示
+    const isInvincible = invulnerable && invulnerable > 0;
+    // 只在5秒无敌时显示光罩（300帧），不显示受伤后的短暂无敌
+    const showShield = invulnerable && invulnerable >= 60;
+    if (!isInvincible && invulnerable && invulnerable % 4 < 2) return;
+    
     const breathe = Math.sin(Date.now() / 300) * 1;
     const shadowDir = getShadowDirection();
+    
+    // 绘制无敌光罩 - 只在5秒无敌时显示
+    if (showShield) {
+        const centerX = player.x + player.w / 2;
+        const centerY = player.y + player.h / 2;
+        const shieldRadius = Math.max(player.w, player.h) * 0.8;
+        const flashAlpha = 0.25 + Math.sin(Date.now() / 100) * 0.15;
+        
+        // 金色光罩（升级时）或蓝色光罩（其他无敌）
+        const isLevelUp = player.levelUpShield && player.levelUpShield > 0;
+        const baseColor = isLevelUp ? '255, 215, 0' : '100, 200, 255';
+        
+        const shieldGrad = ctx.createRadialGradient(centerX, centerY, shieldRadius * 0.5, centerX, centerY, shieldRadius);
+        shieldGrad.addColorStop(0, `rgba(${baseColor}, 0)`);
+        shieldGrad.addColorStop(0.7, `rgba(${baseColor}, ${flashAlpha})`);
+        shieldGrad.addColorStop(1, `rgba(${baseColor}, 0)`);
+        
+        ctx.fillStyle = shieldGrad;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, shieldRadius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 绘制光罩边缘
+        const edgeColor = isLevelUp ? '255, 220, 100' : '150, 220, 255';
+        ctx.strokeStyle = `rgba(${edgeColor}, ${0.4 + Math.sin(Date.now() / 150) * 0.2})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, shieldRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // 显示无敌文字
+        const textY = player.y - 28 + breathe;
+        ctx.font = 'bold 12px Courier New';
+        ctx.textAlign = 'center';
+        const textAlpha = 0.8 + Math.sin(Date.now() / 100) * 0.2;
+        ctx.fillStyle = isLevelUp ? `rgba(255, 255, 200, ${textAlpha})` : `rgba(255, 255, 100, ${textAlpha})`;
+        ctx.shadowColor = isLevelUp ? '#fa0' : '#ff0';
+        ctx.shadowBlur = 4;
+        ctx.fillText('无敌', centerX, textY);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+    }
     
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
@@ -1989,28 +2094,40 @@ function getClouds() {
 /**
  * 绘制云朵和天气效果
  * 包括白云、乌云、闪电云
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} canvasWidth
+ * @param {number} canvasHeight
+ * @param {Object} player
+ * @param {boolean} animate - 是否播放动画
  */
-function drawClouds(ctx, canvasWidth, canvasHeight, player) {
+function drawClouds(ctx, canvasWidth, canvasHeight, player, animate = true) {
     const cloudData = getClouds();
     if (!cloudData || !cloudData.length) return;
     
-    const time = Date.now() / 1000;
+    const time = animate ? Date.now() / 1000 : 0;
     const shadowDir = getShadowDirection();
     
+    if (animate) {
+        cloudData.forEach(cloud => {
+            cloud.x += cloud.speedX;
+            cloud.y += cloud.speedY + Math.sin(time * cloud.wobbleSpeed + cloud.wobblePhase) * 0.15;
+            
+            if ((cloud.speedX > 0 && cloud.x > canvasWidth + cloud.size * 2) ||
+                (cloud.speedX < 0 && cloud.x < -cloud.size * 2)) {
+                cloud.x = cloud.speedX > 0 ? -cloud.size * 2 : canvasWidth + cloud.size * 2;
+                cloud.y = 10 + Math.random() * (canvasHeight - 20);
+                const rand = Math.random();
+                if (rand < 0.15) cloud.type = 'storm';
+                else if (rand < 0.45) cloud.type = 'dark';
+                else cloud.type = 'white';
+                cloud.lightningTimer = 0;
+            }
+            if (cloud.y < 5) cloud.y = 5;
+            if (cloud.y > canvasHeight - 5) cloud.y = canvasHeight - 5;
+        });
+    }
+    
     cloudData.forEach(cloud => {
-        cloud.x += cloud.speedX;
-        cloud.y += cloud.speedY + Math.sin(time * cloud.wobbleSpeed + cloud.wobblePhase) * 0.15;
-        
-        if ((cloud.speedX > 0 && cloud.x > canvasWidth + cloud.size * 2) ||
-            (cloud.speedX < 0 && cloud.x < -cloud.size * 2)) {
-            cloud.x = cloud.speedX > 0 ? -cloud.size * 2 : canvasWidth + cloud.size * 2;
-            cloud.y = 10 + Math.random() * (canvasHeight - 20);
-            const rand = Math.random();
-            if (rand < 0.15) cloud.type = 'storm';
-            else if (rand < 0.45) cloud.type = 'dark';
-            else cloud.type = 'white';
-            cloud.lightningTimer = 0;
-        }
         if (cloud.y < 5) cloud.y = 5;
         if (cloud.y > canvasHeight - 5) cloud.y = canvasHeight - 5;
         

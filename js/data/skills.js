@@ -111,6 +111,22 @@ window.SKILLS = [
         speed: 6, 
         isIce: true, 
         render: 'ice' 
+    },
+    { 
+        id: 'invincible_shield', 
+        name: '无敌光环', 
+        icon: '⚜️', 
+        mp: 0, 
+        cd: 0, 
+        damage: 0, 
+        range: 0, 
+        type: 'passive', 
+        desc: '被动技能：进入新关卡或升级时获得5秒无敌光环', 
+        passive: true,
+        passiveTrigger: 'level_start',
+        duration: 300,
+        color: '#ffd700',
+        render: 'shield'
     }
 ];
 
@@ -436,6 +452,45 @@ window.renderSkillIcon = function(skill, size = 32) {
         ctx.fillStyle = skill.coreColor || '#fff';
         ctx.beginPath();
         ctx.arc(0, 0, size*0.06, 0, Math.PI*2);
+        ctx.fill();
+        
+        ctx.restore();
+        
+    } else if (renderType === 'shield') {
+        // 无敌光环 - 金色圆形光罩，与玩家身上渲染一致
+        ctx.save();
+        ctx.translate(cx, cy);
+        
+        const time = Date.now() / 100;
+        const flashAlpha = 0.35 + Math.sin(time) * 0.15;
+        
+        // 外发光
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 10;
+        
+        // 金色圆形光罩
+        const grad = ctx.createRadialGradient(0, 0, size*0.15, 0, 0, size*0.45);
+        grad.addColorStop(0, `rgba(255, 215, 0, 0)`);
+        grad.addColorStop(0.5, `rgba(255, 215, 0, ${flashAlpha})`);
+        grad.addColorStop(0.8, `rgba(255, 215, 0, ${flashAlpha * 0.6})`);
+        grad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, size*0.45, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 光罩边缘
+        ctx.strokeStyle = `rgba(255, 220, 100, ${0.5 + Math.sin(time * 1.5) * 0.2})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, size*0.45, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // 中心小圆点
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.arc(0, 0, size*0.08, 0, Math.PI * 2);
         ctx.fill();
         
         ctx.restore();

@@ -185,7 +185,9 @@ function initGame() {
     
     window.boss = null;
     window.player = createPlayer();
-    window.playerSkills = window.skills.slice(0, 7);
+    // 只获取主动技能（不包括被动技能）
+    const activeSkills = window.skills ? window.skills.filter(s => !s.passive).slice(0, 7) : [];
+    window.playerSkills = activeSkills;
     window.skillCooldowns = {};
     window.skills.forEach(s => window.skillCooldowns[s.id] = 0);
     
@@ -290,7 +292,8 @@ function createPlayer() {
         ],
         attacking: 0,
         dirX: 1, dirY: 0,
-        invulnerable: 0,
+        invulnerable: 300, // 5秒无敌
+        levelUpShield: 0,
         regenTimer: 0
     };
     return p;
@@ -348,11 +351,11 @@ function getEnemyAttackType(enemyType) {
 
 function spawnEnemies() {
     enemies = [];
-    // 根据地图大小和等级动态计算怪物数量
+    // 根据地图大小和等级动态计算怪物数量，但至少5个
     const mapSize = window.MAP_W * window.MAP_H;
     const baseCount = Math.floor(mapSize / 80); // 每80格1个怪物
     const levelBonus = Math.floor(mapLevel * 0.5);
-    const count = Math.min(baseCount + levelBonus, 15);
+    const count = Math.max(5, Math.min(baseCount + levelBonus, 15)); // 至少5个，最多15个
     
     const moveModes = ['patrol_h', 'patrol_v', 'circle', 'idle', 'wander'];
     for (let i = 0; i < count; i++) {
@@ -447,6 +450,7 @@ function spawnBoss() {
         }
         
         const boss = {
+            id: `boss_${i}_${Date.now()}`, // 唯一ID
             x: bx,
             y: by,
             w: bossType.size, h: bossType.size,
@@ -487,11 +491,12 @@ function spawnBoss() {
     playSound('boss');
 }
 
-function bossUseSkill(skill) {
-    if (!window.boss || !skill) return;
+function bossUseSkill(skill, boss) {
+    // 使用传入的boss或window.boss
+    boss = boss || window.boss;
+    if (!boss || !skill) return;
     
     const player = window.player;
-    const boss = window.boss;
     const baseX = boss.x + boss.w / 2;
     const baseY = boss.y + boss.h / 2;
     const targetX = player.x + player.w / 2;
@@ -523,6 +528,7 @@ function bossUseSkill(skill) {
             size: skill.size || 10,
             life: 120,
             isBoss: true,
+            ownerId: boss.id, // 记录发射者ID
             skillName: skill.name,
             isFire: skill.isFire,
             isLightning: skill.isLightning,
@@ -554,19 +560,28 @@ function spawnDrop(x, y, isBoss = false) {
     let item;
     const level = mapLevel + (isBoss ? 3 : 0);
     const equipTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
-    // 50%几率是背包版药水
-    const inventoryPotion = Math.random() < 0.5 ? '_inv' : '';
+    // 药水直接进入背包
+    const toInventory = Math.random() < 0.5;
 
     if (rand < 0.25) {
-        item = window.items.find(i => i.id === 'potion' + inventoryPotion);
+        // 生命药水
+        const consumable = window.getConsumableById('potion');
+        item = toInventory ? window.createConsumableInstance('potion') : { ...consumable };
     } else if (rand < 0.35) {
-        item = window.items.find(i => i.id === 'potion2' + inventoryPotion);
+        // 超级生命药水
+        const consumable = window.getConsumableById('potion2');
+        item = toInventory ? window.createConsumableInstance('potion2') : { ...consumable };
     } else if (rand < 0.43) {
-        item = window.items.find(i => i.id === 'mpotion' + inventoryPotion);
+        // 魔法药水
+        const consumable = window.getConsumableById('mpotion');
+        item = toInventory ? window.createConsumableInstance('mpotion') : { ...consumable };
     } else if (rand < 0.50) {
-        item = window.items.find(i => i.id === 'mpotion2' + inventoryPotion);
+        // 超级魔法药水
+        const consumable = window.getConsumableById('mpotion2');
+        item = toInventory ? window.createConsumableInstance('mpotion2') : { ...consumable };
     } else if (rand < 0.60) {
-        item = window.items.find(i => i.id === 'gold');
+        // 金币
+        item = window.createConsumableInstance ? window.createConsumableInstance('gold') : { id: 'gold', name: '金币', type: 'treasure', value: 10 };
     } else {
         const type = equipTypes[Math.floor(Math.random() * equipTypes.length)];
         item = window.generateRandomItem(type, level);
@@ -579,19 +594,22 @@ function spawnDrop(x, y, isBoss = false) {
         const rand2 = Math.random();
         let item2;
         const equipTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
-        // 50%几率是背包版药水
-        const inventoryPotion2 = Math.random() < 0.5 ? '_inv' : '';
+        const toInventory2 = Math.random() < 0.5;
 
         if (rand2 < 0.25) {
-            item2 = window.items.find(i => i.id === 'potion' + inventoryPotion2);
+            const consumable = window.getConsumableById('potion');
+            item2 = toInventory2 ? window.createConsumableInstance('potion') : { ...consumable };
         } else if (rand2 < 0.38) {
-            item2 = window.items.find(i => i.id === 'potion2' + inventoryPotion2);
+            const consumable = window.getConsumableById('potion2');
+            item2 = toInventory2 ? window.createConsumableInstance('potion2') : { ...consumable };
         } else if (rand2 < 0.48) {
-            item2 = window.items.find(i => i.id === 'mpotion' + inventoryPotion2);
+            const consumable = window.getConsumableById('mpotion');
+            item2 = toInventory2 ? window.createConsumableInstance('mpotion') : { ...consumable };
         } else if (rand2 < 0.56) {
-            item2 = window.items.find(i => i.id === 'mpotion2' + inventoryPotion2);
+            const consumable = window.getConsumableById('mpotion2');
+            item2 = toInventory2 ? window.createConsumableInstance('mpotion2') : { ...consumable };
         } else if (rand2 < 0.64) {
-            item2 = window.items.find(i => i.id === 'gold');
+            item2 = window.createConsumableInstance ? window.createConsumableInstance('gold') : { id: 'gold', name: '金币', type: 'treasure', value: 10 };
         } else if (rand2 < 0.72) {
             item2 = window.generateItemByQuality('uncommon', 'weapon', level);
             if (item2 && item2.baseId) window.discoverItem(item2.baseId);
@@ -817,6 +835,7 @@ function update() {
     
     if (player.attacking > 0) player.attacking--;
     if (player.invulnerable > 0) player.invulnerable--;
+    if (player.levelUpShield > 0) player.levelUpShield--;
     
     if (player.hpRegen > 0 || player.mpRegen > 0) {
         if (!player.regenTimer) player.regenTimer = 0;
@@ -832,12 +851,21 @@ function update() {
         }
     }
     
-    Object.keys(window.skillCooldowns).forEach(key => {
-        if (window.skillCooldowns[key] > 0) window.skillCooldowns[key]--;
-    });
+    // 技能无冷却
+    // Object.keys(window.skillCooldowns).forEach(key => {
+    //     if (window.skillCooldowns[key] > 0) window.skillCooldowns[key]--;
+    // });
     
-    // 更新Boss技能冷却
-    if (window.boss && window.boss.skillCooldowns) {
+    // 更新所有Boss技能冷却
+    if (window.bosses && window.bosses.length > 0) {
+        window.bosses.forEach(boss => {
+            if (boss && boss.skillCooldowns) {
+                Object.keys(boss.skillCooldowns).forEach(key => {
+                    if (boss.skillCooldowns[key] > 0) boss.skillCooldowns[key]--;
+                });
+            }
+        });
+    } else if (window.boss && window.boss.skillCooldowns) {
         Object.keys(window.boss.skillCooldowns).forEach(key => {
             if (window.boss.skillCooldowns[key] > 0) window.boss.skillCooldowns[key]--;
         });
@@ -961,9 +989,15 @@ function update() {
                 playSound('enemyAttack');
             }
             
+            // 无敌期间不受到伤害，且不覆盖已有的无敌时间
+            if (player.invulnerable > 0) return;
+            
             const dmg = Math.max(1, e.atk - player.def + Math.floor(Math.random() * 3));
             player.hp -= dmg;
-            player.invulnerable = 30;
+            // 只有当没有更长的无敌时间时才设置短暂无敌
+            if (player.invulnerable <= 0) {
+                player.invulnerable = 30;
+            }
             damageFlash = 10;
             spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 8);
             spawnDamageNumber(player.x + player.w/2, player.y, dmg);
@@ -1039,11 +1073,8 @@ function update() {
                     const readySkill = readySkills[Math.floor(Math.random() * readySkills.length)];
                     
                     if (dist < readySkill.range) {
-                        // 临时设置window.boss为当前boss以便技能使用
-                        const originalBoss = window.boss;
-                        window.boss = boss;
-                        bossUseSkill(readySkill);
-                        window.boss = originalBoss;
+                        // 传入boss实例，让它知道发射者
+                        bossUseSkill(readySkill, boss);
                         boss.skillCooldowns[readySkill.id] = readySkill.cd;
                         boss.attackCooldown = 45;
                         return;
@@ -1056,7 +1087,9 @@ function update() {
                 playSound('bossAttack');
                 const dmg = Math.max(1, boss.atk - player.def + Math.floor(Math.random() * 5));
                 player.hp -= dmg;
-                player.invulnerable = 20;
+                if (player.invulnerable <= 0) {
+                    player.invulnerable = 20;
+                }
                 damageFlash = 15;
                 spawnParticles(player.x + player.w/2, player.y + player.h/2, '#f00', 10);
                 spawnDamageNumber(player.x + player.w/2, player.y, dmg);
@@ -1088,28 +1121,42 @@ function update() {
                     player.gold += d.item.value;
                     showMessage(`+${d.item.value} Gold!`);
                 } else if (d.item.type === 'consumable') {
-                    // 药水直接使用
-                    const isHealPotion = d.item.heal > 0;
-                    const isManaPotion = d.item.mp > 0;
-                    
-                    if (isHealPotion) {
-                        player.hp = Math.min(player.maxHp, player.hp + d.item.heal);
-                        spawnDamageNumber(player.x + player.w/2, player.y, d.item.heal, true);
-                        showMessage(`+${d.item.heal} HP!`);
-                        // 生命药水特效 - 红色粒子
-                        spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'heal');
+                    // 检查是否是背包实例
+                    if (d.item.isInstance || d.item.toInventory) {
+                        // 进入背包
+                        player.inventory.push(d.item);
+                        showMessage(`获得 ${d.item.name} (背包)!`);
+                    } else {
+                        // 药水直接使用
+                        const result = window.useConsumable ? window.useConsumable(d.item, player) : null;
+                        
+                        if (result && result.heal) {
+                            spawnDamageNumber(player.x + player.w/2, player.y, result.heal, true);
+                            showMessage(`+${result.heal} HP!`);
+                            spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'heal');
+                        }
+                        if (result && result.mp) {
+                            spawnDamageNumber(player.x + player.w/2, player.y - 15, result.mp, true);
+                            showMessage(`+${result.mp} MP!`);
+                            spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'mana');
+                        }
+                        
+                        // 没有useConsumable函数时的回退
+                        if (!result) {
+                            if (d.item.heal) {
+                                player.hp = Math.min(player.maxHp, player.hp + d.item.heal);
+                                spawnDamageNumber(player.x + player.w/2, player.y, d.item.heal, true);
+                                showMessage(`+${d.item.heal} HP!`);
+                                spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'heal');
+                            }
+                            if (d.item.mp) {
+                                player.mp = Math.min(player.maxMp, player.mp + d.item.mp);
+                                spawnDamageNumber(player.x + player.w/2, player.y - 15, d.item.mp, true);
+                                showMessage(`+${d.item.mp} MP!`);
+                                spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'mana');
+                            }
+                        }
                     }
-                    if (isManaPotion) {
-                        player.mp = Math.min(player.maxMp, player.mp + d.item.mp);
-                        spawnDamageNumber(player.x + player.w/2, player.y - 15, d.item.mp, true);
-                        showMessage(`+${d.item.mp} MP!`);
-                        // 魔法药水特效 - 蓝色粒子
-                        spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'mana');
-                    }
-                } else if (d.item.type === 'consumable_inventory') {
-                    // 药水进入背包
-                    player.inventory.push(d.item);
-                    showMessage(`获得 ${d.item.name} (背包)!`);
                 } else {
                     player.inventory.push(d.item);
                     showMessage(`Got ${d.item.name}!`);
@@ -1126,7 +1173,7 @@ function update() {
     
     enemies = enemies.filter(e => e.hp > 0);
     
-    if (enemies.length === 0 && !window.boss && gameState === 'playing' && !levelTransitioning) {
+    if (enemies.length === 0 && !window.boss && !window.bosses?.length && gameState === 'playing' && !levelTransitioning) {
         levelTransitioning = true;
         showMessage(`Level ${mapLevel} cleared! Next level...`, 180);
         setTimeout(() => {
@@ -1137,6 +1184,8 @@ function update() {
             player.y = 15 * window.TILE;
             cameraX = 0;
             cameraY = 0;
+            player.invulnerable = 300; // 5秒无敌
+            player.levelUpShield = 300;
             levelTransitioning = false;
         }, 1500);
     }
@@ -1237,6 +1286,8 @@ function update() {
                                     player.y = 15 * window.TILE;
                                     cameraX = 0;
                                     cameraY = 0;
+                                    player.invulnerable = 300;
+                                    player.levelUpShield = 300;
                                     levelTransitioning = false;
                                     showMessage(`Level ${mapLevel}!`);
                                 }, 10000);
@@ -1247,14 +1298,19 @@ function update() {
             });
         }
         
-        // Boss投射物击中玩家
+        // Boss投射物击中玩家 - 无论距离，只要在附近即可造成伤害
         if (p.isBoss && player.invulnerable <= 0) {
-            const dx = p.x - (player.x + player.w/2);
-            const dy = p.y - (player.y + player.h/2);
-            if (Math.sqrt(dx*dx + dy*dy) < 20) {
+            const px = player.x + player.w/2;
+            const py = player.y + player.h/2;
+            const dx = p.x - px;
+            const dy = p.y - py;
+            // 增大碰撞范围到30像素，确保近距离也能命中
+            if (Math.sqrt(dx*dx + dy*dy) < p.size + 20) {
                 const dmg = Math.max(1, p.damage - player.def);
                 player.hp -= dmg;
-                player.invulnerable = 15;
+                if (player.invulnerable <= 0) {
+                    player.invulnerable = 15;
+                }
                 damageFlash = 10;
                 spawnParticles(player.x + player.w/2, player.y + player.h/2, p.particleColor || '#f00', 8);
                 spawnDamageNumber(player.x + player.w/2, player.y, dmg);
@@ -1268,10 +1324,43 @@ function update() {
             }
         }
         
+        // Boss投射物不伤害其他Boss（跳过发射者自己）
+        if (p.isBoss) {
+            if (window.bosses && window.bosses.length > 0) {
+                for (const boss of window.bosses) {
+                    if (!boss || boss.hp <= 0) continue;
+                    // 跳过发射者自己
+                    if (p.ownerId && boss.id === p.ownerId) continue;
+                    const bx = boss.x + boss.w/2;
+                    const by = boss.y + boss.h/2;
+                    const dx = p.x - bx;
+                    const dy = p.y - by;
+                    if (Math.sqrt(dx*dx + dy*dy) < p.size + 30) {
+                        hit = true;
+                        break;
+                    }
+                }
+            }
+            // 也不伤害单个boss（跳过发射者）
+            if (!hit && window.boss && window.boss.hp > 0) {
+                if (!p.ownerId || window.boss.id !== p.ownerId) {
+                    const bx = window.boss.x + window.boss.w/2;
+                    const by = window.boss.y + window.boss.h/2;
+                    const dx = p.x - bx;
+                    const dy = p.y - by;
+                    if (Math.sqrt(dx*dx + dy*dy) < p.size + 30) {
+                        hit = true;
+                    }
+                }
+            }
+        }
+        
         return p.life > 0 && !hit;
     });
     
-    if (player.exp >= player.level * 120) {
+    // 升级经验要求：随等级递增
+    const expToLevel = player.level * 100 + player.level * player.level * 20;
+    if (player.exp >= expToLevel) {
         player.level++;
         player.maxHp += 20;
         player.hp = player.maxHp;
@@ -1281,7 +1370,12 @@ function update() {
         player.def += 1;
         player.hpRegen += 0.2;
         player.mpRegen += 0.1;
-        player.invulnerable = 60;
+        // 升级时如果无敌时间小于5秒则延长到5秒
+        if (player.invulnerable < 300) {
+            player.invulnerable = 300;
+        }
+        // 升级金色光罩5秒
+        player.levelUpShield = 300;
         showMessage(`LEVEL UP! Now level ${player.level}! (+HP +MP +ATK +DEF)`);
         playSound('levelup');
     }
@@ -1291,14 +1385,17 @@ function update() {
 function render() {
     const player = window.player;
     
-    if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen) {
-        update();
-    }
+    // update() 已经在 gameLoop() 中调用，这里不再重复调用
     
-    if (damageFlash > 0) {
+    // 检查是否有面板打开
+    const panelOpen = inventoryOpen || characterOpen || shopOpen;
+    
+    if (damageFlash > 0 && !panelOpen) {
         ctx.fillStyle = `rgba(255, 0, 0, ${damageFlash / 30})`;
         ctx.fillRect(0, 0, gameWidth, gameHeight);
         damageFlash--;
+    } else if (panelOpen) {
+        damageFlash = 0;
     }
     
     // 应用摄像机偏移
@@ -1308,8 +1405,8 @@ function render() {
     // 绘制地图
     drawMap(ctx, map, window.TILE, window.MAP_W, window.MAP_H);
     
-    // 绘制掉落物
-    drawDrops(ctx, drops);
+    // 绘制掉落物（面板打开时不动画）
+    drawDrops(ctx, drops, !panelOpen);
     
     // 绘制投射物
     drawProjectiles(ctx, projectiles);
@@ -1342,8 +1439,8 @@ function render() {
     // 恢复摄像机偏移
     ctx.restore();
     
-    // 云层（不应用摄像机偏移，保持在屏幕固定位置）
-    drawClouds(ctx, gameWidth, gameHeight, player);
+    // 云层（不应用摄像机偏移，保持在屏幕固定位置，面板打开时暂停动画）
+    drawClouds(ctx, gameWidth, gameHeight, player, !panelOpen);
     
     if (message) {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
@@ -1422,11 +1519,12 @@ function updateUI() {
     window.playerSkills.forEach((skill, i) => {
         const slot = document.querySelector(`#skills .skill-slot:nth-child(${i + 1})`);
         if (slot) {
-            const cd = window.skillCooldowns[skill.id];
-            const cooldownEl = slot.querySelector('.cooldown');
-            if (cooldownEl) {
-                cooldownEl.style.height = `${(cd / skill.cd) * 100}%`;
-            }
+            // 技能无冷却，不显示
+            // const cd = window.skillCooldowns[skill.id];
+            // const cooldownEl = slot.querySelector('.cooldown');
+            // if (cooldownEl) {
+            //     cooldownEl.style.height = `${(cd / skill.cd) * 100}%`;
+            // }
         }
     });
 }
@@ -1494,7 +1592,7 @@ function attack() {
 
     const px = player.x + player.w/2;
     const py = player.y + player.h/2;
-    const range = 50;
+    const range = 60;
 
     function isTargetInDirection(targetX, targetY) {
         const dx = targetX - px;
@@ -1506,13 +1604,11 @@ function attack() {
         const targetDirY = dy / targetDist;
 
         const dot = dirX * targetDirX + dirY * targetDirY;
-        // 近距离使用更宽松的角度检查（180度范围内都可攻击）
-        if (targetDist < 30) {
-            return dot > -0.5; // 120度范围内
-        }
-        return dot > 0.5; // 远距离保持60度
+        // 简化角度检查：180度范围内都可攻击
+        return dot > -0.3;
     }
     
+    // 攻击范围内的敌人
     enemies.forEach(e => {
         const dx = (e.x + e.w/2) - px;
         const dy = (e.y + e.h/2) - py;
@@ -1536,6 +1632,8 @@ function attack() {
     
     // 攻击所有Boss
     if (window.bosses && window.bosses.length > 0) {
+        // 先处理死亡
+        const deadBosses = [];
         window.bosses.forEach(boss => {
             if (!boss || boss.hp <= 0) return;
             const dx = (boss.x + boss.w/2) - px;
@@ -1549,39 +1647,48 @@ function attack() {
                 spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#f44', 10);
                 spawnDamageNumber(boss.x + boss.w/2, boss.y, dmg);
                 if (boss.hp <= 0) {
-                    player.exp += Math.floor(boss.exp * 1.5);
-                    player.gold += boss.gold;
-                    spawnDrop(boss.x, boss.y, true);
-                    window.discoverEnemy?.(boss.render, boss.name);
-                    showMessage(`BOSS DEFEATED! +${Math.floor(boss.exp * 1.5)} EXP!`);
-                    mapLevel++;
-                    levelTransitioning = true;
-                    
-                    let countdown = 10;
-                    const countdownMsg = setInterval(() => {
-                        showMessage(`Next level in ${countdown}s...`);
-                        countdown--;
-                        if (countdown <= 0) clearInterval(countdownMsg);
-                    }, 1000);
-                    
-                    setTimeout(() => {
-                        generateMap();
-                        spawnEnemies();
-                        player.x = 7 * window.TILE;
-                        player.y = 15 * window.TILE;
-                        cameraX = 0;
-                        cameraY = 0;
-                        levelTransitioning = false;
-                        showMessage(`Level ${mapLevel}!`);
-                    }, 10000);
-                    
-                    // 从 bosses 数组中移除
-                    const idx = window.bosses.indexOf(boss);
-                    if (idx > -1) window.bosses.splice(idx, 1);
-                    window.boss = window.bosses[0] || null;
+                    deadBosses.push(boss);
                 }
             }
         });
+        
+        // 处理死亡的Boss
+        deadBosses.forEach(boss => {
+            player.exp += Math.floor(boss.exp * 1.5);
+            player.gold += boss.gold;
+            spawnDrop(boss.x, boss.y, true);
+            window.discoverEnemy?.(boss.render, boss.name);
+            const idx = window.bosses.indexOf(boss);
+            if (idx > -1) window.bosses.splice(idx, 1);
+        });
+        window.boss = window.bosses[0] || null;
+        
+        // 检查是否所有Boss都死亡
+        if (window.bosses.length === 0 && deadBosses.length > 0 && !levelTransitioning) {
+            showMessage(`ALL BOSSES DEFEATED! +${deadBosses.reduce((s, b) => s + Math.floor(b.exp * 1.5), 0)} EXP!`);
+            mapLevel++;
+            levelTransitioning = true;
+            
+            let countdown = 10;
+            const countdownMsg = setInterval(() => {
+                showMessage(`Next level in ${countdown}s...`);
+                countdown--;
+                if (countdown <= 0) clearInterval(countdownMsg);
+            }, 1000);
+            
+            setTimeout(() => {
+                generateMap();
+                spawnEnemies();
+                player.x = 7 * window.TILE;
+                player.y = 15 * window.TILE;
+                cameraX = 0;
+                cameraY = 0;
+                player.invulnerable = 300; // 5秒无敌
+                player.levelUpShield = 300;
+                levelTransitioning = false;
+                showMessage(`Level ${mapLevel}!`);
+            }, 10000);
+        }
     } else if (window.boss) {
         const dx = (window.boss.x + window.boss.w/2) - px;
         const dy = (window.boss.y + window.boss.h/2) - py;
@@ -1617,6 +1724,7 @@ function attack() {
                     player.y = 15 * window.TILE;
                     cameraX = 0;
                     cameraY = 0;
+                    player.invulnerable = 300; // 5秒无敌
                     levelTransitioning = false;
                     showMessage(`Level ${mapLevel}!`);
                 }, 10000);
@@ -1722,17 +1830,18 @@ function useSkill(index) {
         showMessage('Not enough MP!');
         return;
     }
-    if (window.skillCooldowns[skill.id] > 0) {
-        showMessage('Skill on cooldown!');
-        return;
-    }
+    // 技能无冷却
+    // if (window.skillCooldowns[skill.id] > 0) {
+    //     showMessage('Skill on cooldown!');
+    //     return;
+    // }
 
     // 技能释放方向使用玩家当前朝向（使用 ?? 避免将 0 视为假值）
     let dirX = player.dirX ?? 1;
     let dirY = player.dirY ?? 0;
 
     player.mp -= skill.mp;
-    window.skillCooldowns[skill.id] = skill.cd;
+    // window.skillCooldowns[skill.id] = skill.cd;
     window.discoverSkill?.(skill.id);
     
     const baseX = player.x + player.w/2;
@@ -2021,6 +2130,64 @@ function setupUI() {
         
         // 初始化显示
         window.toggleControlMode();
+    }
+    
+    // 自定义确认弹窗函数
+    window.showConfirm = function(title, message, onConfirm, onCancel) {
+        const confirmEl = document.getElementById('custom-confirm');
+        const titleEl = document.getElementById('confirm-title');
+        const messageEl = document.getElementById('confirm-message');
+        const okBtn = document.getElementById('confirm-ok-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+        
+        if (!confirmEl) return;
+        
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        confirmEl.style.display = 'flex';
+        
+        const cleanup = () => {
+            confirmEl.style.display = 'none';
+            okBtn.onclick = null;
+            cancelBtn.onclick = null;
+        };
+        
+        okBtn.onclick = () => {
+            cleanup();
+            if (onConfirm) onConfirm();
+        };
+        
+        cancelBtn.onclick = () => {
+            cleanup();
+            if (onCancel) onCancel();
+        };
+    };
+    
+    // 清理缓存按钮
+    const clearCacheBtn = document.getElementById('clearCacheBtn');
+    if (clearCacheBtn) {
+        clearCacheBtn.addEventListener('click', async () => {
+            window.showConfirm(
+                '清理缓存',
+                '确定要清理所有缓存数据吗？这将删除所有存档进度！',
+                async () => {
+                    try {
+                        localStorage.clear();
+                        const databases = await indexedDB.databases();
+                        for (const db of databases) {
+                            if (db.name) {
+                                indexedDB.deleteDatabase(db.name);
+                            }
+                        }
+                        showMessage('缓存已清理，请刷新页面！', 120);
+                        setTimeout(() => location.reload(), 2000);
+                    } catch(e) {
+                        console.error('Clear cache error:', e);
+                        showMessage('清理失败: ' + e.message, 60);
+                    }
+                }
+            );
+        });
     }
     
     // 虚拟摇杆逻辑
@@ -2833,6 +3000,9 @@ function recalculateStats() {
     player.maxMp = totalMaxMp;
     player.hpRegen = totalHpRegen;
     player.mpRegen = totalMpRegen;
+    
+    // 装备变化时更新攻击按钮图标
+    refreshAttackButton();
 }
 
 window.onload = initGame;

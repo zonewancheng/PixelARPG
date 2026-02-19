@@ -2,7 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Pixel Hero">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%231a1a2e' width='32' height='32'/%3E%3Ccircle fill='%23ff6' cx='16' cy='18' r='8'/%3E%3Cpath fill='%23f80' d='M12 10h8v4h-8z'/%3E%3Cpath fill='%23f80' d='M14 14h4v6h-4z'/%3E%3Ccircle fill='%23fff' cx='14' cy='16' r='2'/%3E%3Ccircle fill='%23fff' cx='18' cy='16' r='2'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%231a1a2e' width='32' height='32'/%3E%3Ccircle fill='%23ff6' cx='16' cy='18' r='8'/%3E%3Cpath fill='%23f80' d='M12 10h8v4h-8z'/%3E%3Cpath fill='%23f80' d='M14 14h4v6h-4z'/%3E%3Ccircle fill='%23fff' cx='14' cy='16' r='2'/%3E%3Ccircle fill='%23fff' cx='18' cy='16' r='2'/%3E%3C/svg%3E">
     <title>Pixel Hero ARPG</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/panels.css">
@@ -14,18 +22,17 @@
         <div id="ui">
             <div id="player-info">
                 <div class="info-avatar-wrapper">
-                    <button id="characterBtn" class="info-avatar">🧙</button>
+                    <button id="characterBtn" class="info-avatar"><svg viewBox="0 0 24 24" width="24" height="24"><circle fill="%23ff6" cx="12" cy="10" r="8"/><circle fill="%23fff" cx="9" cy="9" r="2"/><circle fill="%23000" cx="9" cy="9" r="1"/><circle fill="%23fff" cx="15" cy="9" r="2"/><circle fill="%23000" cx="15" cy="9" r="1"/><path fill="%23f80" d="M8 14h8v3H8z"/></svg></button>
                     <div class="avatar-ring"></div>
                 </div>
                 <div class="info-content">
                     <div class="info-header">
                         <div class="info-level">
-                            <span class="level-icon">★</span>
-                            <span>Lv.</span>
+                            <span class="level-icon"><svg viewBox="0 0 24 24" width="16" height="16"><circle fill="#ffd700" cx="12" cy="12" r="11"/><circle fill="#ffaa00" cx="12" cy="12" r="8"/><text x="12" y="16" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">Lv</text></svg></span>
                             <span id="level">1</span>
                         </div>
                         <div class="info-gold">
-                            <span class="gold-icon">⬡</span>
+                            <span class="gold-icon"><svg viewBox="0 0 24 24" width="14" height="14"><circle fill="#ffd700" cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" fill="#ff6600" font-size="10" font-weight="bold">G</text></svg></span>
                             <span id="gold">0</span>
                         </div>
                     </div>
@@ -48,8 +55,9 @@
             </div>
             
             <div id="game-buttons">
-                <button id="saveBtn" class="icon-btn" style="display: none;">💾</button>
+                <button id="saveBtn" class="icon-btn" style="display: none;"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg></button>
                 <button id="languageToggle" class="icon-btn" style="display: none;">中</button>
+                <button id="clearCacheBtn" class="icon-btn" title="清理缓存"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="none" stroke="#ff4444" stroke-width="2" d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><rect fill="#ff4444" x="9" y="11" width="6" height="2"/><rect fill="#ff4444" x="10" y="14" width="4" height="2"/></svg></button>
                 <button id="controlModeBtn" class="icon-btn" title="当前模式: 方向键">⬡</button>
             </div>
             
@@ -63,14 +71,14 @@
             <!-- 右上角按钮 -->
             <div id="corner-buttons">
                 <button id="inventoryBtn" class="corner-btn">
-                    <span class="btn-icon">🎒</span>
+                    <span class="btn-icon"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg></span>
                     <span id="eq-count" class="btn-badge"></span>
                 </button>
                 <button id="shopBtn" class="corner-btn">
-                    <span class="btn-icon">🏪</span>
+                    <span class="btn-icon"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M18.36 9l.6 3H5.04l.6-3h12.72M20 4H4v2h16V4zm0 3H4l-1 5v2h1v6h10v-6h4v6h2v-6h1v-2l-1-5zM6 18v-4h6v4H6z"/></svg></span>
                 </button>
                 <button id="bestiaryBtn" class="corner-btn">
-                    <span class="btn-icon">📖</span>
+                    <span class="btn-icon"><svg viewBox="0 0 24 24" width="20" height="20"><rect fill="#d4af37" x="3" y="4" width="9" height="16" rx="1"/><rect fill="#daa520" x="12" y="4" width="9" height="16" rx="1"/><line stroke="#fff" stroke-width="2" x1="4" y1="6" x2="11" y2="6"/><line stroke="#fff" stroke-width="2" x1="13" y1="6" x2="20" y2="6"/></svg></span>
                 </button>
             </div>
             
@@ -102,6 +110,7 @@
     </div>
 
     <script src="js/data/qualities.js"></script>
+    <script src="js/data/consumables.js"></script>
     <script src="js/data/items.js"></script>
     <script src="js/data/skills.js"></script>
     <script src="js/data/enemies.js"></script>
@@ -116,5 +125,17 @@
     <script src="js/ui/bestiary.js"></script>
     <script src="js/renderer.js"></script>
     <script src="js/game.js"></script>
+    
+    <!-- 自定义确认弹窗 -->
+    <div id="custom-confirm" class="custom-confirm-overlay" style="display: none;">
+        <div class="custom-confirm-box">
+            <div class="custom-confirm-title" id="confirm-title">确认</div>
+            <div class="custom-confirm-message" id="confirm-message">确定要执行此操作吗？</div>
+            <div class="custom-confirm-buttons">
+                <button class="custom-confirm-cancel" id="confirm-cancel-btn">取消</button>
+                <button class="custom-confirm-ok" id="confirm-ok-btn">确定</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
