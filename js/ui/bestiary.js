@@ -87,9 +87,7 @@ window.UIBestiary = {
         const grid = container.querySelector('.bestiary-grid');
         
         window.ENEMY_TYPES.forEach(enemy => {
-            const discovered = window.discoveredEnemies?.[enemy.type];
-            const count = discovered?.count || 0;
-            grid.innerHTML += window.RenderUtils.getBestiaryMonsterHtml(enemy, count);
+            grid.innerHTML += window.RenderUtils.getBestiaryMonsterHtml(enemy, 0);
         });
         
         container.appendChild(grid);
@@ -100,9 +98,7 @@ window.UIBestiary = {
         const grid = container.querySelector('.bestiary-grid');
         
         window.BOSS_TYPES.forEach(boss => {
-            const discovered = window.discoveredEnemies?.[boss.type];
-            const count = discovered?.count || 0;
-            grid.innerHTML += window.RenderUtils.getBestiaryMonsterHtml(boss, count);
+            grid.innerHTML += window.RenderUtils.getBestiaryMonsterHtml(boss, 0);
         });
         
         container.appendChild(grid);

@@ -219,7 +219,6 @@ window.RenderUtils = {
      * 获取图鉴怪物卡片的HTML（使用与游戏一致的渲染）
      */
     getBestiaryMonsterHtml: function(enemy, discovered = 0) {
-        const locked = !discovered || discovered === 0;
         const stats = this.getEnemyStatsText(enemy);
         const iconUrl = this.renderMonsterIconUrl(enemy, 32);
         
@@ -229,14 +228,13 @@ window.RenderUtils = {
             skillsHtml = `<div class="bestiary-card-skills">技能: ${skillNames}</div>`;
         }
         
-        return `<div class="bestiary-card ${locked ? 'locked' : ''}">
+        return `<div class="bestiary-card">
             <div class="bestiary-card-icon" style="background:transparent">
                 <img src="${iconUrl}" style="image-rendering:pixelated;width:32px;height:32px;">
             </div>
             <div class="bestiary-card-name" style="color:${enemy.color || '#5f5'}">${enemy.name}</div>
             <div class="bestiary-card-info">${stats}</div>
             ${skillsHtml}
-            <div class="bestiary-card-count">击杀: ${discovered}</div>
         </div>`;
     },
 
@@ -244,16 +242,27 @@ window.RenderUtils = {
      * 获取图鉴技能卡片的HTML
      */
     getBestiarySkillHtml: function(skill, unlocked = false) {
-        const locked = !unlocked;
         const iconUrl = window.renderSkillIcon ? window.renderSkillIcon(skill, 28) : '';
         
-        return `<div class="bestiary-card ${locked ? 'locked' : ''}">
+        // 构建技能计算规则描述
+        let ruleDesc = '';
+        if (skill.damage) {
+            ruleDesc += `伤害系数: ${skill.damage}x `;
+        }
+        if (skill.mp) {
+            ruleDesc += `消耗: ${skill.mp}MP `;
+        }
+        if (skill.cd) {
+            ruleDesc += `冷却: ${Math.floor(skill.cd / 60)}秒`;
+        }
+        
+        return `<div class="bestiary-card">
             <div class="bestiary-card-icon" style="background:transparent">
                 <img src="${iconUrl}" style="image-rendering:pixelated;width:28px;height:28px;">
             </div>
             <div class="bestiary-card-name">${skill.name}</div>
             <div class="bestiary-card-info">${skill.desc || ''}</div>
-            <div class="bestiary-card-count">${unlocked ? '已解锁' : '未解锁'}</div>
+            <div class="bestiary-card-stats">${ruleDesc}</div>
         </div>`;
     },
 
@@ -261,7 +270,6 @@ window.RenderUtils = {
      * 获取图鉴装备卡片的HTML
      */
     getBestiaryEquipmentHtml: function(item, discovered = false) {
-        const locked = !discovered;
         const slotName = window.EQUIPMENT_SLOTS?.[item.type]?.name || item.type;
         const statsText = this.getItemStatsText(item);
         
@@ -272,12 +280,49 @@ window.RenderUtils = {
             iconHtml = `<img src="${imgUrl}" style="image-rendering:pixelated;width:32px;height:32px;">`;
         }
         
-        return `<div class="bestiary-card ${locked ? 'locked' : ''}">
+        // 获取基础属性
+        let baseStat = '';
+        let baseValue = 0;
+        if (item.baseAtk) { baseStat = '攻击'; baseValue = item.baseAtk; }
+        else if (item.baseDef) { baseStat = '防御'; baseValue = item.baseDef; }
+        else if (item.baseMaxHp) { baseStat = '生命'; baseValue = item.baseMaxHp; }
+        else if (item.baseMaxMp) { baseStat = '魔法'; baseValue = item.baseMaxMp; }
+        
+        // 品质倍率
+        const qualityMultipliers = {
+            'common': '1.0x',
+            'uncommon': '1.2x',
+            'rare': '1.5x',
+            'epic': '2.0x',
+            'legendary': '3.0x'
+        };
+        const multiplier = qualityMultipliers[item.quality] || '1.0x';
+        
+        // 属性条数
+        const statCount = item.passiveCount || Math.floor(Math.random() * 5) + 1;
+        
+        // 被动属性范围
+        let passiveRange = '';
+        if (item.atkPercent) passiveRange += `攻击+${item.atkPercent}% `;
+        if (item.defPercent) passiveRange += `防御+${item.defPercent}% `;
+        if (item.hpRegen) passiveRange += `生命恢复+${item.hpRegen} `;
+        if (item.mpRegen) passiveRange += `魔法恢复+${item.mpRegen} `;
+        
+        // 构建详细描述
+        let detailDesc = '';
+        if (baseStat && baseValue) {
+            detailDesc += `Lv1${baseStat}: ${baseValue} `;
+        }
+        detailDesc += `品质倍率: ${multiplier} `;
+        detailDesc += `属性条数: ${statCount}/5`;
+        
+        return `<div class="bestiary-card">
             <div class="bestiary-card-icon" style="background:transparent">${iconHtml}</div>
             <div class="bestiary-card-name" style="color:${item.color || '#fff'}">${item.name}</div>
             <div class="bestiary-card-info">${slotName}</div>
             <div class="bestiary-card-stats">${statsText}</div>
-            <div class="bestiary-card-count">${discovered ? '已发现' : '未发现'}</div>
+            <div class="bestiary-card-count">${detailDesc}</div>
+            ${passiveRange ? `<div class="bestiary-card-passive">${passiveRange}</div>` : ''}
         </div>`;
     },
 

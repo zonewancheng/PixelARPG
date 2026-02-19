@@ -169,10 +169,12 @@ window.UIInventory = {
                 const item = self.getSortedItem(idx);
                 if (item && item.type === 'consumable') {
                     // 消耗品显示确认使用弹窗
-                    const healText = item.heal ? `+${item.heal} HP` : '';
-                    const mpText = item.mp ? `+${item.mp} MP` : '';
+                    const healText = item.heal ? '+' + item.heal + ' HP' : '';
+                    const mpText = item.mp ? '+' + item.mp + ' MP' : '';
+                    const effectText = healText || mpText || '';
                     const originalIndex = window.player.inventory.indexOf(item);
-                    window.showConfirm(`使用 ${item.name}？\n${healText} ${mpText}`, () => {
+                    const message = effectText ? '效果：' + effectText : '';
+                    window.showConfirm('使用道具', '使用 ' + item.name + '？' + (message ? '\n' + message : ''), () => {
                         window.useItem(originalIndex);
                     });
                 } else if (item && item.type && ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'].includes(item.type)) {
@@ -296,7 +298,7 @@ window.UIInventory = {
         // 更新头像
         if (window.updatePlayerAvatar) window.updatePlayerAvatar();
         
-        window.showMessage(`装备 ${item.name}`);
+        window.showMessage('装备 ' + item.name);
         this.render();
     },
     
@@ -309,7 +311,7 @@ window.UIInventory = {
         // 消耗品效果
         if (item.heal) {
             player.hp = Math.min(player.maxHp, player.hp + item.heal);
-            window.showMessage(`恢复 ${item.heal} HP`);
+            window.showMessage('恢复 ' + item.heal + ' HP');
             // 添加生命药水视觉效果
             if (window.spawnPotionEffect) {
                 window.spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'heal');
@@ -321,7 +323,7 @@ window.UIInventory = {
         }
         if (item.mp) {
             player.mp = Math.min(player.maxMp, player.mp + item.mp);
-            window.showMessage(`恢复 ${item.mp} MP`);
+            window.showMessage('恢复 ' + item.mp + ' MP');
             // 添加魔法药水视觉效果
             if (window.spawnPotionEffect) {
                 window.spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'mana');
@@ -349,12 +351,13 @@ window.UIInventory = {
         if (!item) return;
         
         const price = Math.floor((item.price || 10) * 0.5);
+        const message = '出售 ' + item.name + '？\n获得 ' + price + ' 金币';
         
-        window.showConfirm(`出售 ${item.name}？\n获得 ${price} 金币`, () => {
+        window.showConfirm('确认出售', message, () => {
             player.gold += price;
             const idx = player.inventory.indexOf(item);
             if (idx > -1) player.inventory.splice(idx, 1);
-            window.showMessage(`出售 ${item.name}，获得 ${price} 金币`);
+            window.showMessage('出售 ' + item.name + '，获得 ' + price + ' 金币');
             this.render();
         });
     },
@@ -375,8 +378,10 @@ window.UIInventory = {
         
         const totalGold = sellItems.reduce((sum, item) => sum + Math.floor((item.price || 10) * 0.5), 0);
         const qualityName = this.getQualityName(quality);
+        const title = '批量出售';
+        const message = '出售 ' + sellItems.length + ' 件' + qualityName + '装备？\n将获得 ' + totalGold + ' 金币';
         
-        window.showConfirm(`出售 ${sellItems.length} 件${qualityName}装备？\n将获得 ${totalGold} 金币`, () => {
+        window.showConfirm(title, message, () => {
             player.inventory = player.inventory.filter(item => {
                 if (item && item.quality === quality && !equippedUids.has(item.uid)) {
                     player.gold += Math.floor((item.price || 10) * 0.5);
@@ -384,7 +389,7 @@ window.UIInventory = {
                 }
                 return true;
             });
-            window.showMessage(`出售 ${sellItems.length} 件${qualityName}装备，获得 ${totalGold} 金币`);
+            window.showMessage('出售 ' + sellItems.length + ' 件' + qualityName + '装备，获得 ' + totalGold + ' 金币');
             this.render();
         });
     },

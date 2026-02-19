@@ -909,6 +909,15 @@ function drawDrops(ctx, drops, animate = true) {
                 ctx.textAlign = 'center';
                 ctx.fillText(d.item.icon || '💰', d.x, drawY + 16);
             }
+            // 显示金币数量
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffd700';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            const goldValue = d.item.value || 10;
+            ctx.strokeText(goldValue, d.x, drawY - 6);
+            ctx.fillText(goldValue, d.x, drawY - 6);
             return;
         }
         
@@ -916,6 +925,14 @@ function drawDrops(ctx, drops, animate = true) {
         if (window.renderEquipmentIcon && ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'].includes(d.item.type)) {
             const itemCanvas = window.renderEquipmentIcon(d.item, 20);
             ctx.drawImage(itemCanvas, d.x - 10, drawY + 4, 20, 20);
+            // 显示装备名称
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#fff';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.strokeText(d.item.name || '', d.x, drawY - 8);
+            ctx.fillText(d.item.name || '', d.x, drawY - 8);
         } else {
             ctx.font = '24px Arial';
             ctx.textAlign = 'center';

@@ -644,7 +644,7 @@ function spawnDamageNumber(x, y, value, isHeal = false) {
     damageNumbers.push({
         x: x + (Math.random() - 0.5) * 20,
         y: y - 10,
-        value: value,
+        value: Math.floor(value),
         isHeal: isHeal,
         life: 45
     });
@@ -2395,7 +2395,7 @@ function setupUI() {
 
 function restartGame() {
     window.player = createPlayer();
-    window.playerSkills = window.skills.slice(0, 7);
+    window.playerSkills = window.skills.filter(s => !s.passive).slice(0, 7);
     window.skillCooldowns = {};
     window.skills.forEach(s => window.skillCooldowns[s.id] = 0);
     mapLevel = 1;
@@ -2403,7 +2403,11 @@ function restartGame() {
     drops = [];
     particles = [];
     projectiles = [];
+    damageNumbers = [];
     window.boss = null;
+    window.bosses = [];
+    cameraX = 0;
+    cameraY = 0;
     gameState = 'playing';
     damageFlash = 0;
     message = '';
