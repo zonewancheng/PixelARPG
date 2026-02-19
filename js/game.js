@@ -94,38 +94,12 @@ let gameHeight = 640;
 let cameraX = 0;
 let cameraY = 0;
 
-// 窗口大小变化时重置摄像机
+// 窗口大小变化时只更新画布尺寸
 window.addEventListener('resize', () => {
     updateCanvasSize();
-    if (window.initMapSize) {
-        window.initMapSize(gameWidth, gameHeight);
-    }
-    if (window.MAP_W && window.MAP_H && window.TILE) {
-        const mapWidth = window.MAP_W * window.TILE;
-        const mapHeight = window.MAP_H * window.TILE;
-        
-        let targetX = player.x + player.w/2 - gameWidth/2;
-        let targetY = player.y + player.h/2 - gameHeight/2;
-        
-        cameraX = Math.max(0, Math.min(targetX, mapWidth - gameWidth));
-        cameraY = Math.max(0, Math.min(targetY, mapHeight - gameHeight));
-    }
 });
 
-window.addEventListener('orientationchange', () => {
-    setTimeout(() => {
-        updateCanvasSize();
-        if (window.initMapSize) {
-            window.initMapSize(gameWidth, gameHeight);
-        }
-        generateMap();
-        spawnEnemies();
-        player.x = window.player.x;
-        player.y = window.player.y;
-        cameraX = 0;
-        cameraY = 0;
-    }, 200);
-});
+
 
 function updateCanvasSize() {
     const dpr = window.devicePixelRatio || 1;
@@ -136,7 +110,7 @@ function updateCanvasSize() {
     canvas.height = gameHeight * dpr;
     canvas.style.width = gameWidth + 'px';
     canvas.style.height = gameHeight + 'px';
-    ctx.scale(dpr, dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 function updateCamera() {
@@ -145,11 +119,11 @@ function updateCamera() {
     const mapWidth = window.MAP_W * window.TILE;
     const mapHeight = window.MAP_H * window.TILE;
     
-    // 玩家永远在屏幕中心，计算摄像机目标位置
+    // 计算玩家在屏幕中心时的相机位置
     let targetX = player.x + player.w / 2 - gameWidth / 2;
     let targetY = player.y + player.h / 2 - gameHeight / 2;
     
-    // 限制在地图范围内（这样当地图小于屏幕时会自动居中）
+    // 始终限制在有效范围内
     targetX = Math.max(0, Math.min(targetX, mapWidth - gameWidth));
     targetY = Math.max(0, Math.min(targetY, mapHeight - gameHeight));
     
@@ -176,7 +150,7 @@ function initGame() {
     canvas.height = gameHeight * dpr;
     canvas.style.width = gameWidth + 'px';
     canvas.style.height = gameHeight + 'px';
-    ctx.scale(dpr, dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     
     // 根据画布大小自动计算地图参数
     if (window.initMapSize) {
@@ -1388,7 +1362,8 @@ function update() {
 function render() {
     const player = window.player;
     
-    // update() 已经在 gameLoop() 中调用，这里不再重复调用
+    const dpr = window.devicePixelRatio || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     
     // 检查是否有面板打开
     const panelOpen = inventoryOpen || characterOpen || shopOpen;
@@ -1403,7 +1378,17 @@ function render() {
     
     // 应用摄像机偏移
     ctx.save();
-    ctx.translate(-cameraX, -cameraY);
+    
+    // 如果地图小于屏幕，居中显示
+    let offsetX = 0, offsetY = 0;
+    if (window.MAP_W && window.MAP_H && window.TILE) {
+        const mapWidth = window.MAP_W * window.TILE;
+        const mapHeight = window.MAP_H * window.TILE;
+        if (mapWidth < gameWidth) offsetX = (gameWidth - mapWidth) / 2;
+        if (mapHeight < gameHeight) offsetY = (gameHeight - mapHeight) / 2;
+    }
+    
+    ctx.translate(offsetX - cameraX, offsetY - cameraY);
     
     // 绘制地图
     drawMap(ctx, map, window.TILE, window.MAP_W, window.MAP_H);
