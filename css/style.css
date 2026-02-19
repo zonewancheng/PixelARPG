@@ -303,7 +303,7 @@ canvas {
 /* 右上角按钮 */
 #corner-buttons {
     position: absolute;
-    top: 50px;
+    top: 5px;
     right: 8px;
     display: flex;
     flex-direction: column;
@@ -350,7 +350,7 @@ canvas {
 #game-buttons {
     position: absolute;
     top: 8px;
-    right: 8px;
+    right: 60px;
     display: flex;
     flex-direction: row;
     gap: 6px;
