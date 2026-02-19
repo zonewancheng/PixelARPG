@@ -2250,9 +2250,7 @@ function setupUI() {
         keys['ArrowDown'] = false;
         keys['ArrowLeft'] = false;
         keys['ArrowRight'] = false;
-        // 重置玩家朝向为向右
-        window.player.dirX = 1;
-        window.player.dirY = 0;
+        // 不重置玩家朝向，保持最后一次方向
     }
     
     if (joystickArea) {
