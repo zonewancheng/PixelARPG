@@ -1029,7 +1029,7 @@ canvas {
 
 #controls {
     position: absolute;
-    bottom: 60px;
+    bottom: 80px;
     right: 10px;
     pointer-events: auto;
     display: none;
