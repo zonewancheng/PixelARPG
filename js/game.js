@@ -729,21 +729,24 @@ window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
         }
     });
     
-    // 对Boss造成伤害
-    if (window.boss) {
-        const bossCenterX = window.boss.x + window.boss.w / 2;
-        const bossCenterY = window.boss.y + window.boss.h / 2;
-        const bdx = bossCenterX - cloudCenterX;
-        const bdy = bossCenterY - cloudCenterY;
-        const bdist = Math.sqrt(bdx * bdx + bdy * bdy);
-        
-        if (bdist < 80) {
-            const bossDmg = Math.max(1, 20 + Math.floor(Math.random() * 15) - (window.boss.def || 0));
-            window.boss.hp -= bossDmg;
-            spawnParticles(bossCenterX, bossCenterY, '#ff0', 12);
-            spawnDamageNumber(bossCenterX, bossCenterY, bossDmg);
-            hasHit = true;
-        }
+    // 对所有Boss造成伤害
+    if (window.bosses && window.bosses.length > 0) {
+        window.bosses.forEach(boss => {
+            if (!boss || boss.hp <= 0) return;
+            const bossCenterX = boss.x + boss.w / 2;
+            const bossCenterY = boss.y + boss.h / 2;
+            const bdx = bossCenterX - cloudCenterX;
+            const bdy = bossCenterY - cloudCenterY;
+            const bdist = Math.sqrt(bdx * bdx + bdy * bdy);
+            
+            if (bdist < 80) {
+                const bossDmg = Math.max(1, 20 + Math.floor(Math.random() * 15) - (boss.def || 0));
+                boss.hp -= bossDmg;
+                spawnParticles(bossCenterX, bossCenterY, '#ff0', 12);
+                spawnDamageNumber(bossCenterX, bossCenterY, bossDmg);
+                hasHit = true;
+            }
+        });
     }
     
     // 雷电伤害音效
