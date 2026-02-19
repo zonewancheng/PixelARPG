@@ -1595,7 +1595,7 @@ function attack() {
 
     const px = player.x + player.w/2;
     const py = player.y + player.h/2;
-    const range = 60;
+    const range = 80; // 增大攻击范围，与动画匹配
 
     function isTargetInDirection(targetX, targetY) {
         const dx = targetX - px;
@@ -1607,8 +1607,8 @@ function attack() {
         const targetDirY = dy / targetDist;
 
         const dot = dirX * targetDirX + dirY * targetDirY;
-        // 简化角度检查：180度范围内都可攻击
-        return dot > -0.3;
+        // 扩大角度检查：大约240度范围内都可攻击（dot > -0.5）
+        return dot > -0.5;
     }
     
     // 攻击范围内的敌人
@@ -1797,11 +1797,11 @@ function updateSkillFanLayout() {
     // 3,4,5,6向上移动15px
     // 4技能向右上移动15px，5技能向右移动40px
     const layout = [
-        [1, -4, -36],    // 技能2 - 最下方
-        [2, 7, 4],      // 技能3 - 下方
-        [3, 38, 33],    // 技能4 - 向右上15px
-        [4, 80, 35],    // 技能5 - 向右40px
-        [5, 80, 80],    // 技能6 - 最上方
+        [1, 10, -88],    // 技能2 - 最下方
+        [2, 35, 4],      // 技能3 - 下方
+        [3, 128, 33],    // 技能4 - 向右上15px
+        [4, -80, -88],    // 技能5 - 向右40px
+        [5, 128, 125],    // 技能6 - 最上方
     ];
     
     layout.forEach(([idx, ox, oy]) => {
@@ -1937,10 +1937,19 @@ function refreshAttackButton() {
     const attackBtn = document.getElementById('attack');
     
     const weapon = window.player.weapon;
+    const joyWeaponIcon = weapon && window.renderEquipmentIcon ? (() => {
+        try {
+            const canvas = window.renderEquipmentIcon(weapon, 56);
+            return `<img src="${canvas.toDataURL()}" style="image-rendering:pixelated;width:56px;height:56px;">`;
+        } catch(e) {
+            console.error('Render weapon icon error:', e);
+            return weapon.icon || '⚔️';
+        }
+    })() : '⚔️';
     const weaponIcon = weapon && window.renderEquipmentIcon ? (() => {
         try {
-            const canvas = window.renderEquipmentIcon(weapon, 36);
-            return `<img src="${canvas.toDataURL()}" style="image-rendering:pixelated;width:36px;height:36px;">`;
+            const canvas = window.renderEquipmentIcon(weapon, 28);
+            return `<img src="${canvas.toDataURL()}" style="image-rendering:pixelated;width:28px;height:28px;">`;
         } catch(e) {
             console.error('Render weapon icon error:', e);
             return weapon.icon || '⚔️';
@@ -1948,7 +1957,7 @@ function refreshAttackButton() {
     })() : '⚔️';
     
     if (joystickAttack) {
-        joystickAttack.innerHTML = weaponIcon;
+        joystickAttack.innerHTML = joyWeaponIcon;
     }
     if (attackBtn) {
         attackBtn.innerHTML = weaponIcon;
@@ -1966,11 +1975,11 @@ function setupUI() {
         slot.dataset.skillIndex = i + 1;
         let iconHtml = skill.icon;
         if (window.renderSkillIcon) {
-            const iconUrl = window.renderSkillIcon(skill, 28);
-            iconHtml = `<img src="${iconUrl}" style="image-rendering:pixelated;width:28px;height:28px;">`;
+            const iconUrl = window.renderSkillIcon(skill, 56);
+            iconHtml = `<img src="${iconUrl}" style="image-rendering:pixelated;width:56px;height:56px;">`;
         }
+        // <span class="hotkey">${i + 2}</span>
         slot.innerHTML = `
-            <span class="hotkey">${i + 2}</span>
             ${iconHtml}
             <div class="cooldown"></div>
         `;
@@ -1984,9 +1993,9 @@ function setupUI() {
         const weapon = window.player.weapon;
         if (weapon && window.renderEquipmentIcon) {
             try {
-                const canvas = window.renderEquipmentIcon(weapon, 36);
+                const canvas = window.renderEquipmentIcon(weapon, 28);
                 const iconUrl = canvas.toDataURL();
-                joystickAttack.innerHTML = `<img src="${iconUrl}" style="image-rendering:pixelated;width:36px;height:36px;">`;
+                joystickAttack.innerHTML = `<img src="${iconUrl}" style="image-rendering:pixelated;width:28px;height:28px;">`;
             } catch(e) {
                 console.error('Render weapon icon error:', e);
                 joystickAttack.textContent = weapon.icon || '⚔️';
@@ -2008,9 +2017,9 @@ function setupUI() {
     if (window.renderPlayerIcon) {
         const avatarBtn = document.getElementById('characterBtn');
         if (avatarBtn) {
-            const canvas = window.renderPlayerIcon(window.player, 40);
+            const canvas = window.renderPlayerIcon(window.player, 56);
             const imgUrl = canvas.toDataURL();
-            avatarBtn.innerHTML = `<img src="${imgUrl}" style="image-rendering:pixelated;width:40px;height:40px;">`;
+            avatarBtn.innerHTML = `<img src="${imgUrl}" style="image-rendering:pixelated;width:56px;height:56px;">`;
         }
     }
     
