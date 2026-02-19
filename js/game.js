@@ -1551,11 +1551,16 @@ function setupInput() {
         if (keys['ArrowRight'] || keys['d']) dx = 1;
         
         if (dx !== 0 || dy !== 0) {
-            player.dirX = dx;
-            player.dirY = dy;
+            // 归一化方向向量，确保对角线移动速度一致
+            const len = Math.sqrt(dx * dx + dy * dy);
+            const normDx = dx / len;
+            const normDy = dy / len;
             
-            const nx = player.x + dx * 3;
-            const ny = player.y + dy * 3;
+            player.dirX = normDx;
+            player.dirY = normDy;
+            
+            const nx = player.x + normDx * 3;
+            const ny = player.y + normDy * 3;
             
             const tx = Math.floor((nx + 10) / window.TILE);
             const ty = Math.floor((ny + 10) / window.TILE);

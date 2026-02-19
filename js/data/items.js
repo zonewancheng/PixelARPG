@@ -463,19 +463,32 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
         ctx.save();
         ctx.translate(wx, wy);
 
-        // 如果正在攻击，添加挥舞效果
+        // 获取玩家朝向角度
+        const player = window.player;
+        let dirX = player?.dirX ?? 1;
+        let dirY = player?.dirY ?? 0;
+        let baseAngle = Math.atan2(dirY, dirX);
+
+        // 如果正在攻击，武器跟随月牙动画挥舞
         if (isAttacking && attackProgress > 0) {
-            const swingAngle = Math.sin(attackProgress * Math.PI) * Math.PI * 0.5;
-            ctx.rotate(Math.PI + swingAngle);
+            // 月牙从 attackAngle - attackArc/2 扫到 attackAngle + attackArc/2
+            const attackArc = Math.PI * 2 / 3; // 120度
+            const swingAngle = baseAngle - attackArc/2 + attackProgress * attackArc;
+            ctx.rotate(swingAngle);
         } else {
-            ctx.rotate(Math.PI); // 垂直朝下
+            console.log(baseAngle);
+            if(baseAngle >= Math.PI/2 && baseAngle <= Math.PI) {
+                // ctx.translate(-100*wSize, wSize); // 武器稍微偏上，靠近手部位置
+                ctx.rotate(baseAngle + Math.PI/2) // 武器尖尖朝向玩家朝向
+            }else {
+                // ctx.translate(wSize * 0.15, wSize * 0.1); // 武器稍微偏上，靠近手部位置
+                // ctx.rotate(baseAngle - Math.PI/2); // 武器尖尖朝向玩家朝向
+            }
         }
 
-        // 移除发光效果
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1.0;
 
-        // 绘制武器（移除描边）
         ctx.drawImage(wCanvas, -wSize/2, -wSize/2);
 
         ctx.restore();
