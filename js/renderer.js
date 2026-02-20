@@ -1353,11 +1353,11 @@ function drawEnemies(ctx, enemies, drawPixelSpriteFn) {
             drawPixelSpriteFn(ctx, e.x, e.y + breathe, e.w, e.h, color, e.render || e.type, window.player);
         }
         
-        // 敌人名称显示
+        // 敌人名称显示 - 橘色
         if (e.name) {
             ctx.font = 'bold 11px Arial';
             ctx.textAlign = 'center';
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = '#ff8c00';
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 2;
             ctx.strokeText(e.name, e.x + e.w / 2, e.y - 14);
@@ -1471,11 +1471,11 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
         ctx.textBaseline = 'alphabetic';
     }
     
-    // Boss名称显示
+    // Boss名称显示 - 红色
     if (boss.name) {
         ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#e63946';
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 3;
         ctx.strokeText(boss.name, boss.x + boss.w / 2, boss.y - 24);
