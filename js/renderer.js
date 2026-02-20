@@ -925,10 +925,19 @@ function drawDrops(ctx, drops, animate = true) {
         if (window.renderEquipmentIcon && ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'].includes(d.item.type)) {
             const itemCanvas = window.renderEquipmentIcon(d.item, 20);
             ctx.drawImage(itemCanvas, d.x - 10, drawY + 4, 20, 20);
-            // 显示装备名称
+            // 显示装备名称 - 根据品质显示颜色
             ctx.font = 'bold 10px Arial';
             ctx.textAlign = 'center';
-            ctx.fillStyle = '#fff';
+            // 品质颜色
+            const qualityColors = {
+                'common': '#fff',
+                'uncommon': '#5f5',
+                'rare': '#66f',
+                'epic': '#d5f',
+                'legendary': '#fd5'
+            };
+            const qualityColor = qualityColors[d.item.quality] || '#fff';
+            ctx.fillStyle = qualityColor;
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 2;
             ctx.strokeText(d.item.name || '', d.x, drawY - 8);
