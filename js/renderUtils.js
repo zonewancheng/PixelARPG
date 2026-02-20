@@ -77,7 +77,9 @@ window.RenderUtils = {
 
         const legendaryClass = item.quality === 'legendary' ? 'legendary' : '';
         const equippedClass = isEquipped ? 'equipped' : '';
-        const borderColor = item.color || '#888';
+        // 只有装备类物品才显示彩色边框
+        const equipmentTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
+        const borderColor = equipmentTypes.includes(item.type) ? (item.color || '#888') : '#888';
         const tooltip = this.getItemTooltip(item, { isEquipped, slotName: options.slotName });
         
         // 使用像素渲染

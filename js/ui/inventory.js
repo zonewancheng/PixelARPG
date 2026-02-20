@@ -47,7 +47,9 @@ window.UIInventory = {
                 slotClass = 'empty';
             }
             
-            const borderColor = item?.color || 'rgba(80, 100, 140, 0.2)';
+            // 只有装备类物品才显示彩色边框，药水等消耗品使用默认边框
+            const equipmentTypes = ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'];
+            const borderColor = item && equipmentTypes.includes(item.type) ? (item.color || 'rgba(80, 100, 140, 0.2)') : 'rgba(80, 100, 140, 0.2)';
             const tooltip = item ? window.RenderUtils.getItemTooltip(item, { isEquipped }) : '';
             
             let iconHtml = item ? item.icon : '';
@@ -64,7 +66,7 @@ window.UIInventory = {
                 data-index="${i}" 
                 data-item-id="${item?.id || ''}"
                 data-quality="${item?.quality || ''}"
-                style="border-color:${item?.color || 'rgba(80, 100, 140, 0.2)'}"
+                style="border-color:${borderColor}"
                 title="${tooltip}">
                 ${iconHtml}
                 ${qtyBadge}

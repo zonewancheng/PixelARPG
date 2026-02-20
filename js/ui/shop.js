@@ -201,6 +201,7 @@ window.UIShop = {
         }, 0);
         
         window.showConfirm?.(
+            '出售装备',
             `确定要出售 ${sellItems.length} 件装备吗？\n预计获得 ${totalGold} 金币`,
             () => {
                 player.gold += totalGold;

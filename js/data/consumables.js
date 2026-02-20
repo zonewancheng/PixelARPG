@@ -13,7 +13,8 @@ window.CONSUMABLES = [
         value: 10,
         desc: '游戏货币',
         color: '#ffd700',
-        rarity: 'common'
+        quality: 'common',
+        qualityName: '普通'
     },
     {
         id: 'potion',
@@ -25,7 +26,8 @@ window.CONSUMABLES = [
         price: 20,
         desc: '恢复30点生命值',
         color: '#ff6666',
-        rarity: 'common'
+        quality: 'common',
+        qualityName: '普通'
     },
     {
         id: 'potion2',
@@ -37,7 +39,8 @@ window.CONSUMABLES = [
         price: 50,
         desc: '恢复80点生命值',
         color: '#ff4444',
-        rarity: 'rare'
+        quality: 'rare',
+        qualityName: '稀有'
     },
     {
         id: 'mpotion',
@@ -49,7 +52,8 @@ window.CONSUMABLES = [
         price: 15,
         desc: '恢复20点魔法值',
         color: '#6688ff',
-        rarity: 'common'
+        quality: 'common',
+        qualityName: '普通'
     },
     {
         id: 'mpotion2',
@@ -61,7 +65,8 @@ window.CONSUMABLES = [
         price: 40,
         desc: '恢复50点魔法值',
         color: '#4466ff',
-        rarity: 'rare'
+        quality: 'rare',
+        qualityName: '稀有'
     }
 ];
 
