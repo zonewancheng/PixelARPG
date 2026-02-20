@@ -55,19 +55,26 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     const time = Date.now() / 1000;
     const breathe = Math.sin(time * 2) * 1.5;
     
-    // 原神风格角色基础设计
-    // 皮肤颜色
-    const skinColor = '#fdb';
-    const skinShadow = '#eaa';
+    // ========== 精致动漫风格配色 ==========
+    // 皮肤 - 红润透亮的肤色
+    const skinColor = '#ffe4d0';
+    const skinShadow = '#f5c4a8';
+    const skinHighlight = '#fff0e8';
     
-    // 头发颜色（深棕色，类似旅行者）
-    const hairColor = '#654';
-    const hairHighlight = '#875';
+    // 头发 - 金色阳光感
+    const hairColor = '#f4c542';
+    const hairHighlight = '#ffe066';
+    const hairShadow = '#d4a012';
     
-    // 衣服基础色
-    const clothesColor = '#567';
-    const clothesDark = '#456';
-    const clothesLight = '#789';
+    // 衣服 - 鲜艳的蓝色披风风格
+    const clothesColor = '#4a9eff';
+    const clothesDark = '#2070cc';
+    const clothesLight = '#7ac0ff';
+    const clothesAccent = '#ffd700'; // 金色装饰
+    
+    // 眼睛 - 明亮的青绿色
+    const eyeColor = '#40d0b0';
+    const eyeHighlight = '#60ffe0';
     
     // ========== 计算武器位置（用于层级判断）==========
     let weaponBehind = false;
@@ -105,15 +112,33 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
         drawWeapon(ctx, weaponX, weaponY, weaponCanvas, weaponSize, player.weapon.color, player.attacking > 0, player.attacking ? (20 - player.attacking) / 20 : 0);
     }
     
-    // ========== 头部（动漫风格）==========
+    // ========== 头部（精致动漫风格）==========
     
-    // 脸部基础
+    // 头发 - 后层（带阴影）
+    ctx.fillStyle = hairShadow;
+    ctx.beginPath();
+    ctx.arc(cx, y + h*0.16, w*0.21, Math.PI, 0);
+    ctx.lineTo(x + w*0.87, y + h*0.26);
+    ctx.lineTo(x + w*0.13, y + h*0.26);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 脸部基础（带轮廓）
     ctx.fillStyle = skinColor;
+    ctx.strokeStyle = skinShadow;
+    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(cx, y + h*0.18, w*0.18, 0, Math.PI*2);
     ctx.fill();
+    ctx.stroke();
     
-    // 头发 - 后层
+    // 脸部高光
+    ctx.fillStyle = skinHighlight;
+    ctx.beginPath();
+    ctx.ellipse(cx - 3, y + h*0.14, w*0.06, h*0.04, -0.3, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 头发 - 后层主体
     ctx.fillStyle = hairColor;
     ctx.beginPath();
     ctx.arc(cx, y + h*0.15, w*0.2, Math.PI, 0);
@@ -122,27 +147,29 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     ctx.closePath();
     ctx.fill();
     
-    // 头发 - 前刘海
+    // 头发 - 前刘海（更飘逸的设计）
+    ctx.fillStyle = hairColor;
     ctx.beginPath();
-    ctx.moveTo(x + w*0.2, y + h*0.08);
-    ctx.quadraticCurveTo(x + w*0.35, y + h*0.15, x + w*0.4, y + h*0.12);
-    ctx.quadraticCurveTo(x + w*0.5, y + h*0.18, x + w*0.6, y + h*0.12);
-    ctx.quadraticCurveTo(x + w*0.65, y + h*0.15, x + w*0.8, y + h*0.08);
-    ctx.lineTo(x + w*0.75, y + h*0.03);
-    ctx.quadraticCurveTo(cx, y - h*0.02, x + w*0.25, y + h*0.03);
+    ctx.moveTo(x + w*0.18, y + h*0.06);
+    ctx.quadraticCurveTo(x + w*0.28, y + h*0.14, x + w*0.35, y + h*0.1);
+    ctx.quadraticCurveTo(x + w*0.45, y + h*0.16, x + w*0.5, y + h*0.1);
+    ctx.quadraticCurveTo(x + w*0.55, y + h*0.16, x + w*0.65, y + h*0.1);
+    ctx.quadraticCurveTo(x + w*0.72, y + h*0.14, x + w*0.82, y + h*0.06);
+    ctx.lineTo(x + w*0.78, y - h*0.01);
+    ctx.quadraticCurveTo(cx, y - h*0.04, x + w*0.22, y - h*0.01);
     ctx.closePath();
     ctx.fill();
     
-    // 头发高光
+    // 头发高光（更明亮）
     ctx.fillStyle = hairHighlight;
     ctx.beginPath();
-    ctx.ellipse(x + w*0.35, y + h*0.08, w*0.04, h*0.03, -0.3, 0, Math.PI*2);
+    ctx.ellipse(x + w*0.32, y + h*0.06, w*0.05, h*0.035, -0.4, 0, Math.PI*2);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(x + w*0.55, y + h*0.1, w*0.03, h*0.02, 0.3, 0, Math.PI*2);
+    ctx.ellipse(x + w*0.58, y + h*0.08, w*0.04, h*0.025, 0.3, 0, Math.PI*2);
     ctx.fill();
     
-    // 眼睛 - 动漫风格大眼睛
+    // 眼睛 - 精致动漫风格
     const eyeY = y + h*0.2;
     const leftEyeX = x + w*0.38;
     const rightEyeX = x + w*0.62;
@@ -150,104 +177,169 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     // 眼白
     ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.ellipse(leftEyeX, eyeY, w*0.05, h*0.06, 0, 0, Math.PI*2);
-    ctx.ellipse(rightEyeX, eyeY, w*0.05, h*0.06, 0, 0, Math.PI*2);
+    ctx.ellipse(leftEyeX, eyeY, w*0.055, h*0.065, 0, 0, Math.PI*2);
+    ctx.ellipse(rightEyeX, eyeY, w*0.055, h*0.065, 0, 0, Math.PI*2);
     ctx.fill();
     
-    // 眼珠（青色，类似风元素）
-    ctx.fillStyle = '#0aa';
+    // 眼珠（明亮的青绿色，带渐变效果）
+    const eyeGrad = ctx.createRadialGradient(
+        leftEyeX + (dir > 0 ? 1 : -1), eyeY, 0,
+        leftEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.04
+    );
+    eyeGrad.addColorStop(0, eyeHighlight);
+    eyeGrad.addColorStop(0.7, eyeColor);
+    eyeGrad.addColorStop(1, '#208878');
+    
+    ctx.fillStyle = eyeGrad;
     ctx.beginPath();
-    ctx.arc(leftEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.035, 0, Math.PI*2);
-    ctx.arc(rightEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.035, 0, Math.PI*2);
+    ctx.arc(leftEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.038, 0, Math.PI*2);
+    ctx.arc(rightEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.038, 0, Math.PI*2);
     ctx.fill();
     
-    // 眼睛高光
+    // 眼睛高光（更明亮）
     ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.arc(leftEyeX + (dir > 0 ? 2 : 0), eyeY - 1, w*0.015, 0, Math.PI*2);
-    ctx.arc(rightEyeX + (dir > 0 ? 2 : 0), eyeY - 1, w*0.015, 0, Math.PI*2);
+    ctx.arc(leftEyeX + (dir > 0 ? 2 : 0), eyeY - 1.5, w*0.018, 0, Math.PI*2);
+    ctx.arc(rightEyeX + (dir > 0 ? 2 : 0), eyeY - 1.5, w*0.018, 0, Math.PI*2);
+    ctx.fill();
+    // 小高光点
+    ctx.beginPath();
+    ctx.arc(leftEyeX + (dir > 0 ? -1 : 3), eyeY + 1, w*0.008, 0, Math.PI*2);
+    ctx.arc(rightEyeX + (dir > 0 ? -1 : 3), eyeY + 1, w*0.008, 0, Math.PI*2);
     ctx.fill();
     
-    // 眉毛
-    ctx.strokeStyle = hairColor;
+    // 眉毛（更自然）
+    ctx.strokeStyle = hairShadow;
     ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(leftEyeX - 3, eyeY - 6);
-    ctx.lineTo(leftEyeX + 3, eyeY - 7);
-    ctx.moveTo(rightEyeX - 3, eyeY - 7);
-    ctx.lineTo(rightEyeX + 3, eyeY - 6);
+    ctx.moveTo(leftEyeX - 4, eyeY - 7);
+    ctx.quadraticCurveTo(leftEyeX, eyeY - 8, leftEyeX + 3, eyeY - 6);
+    ctx.moveTo(rightEyeX - 3, eyeY - 6);
+    ctx.quadraticCurveTo(rightEyeX, eyeY - 8, rightEyeX + 4, eyeY - 7);
     ctx.stroke();
     
-    // 鼻子
+    // 鼻子（小巧精致）
     ctx.fillStyle = skinShadow;
     ctx.beginPath();
-    ctx.arc(cx, y + h*0.23, 1, 0, Math.PI*2);
+    ctx.ellipse(cx, y + h*0.24, 1.5, 1, 0, 0, Math.PI*2);
     ctx.fill();
     
-    // 嘴巴（微笑）
-    ctx.strokeStyle = '#c99';
-    ctx.lineWidth = 1.5;
+    // 嘴巴（可爱微笑）
+    ctx.fillStyle = '#ffb5b5';
     ctx.beginPath();
-    ctx.arc(cx, y + h*0.26, 3, 0.2, Math.PI - 0.2);
-    ctx.stroke();
+    ctx.arc(cx, y + h*0.27, 2.5, 0.1, Math.PI - 0.1);
+    ctx.fill();
+    // 嘴巴高光
+    ctx.fillStyle = '#ffd0d0';
+    ctx.beginPath();
+    ctx.ellipse(cx - 1, y + h*0.265, 1, 0.5, 0, 0, Math.PI*2);
+    ctx.fill();
     
-    // 耳朵
+    // 腮红
+    ctx.fillStyle = 'rgba(255, 150, 150, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(leftEyeX - 4, eyeY + 4, 3, 2, 0, 0, Math.PI*2);
+    ctx.ellipse(rightEyeX + 4, eyeY + 4, 3, 2, 0, 0, Math.PI*2);
+    ctx.fill();
+    
+    // 耳朵（带轮廓）
     ctx.fillStyle = skinColor;
+    ctx.strokeStyle = skinShadow;
+    ctx.lineWidth = 0.5;
     ctx.beginPath();
     ctx.ellipse(x + w*0.22, y + h*0.2, w*0.03, h*0.05, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
     ctx.ellipse(x + w*0.78, y + h*0.2, w*0.03, h*0.05, 0, 0, Math.PI*2);
     ctx.fill();
+    ctx.stroke();
     
-    // ========== 身体 ==========
+    // ========== 身体（鲜艳配色）==========
     
     // 脖子
     ctx.fillStyle = skinColor;
     ctx.fillRect(cx - 3, y + h*0.3, 6, h*0.05);
     
-    // 基础衣服（高领设计）
-    ctx.fillStyle = clothesColor;
+    // 衣服高领（金色装饰）
+    ctx.fillStyle = clothesAccent;
     ctx.beginPath();
-    ctx.moveTo(cx - 8, y + h*0.35);
-    ctx.lineTo(cx + 8, y + h*0.35);
-    ctx.lineTo(cx + 10, y + h*0.45);
-    ctx.lineTo(cx - 10, y + h*0.45);
+    ctx.moveTo(cx - 9, y + h*0.33);
+    ctx.lineTo(cx + 9, y + h*0.33);
+    ctx.lineTo(cx + 8, y + h*0.36);
+    ctx.lineTo(cx - 8, y + h*0.36);
     ctx.closePath();
     ctx.fill();
     
-    // 衣服装饰线条
+    // 基础衣服（披风领口）
+    ctx.fillStyle = clothesColor;
+    ctx.strokeStyle = clothesDark;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - 8, y + h*0.36);
+    ctx.lineTo(cx + 8, y + h*0.36);
+    ctx.lineTo(cx + 12, y + h*0.48);
+    ctx.lineTo(cx - 12, y + h*0.48);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // 衣服装饰线条（金色）
+    ctx.fillStyle = clothesAccent;
+    ctx.fillRect(cx - 2, y + h*0.37, 4, h*0.08);
+    
+    // 身体主体（鲜艳蓝色披风）
+    ctx.fillStyle = clothesColor;
+    ctx.strokeStyle = clothesDark;
+    ctx.beginPath();
+    ctx.moveTo(cx - 12, y + h*0.48 + breathe * 0.3);
+    ctx.lineTo(cx + 12, y + h*0.48 + breathe * 0.3);
+    ctx.lineTo(cx + 14, y + h*0.72 + breathe * 0.2);
+    ctx.lineTo(cx - 14, y + h*0.72 + breathe * 0.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // 衣服高光
     ctx.fillStyle = clothesLight;
-    ctx.fillRect(cx - 2, y + h*0.36, 4, h*0.08);
-    
-    // 身体主体
-    ctx.fillStyle = clothesColor;
+    ctx.globalAlpha = 0.5;
     ctx.beginPath();
-    ctx.moveTo(cx - 10, y + h*0.45 + breathe * 0.3);
-    ctx.lineTo(cx + 10, y + h*0.45 + breathe * 0.3);
-    ctx.lineTo(cx + 12, y + h*0.7 + breathe * 0.2);
-    ctx.lineTo(cx - 12, y + h*0.7 + breathe * 0.2);
+    ctx.moveTo(cx - 6, y + h*0.5 + breathe * 0.3);
+    ctx.lineTo(cx + 6, y + h*0.5 + breathe * 0.3);
+    ctx.lineTo(cx + 8, y + h*0.65 + breathe * 0.2);
+    ctx.lineTo(cx - 8, y + h*0.65 + breathe * 0.2);
     ctx.closePath();
     ctx.fill();
+    ctx.globalAlpha = 1;
     
     // 衣服阴影/褶皱
     ctx.fillStyle = clothesDark;
     ctx.beginPath();
-    ctx.moveTo(cx - 8, y + h*0.5 + breathe * 0.3);
-    ctx.lineTo(cx - 6, y + h*0.65 + breathe * 0.2);
-    ctx.lineTo(cx - 10, y + h*0.68 + breathe * 0.2);
+    ctx.moveTo(cx - 10, y + h*0.52 + breathe * 0.3);
+    ctx.lineTo(cx - 8, y + h*0.68 + breathe * 0.2);
+    ctx.lineTo(cx - 12, y + h*0.7 + breathe * 0.2);
     ctx.closePath();
     ctx.fill();
     ctx.beginPath();
-    ctx.moveTo(cx + 8, y + h*0.5 + breathe * 0.3);
-    ctx.lineTo(cx + 6, y + h*0.65 + breathe * 0.2);
-    ctx.lineTo(cx + 10, y + h*0.68 + breathe * 0.2);
+    ctx.moveTo(cx + 10, y + h*0.52 + breathe * 0.3);
+    ctx.lineTo(cx + 8, y + h*0.68 + breathe * 0.2);
+    ctx.lineTo(cx + 12, y + h*0.7 + breathe * 0.2);
     ctx.closePath();
     ctx.fill();
     
-    // 腰带
-    ctx.fillStyle = '#432';
-    ctx.fillRect(cx - 11, y + h*0.68 + breathe * 0.2, 22, h*0.04);
-    ctx.fillStyle = '#ca8';
-    ctx.fillRect(cx - 3, y + h*0.69 + breathe * 0.2, 6, h*0.02);
+    // 腰带（精致的皮带）
+    ctx.fillStyle = '#8b4513';
+    ctx.fillRect(cx - 13, y + h*0.7 + breathe * 0.2, 26, h*0.04);
+    // 腰带扣（金色）
+    ctx.fillStyle = clothesAccent;
+    ctx.beginPath();
+    ctx.arc(cx, y + h*0.72 + breathe * 0.2, 3, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#b8860b';
+    ctx.beginPath();
+    ctx.arc(cx, y + h*0.72 + breathe * 0.2, 1.5, 0, Math.PI*2);
+    ctx.fill();
     
     // 根据 armor 渲染护甲（叠加在基础衣服上）
     if (player.armor && window.renderEquipmentIcon) {
@@ -271,25 +363,33 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
         ctx.restore();
     }
     
-    // ========== 手臂 ==========
+    // ========== 手臂（更精致）==========
     
     // 左臂
     ctx.fillStyle = skinColor;
+    ctx.strokeStyle = skinShadow;
+    ctx.lineWidth = 0.5;
     ctx.beginPath();
-    ctx.ellipse(x + w*0.15, y + h*0.5, w*0.04, h*0.12, -0.2, 0, Math.PI*2);
+    ctx.ellipse(x + w*0.14, y + h*0.52, w*0.045, h*0.12, -0.2, 0, Math.PI*2);
     ctx.fill();
+    ctx.stroke();
     
     // 右臂
     ctx.beginPath();
-    ctx.ellipse(x + w*0.85, y + h*0.5, w*0.04, h*0.12, 0.2, 0, Math.PI*2);
+    ctx.ellipse(x + w*0.86, y + h*0.52, w*0.045, h*0.12, 0.2, 0, Math.PI*2);
     ctx.fill();
+    ctx.stroke();
     
-    // 手套/护腕
-    ctx.fillStyle = clothesDark;
-    ctx.fillRect(x + w*0.1, y + h*0.58, w*0.08, h*0.06);
-    ctx.fillRect(x + w*0.82, y + h*0.58, w*0.08, h*0.06);
+    // 手套/护腕（蓝色配金色装饰）
+    ctx.fillStyle = clothesColor;
+    ctx.fillRect(x + w*0.09, y + h*0.6, w*0.1, h*0.06);
+    ctx.fillRect(x + w*0.81, y + h*0.6, w*0.1, h*0.06);
+    // 金色装饰
+    ctx.fillStyle = clothesAccent;
+    ctx.fillRect(x + w*0.11, y + h*0.62, w*0.06, h*0.02);
+    ctx.fillRect(x + w*0.83, y + h*0.62, w*0.06, h*0.02);
     
-    // ========== 腿部 ==========
+    // ========== 腿部（精致配色）==========
     
     // 判断是否在移动
     const isMoving = (dir !== 0) || (keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'] || keys['w'] || keys['s'] || keys['a'] || keys['d']);
@@ -298,38 +398,47 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     let leftLegAngle = 0;
     let rightLegAngle = 0;
     if (isMoving) {
-        const legSwing = Math.sin(time * 12) * 0.2; // 旋转角度 ±0.2弧度
+        const legSwing = Math.sin(time * 12) * 0.2;
         leftLegAngle = legSwing;
         rightLegAngle = -legSwing;
     }
     
+    // 裤子颜色 - 深蓝色
+    const pantsColor = '#2a4a7a';
+    const pantsLight = '#3a5a8a';
+    const pantsDark = '#1a3a5a';
+    
     // 裤子 - 左腿（带旋转动画）
-    ctx.fillStyle = '#345';
+    ctx.fillStyle = pantsColor;
+    ctx.strokeStyle = pantsDark;
+    ctx.lineWidth = 0.5;
     ctx.save();
     ctx.translate(x + w*0.34, y + h*0.82);
     ctx.rotate(leftLegAngle);
-    ctx.fillRect(-w*0.09, -h*0.1, w*0.18, h*0.2);
+    ctx.fillRect(-w*0.1, -h*0.1, w*0.2, h*0.2);
+    ctx.strokeRect(-w*0.1, -h*0.1, w*0.2, h*0.2);
     ctx.restore();
     
     // 裤子 - 右腿（带旋转动画）
     ctx.save();
     ctx.translate(x + w*0.66, y + h*0.82);
     ctx.rotate(rightLegAngle);
-    ctx.fillRect(-w*0.09, -h*0.1, w*0.18, h*0.2);
+    ctx.fillRect(-w*0.1, -h*0.1, w*0.2, h*0.2);
+    ctx.strokeRect(-w*0.1, -h*0.1, w*0.2, h*0.2);
     ctx.restore();
     
     // 腿部高光
-    ctx.fillStyle = '#456';
+    ctx.fillStyle = pantsLight;
     ctx.save();
     ctx.translate(x + w*0.34, y + h*0.82);
     ctx.rotate(leftLegAngle);
-    ctx.fillRect(-w*0.06, -h*0.08, w*0.04, h*0.16);
+    ctx.fillRect(-w*0.07, -h*0.08, w*0.05, h*0.16);
     ctx.restore();
     
     ctx.save();
     ctx.translate(x + w*0.66, y + h*0.82);
     ctx.rotate(rightLegAngle);
-    ctx.fillRect(-w*0.06, -h*0.08, w*0.04, h*0.16);
+    ctx.fillRect(-w*0.07, -h*0.08, w*0.05, h*0.16);
     ctx.restore();
     
     // 如果有靴子，在腿部显示靴子效果（带腿部旋转动画）
@@ -351,18 +460,29 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
         ctx.drawImage(bootCanvas, -8, -8);
         ctx.restore();
     } else {
-        // 默认靴子 - 跟随腿部旋转
-        ctx.fillStyle = '#432';
+        // 默认靴子 - 棕色皮靴配金色装饰
+        ctx.fillStyle = '#8b5a2b';
+        ctx.strokeStyle = '#5a3a1b';
+        ctx.lineWidth = 0.5;
         ctx.save();
         ctx.translate(x + w*0.34, y + h*0.88);
         ctx.rotate(leftLegAngle);
-        ctx.fillRect(-w*0.11, -h*0.05, w*0.22, h*0.1);
+        ctx.fillRect(-w*0.12, -h*0.05, w*0.24, h*0.1);
+        ctx.strokeRect(-w*0.12, -h*0.05, w*0.24, h*0.1);
+        // 金色装饰
+        ctx.fillStyle = clothesAccent;
+        ctx.fillRect(-w*0.04, -h*0.03, w*0.08, h*0.02);
         ctx.restore();
         
+        ctx.fillStyle = '#8b5a2b';
+        ctx.strokeStyle = '#5a3a1b';
         ctx.save();
         ctx.translate(x + w*0.66, y + h*0.88);
         ctx.rotate(rightLegAngle);
-        ctx.fillRect(-w*0.11, -h*0.05, w*0.22, h*0.1);
+        ctx.fillRect(-w*0.12, -h*0.05, w*0.24, h*0.1);
+        ctx.strokeRect(-w*0.12, -h*0.05, w*0.24, h*0.1);
+        ctx.fillStyle = clothesAccent;
+        ctx.fillRect(-w*0.04, -h*0.03, w*0.08, h*0.02);
         ctx.restore();
     }
     
@@ -830,333 +950,454 @@ window.renderEquipmentIcon = function(item, size = 32) {
     else if (item.type === 'armor') {
         const cx = x + w * 0.5;
         if (sprite === 'dragon') {
-            // 龙鳞甲 - 带尖刺和鳞片纹理 - 更鲜艳
+            // 龙鳞甲 - 鲜艳的红色龙鳞
             // 主体护甲
-            ctx.fillStyle = '#a33';
+            ctx.fillStyle = '#e63946';
             ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.15);
-            ctx.lineTo(x + w*0.85, y + h*0.3);
-            ctx.lineTo(x + w*0.8, y + h*0.75);
-            ctx.lineTo(cx, y + h*0.85);
-            ctx.lineTo(x + w*0.2, y + h*0.75);
-            ctx.lineTo(x + w*0.15, y + h*0.3);
+            ctx.moveTo(cx, y + h*0.12);
+            ctx.lineTo(x + w*0.88, y + h*0.28);
+            ctx.lineTo(x + w*0.82, y + h*0.78);
+            ctx.lineTo(cx, y + h*0.88);
+            ctx.lineTo(x + w*0.18, y + h*0.78);
+            ctx.lineTo(x + w*0.12, y + h*0.28);
             ctx.closePath();
             ctx.fill();
-            // 龙鳞纹理
-            ctx.fillStyle = '#c66';
+            // 龙鳞高光
+            ctx.fillStyle = '#ff6b6b';
             for(let row=0; row<3; row++) {
                 for(let col=0; col<3-row; col++) {
                     ctx.beginPath();
-                    ctx.arc(cx + (col-1+row*0.5)*w*0.2, y + h*0.35 + row*h*0.15, w*0.08, 0, Math.PI*2);
+                    ctx.arc(cx + (col-1+row*0.5)*w*0.2, y + h*0.32 + row*h*0.15, w*0.09, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+            // 龙鳞阴影
+            ctx.fillStyle = '#b22222';
+            for(let row=0; row<2; row++) {
+                for(let col=0; col<2-row; col++) {
+                    ctx.beginPath();
+                    ctx.arc(cx + (col-0.5+row*0.5)*w*0.2, y + h*0.42 + row*h*0.18, w*0.06, 0, Math.PI*2);
                     ctx.fill();
                 }
             }
             // 肩部尖刺
-            ctx.fillStyle = '#e88';
+            ctx.fillStyle = '#ffd700';
             ctx.beginPath();
-            ctx.moveTo(x + w*0.15, y + h*0.3);
-            ctx.lineTo(x + w*0.05, y + h*0.2);
-            ctx.lineTo(x + w*0.2, y + h*0.25);
+            ctx.moveTo(x + w*0.12, y + h*0.28);
+            ctx.lineTo(x + w*0.02, y + h*0.15);
+            ctx.lineTo(x + w*0.18, y + h*0.22);
             ctx.fill();
             ctx.beginPath();
-            ctx.moveTo(x + w*0.85, y + h*0.3);
-            ctx.lineTo(x + w*0.95, y + h*0.2);
-            ctx.lineTo(x + w*0.8, y + h*0.25);
+            ctx.moveTo(x + w*0.88, y + h*0.28);
+            ctx.lineTo(x + w*0.98, y + h*0.15);
+            ctx.lineTo(x + w*0.82, y + h*0.22);
             ctx.fill();
-            // 中央红宝石
-            ctx.fillStyle = '#f00';
+            // 中央红宝石发光
+            ctx.fillStyle = '#ff0';
             ctx.beginPath();
-            ctx.arc(cx, y + h*0.45, w*0.1, 0, Math.PI*2);
+            ctx.arc(cx, y + h*0.42, w*0.12, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#ff4444';
+            ctx.beginPath();
+            ctx.arc(cx, y + h*0.42, w*0.08, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#ff8888';
+            ctx.beginPath();
+            ctx.arc(cx - 2, y + h*0.40, w*0.03, 0, Math.PI*2);
             ctx.fill();
             
         } else if (sprite === 'iron') {
-            // 铁甲 - 金属板甲样式 - 更鲜艳的金属色
+            // 铁甲 - 鲜明金属蓝银色
             // 胸甲主体
-            ctx.fillStyle = '#777';
+            const armorGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+            armorGrad.addColorStop(0, '#5a6e8c');
+            armorGrad.addColorStop(0.5, '#8fa4bf');
+            armorGrad.addColorStop(1, '#4a5e7c');
+            ctx.fillStyle = armorGrad;
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.12);
+            ctx.lineTo(x + w*0.82, y + h*0.24);
+            ctx.lineTo(x + w*0.78, y + h*0.82);
+            ctx.lineTo(cx, y + h*0.9);
+            ctx.lineTo(x + w*0.22, y + h*0.82);
+            ctx.lineTo(x + w*0.18, y + h*0.24);
+            ctx.closePath();
+            ctx.fill();
+            // 金属高光
+            ctx.fillStyle = '#c8d8e8';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.15);
-            ctx.lineTo(x + w*0.8, y + h*0.25);
-            ctx.lineTo(x + w*0.75, y + h*0.8);
-            ctx.lineTo(cx, y + h*0.88);
-            ctx.lineTo(x + w*0.25, y + h*0.8);
-            ctx.lineTo(x + w*0.2, y + h*0.25);
+            ctx.lineTo(x + w*0.68, y + h*0.26);
+            ctx.lineTo(x + w*0.65, y + h*0.52);
+            ctx.lineTo(cx, y + h*0.58);
+            ctx.lineTo(x + w*0.35, y + h*0.52);
+            ctx.lineTo(x + w*0.32, y + h*0.26);
             ctx.closePath();
             ctx.fill();
-            // 金属光泽
-            ctx.fillStyle = '#999';
-            ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.18);
-            ctx.lineTo(x + w*0.7, y + h*0.27);
-            ctx.lineTo(x + w*0.68, y + h*0.5);
-            ctx.lineTo(cx, y + h*0.55);
-            ctx.lineTo(x + w*0.32, y + h*0.5);
-            ctx.lineTo(x + w*0.3, y + h*0.27);
-            ctx.closePath();
-            ctx.fill();
-            // 铆钉装饰
-            ctx.fillStyle = '#555';
+            // 金色铆钉装饰
+            ctx.fillStyle = '#ffd700';
             for(let i=0; i<3; i++) {
                 ctx.beginPath();
-                ctx.arc(cx, y + h*0.35 + i*h*0.15, w*0.04, 0, Math.PI*2);
+                ctx.arc(cx, y + h*0.32 + i*h*0.15, w*0.05, 0, Math.PI*2);
                 ctx.fill();
             }
             // 肩甲
-            ctx.fillStyle = '#666';
-            ctx.fillRect(x + w*0.1, y + h*0.22, w*0.15, h*0.25);
-            ctx.fillRect(x + w*0.75, y + h*0.22, w*0.15, h*0.25);
+            ctx.fillStyle = '#6a7e9c';
+            ctx.fillRect(x + w*0.08, y + h*0.2, w*0.18, h*0.28);
+            ctx.fillRect(x + w*0.74, y + h*0.2, w*0.18, h*0.28);
+            // 肩甲高光
+            ctx.fillStyle = '#9ab0c8';
+            ctx.fillRect(x + w*0.1, y + h*0.22, w*0.08, h*0.24);
+            ctx.fillRect(x + w*0.82, y + h*0.22, w*0.08, h*0.24);
             
         } else if (sprite === 'leather') {
-            // 皮甲 - 皮革背心样式 - 更鲜艳的棕色
+            // 皮甲 - 鲜艳的棕色皮革
             // 主体
-            ctx.fillStyle = '#a75';
+            ctx.fillStyle = '#c9863e';
             ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.18);
-            ctx.lineTo(x + w*0.75, y + h*0.28);
-            ctx.lineTo(x + w*0.72, y + h*0.78);
-            ctx.lineTo(cx, y + h*0.85);
-            ctx.lineTo(x + w*0.28, y + h*0.78);
-            ctx.lineTo(x + w*0.25, y + h*0.28);
+            ctx.moveTo(cx, y + h*0.15);
+            ctx.lineTo(x + w*0.78, y + h*0.26);
+            ctx.lineTo(x + w*0.74, y + h*0.82);
+            ctx.lineTo(cx, y + h*0.88);
+            ctx.lineTo(x + w*0.26, y + h*0.82);
+            ctx.lineTo(x + w*0.22, y + h*0.26);
             ctx.closePath();
             ctx.fill();
-            // 缝线
-            ctx.strokeStyle = '#753';
+            // 高光
+            ctx.fillStyle = '#e8a84d';
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.18);
+            ctx.lineTo(x + w*0.68, y + h*0.28);
+            ctx.lineTo(x + w*0.65, y + h*0.55);
+            ctx.lineTo(cx, y + h*0.6);
+            ctx.lineTo(x + w*0.35, y + h*0.55);
+            ctx.lineTo(x + w*0.32, y + h*0.28);
+            ctx.closePath();
+            ctx.fill();
+            // 金色缝线
+            ctx.strokeStyle = '#ffd700';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(x + w*0.3, y + h*0.3);
-            ctx.lineTo(x + w*0.32, y + h*0.75);
+            ctx.moveTo(x + w*0.28, y + h*0.32);
+            ctx.lineTo(x + w*0.3, y + h*0.78);
             ctx.stroke();
             ctx.beginPath();
-            ctx.moveTo(x + w*0.7, y + h*0.3);
-            ctx.lineTo(x + w*0.68, y + h*0.75);
+            ctx.moveTo(x + w*0.72, y + h*0.32);
+            ctx.lineTo(x + w*0.7, y + h*0.78);
             ctx.stroke();
             // 皮带扣
-            ctx.fillStyle = '#543';
-            ctx.fillRect(cx - w*0.08, y + h*0.4, w*0.16, h*0.08);
-            ctx.fillStyle = '#dba';
-            ctx.fillRect(cx - w*0.04, y + h*0.42, w*0.08, h*0.04);
-            // 肩部护垫
-            ctx.fillStyle = '#864';
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(cx - w*0.1, y + h*0.38, w*0.2, h*0.1);
+            ctx.fillStyle = '#ffd700';
             ctx.beginPath();
-            ctx.arc(x + w*0.2, y + h*0.35, w*0.1, 0, Math.PI*2);
+            ctx.arc(cx, y + h*0.43, w*0.06, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#b8860b';
+            ctx.beginPath();
+            ctx.arc(cx, y + h*0.43, w*0.03, 0, Math.PI*2);
+            ctx.fill();
+            // 肩部护垫
+            ctx.fillStyle = '#a0522d';
+            ctx.beginPath();
+            ctx.arc(x + w*0.18, y + h*0.32, w*0.12, 0, Math.PI*2);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(x + w*0.8, y + h*0.35, w*0.1, 0, Math.PI*2);
+            ctx.arc(x + w*0.82, y + h*0.32, w*0.12, 0, Math.PI*2);
             ctx.fill();
             
         } else {
-            // 布衣 - 简单长袍 - 更鲜艳
-            // 袍子主体
-            ctx.fillStyle = '#ca7';
+            // 布衣 - 鲜艳的法师长袍
+            // 袍子主体渐变
+            const robeGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+            robeGrad.addColorStop(0, '#6a4c93');
+            robeGrad.addColorStop(0.5, '#9b72cf');
+            robeGrad.addColorStop(1, '#5a3c83');
+            ctx.fillStyle = robeGrad;
             ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.15);
-            ctx.lineTo(x + w*0.7, y + h*0.25);
-            ctx.lineTo(x + w*0.75, y + h*0.85);
-            ctx.lineTo(cx, y + h*0.9);
-            ctx.lineTo(x + w*0.25, y + h*0.85);
-            ctx.lineTo(x + w*0.3, y + h*0.25);
+            ctx.moveTo(cx, y + h*0.12);
+            ctx.lineTo(x + w*0.72, y + h*0.24);
+            ctx.lineTo(x + w*0.78, y + h*0.88);
+            ctx.lineTo(cx, y + h*0.92);
+            ctx.lineTo(x + w*0.22, y + h*0.88);
+            ctx.lineTo(x + w*0.28, y + h*0.24);
             ctx.closePath();
             ctx.fill();
-            // 衣领
-            ctx.fillStyle = '#edc';
+            // 衣领金色
+            ctx.fillStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.moveTo(cx, y + h*0.12);
+            ctx.lineTo(x + w*0.62, y + h*0.2);
+            ctx.lineTo(cx, y + h*0.35);
+            ctx.lineTo(x + w*0.38, y + h*0.2);
+            ctx.closePath();
+            ctx.fill();
+            // 高光
+            ctx.fillStyle = '#b794d8';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.15);
-            ctx.lineTo(x + w*0.6, y + h*0.22);
-            ctx.lineTo(cx, y + h*0.35);
-            ctx.lineTo(x + w*0.4, y + h*0.22);
+            ctx.lineTo(x + w*0.62, y + h*0.26);
+            ctx.lineTo(x + w*0.6, y + h*0.55);
+            ctx.lineTo(cx, y + h*0.6);
+            ctx.lineTo(x + w*0.4, y + h*0.55);
+            ctx.lineTo(x + w*0.38, y + h*0.26);
             ctx.closePath();
             ctx.fill();
             // 腰带
-            ctx.fillStyle = '#975';
-            ctx.fillRect(x + w*0.28, y + h*0.55, w*0.44, h*0.06);
-            ctx.fillStyle = '#ba8';
-            ctx.fillRect(cx - w*0.05, y + h*0.56, w*0.1, h*0.04);
+            ctx.fillStyle = '#4a3660';
+            ctx.fillRect(x + w*0.25, y + h*0.52, w*0.5, h*0.08);
+            ctx.fillStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.arc(cx, y + h*0.56, w*0.07, 0, Math.PI*2);
+            ctx.fill();
         }
     }
     // 头盔渲染 - 完整的头部装备
     else if (item.type === 'helmet') {
         const cx = x + w * 0.5;
         if (sprite === 'iron_helm') {
-            // 铁头盔 - 全覆式骑士头盔 - 更鲜艳的金属色
-            // 头盔主体
-            ctx.fillStyle = '#777';
+            // 铁头盔 - 鲜艳的蓝银骑士头盔
+            // 头盔主体渐变
+            const helmGrad = ctx.createRadialGradient(cx, y + h*0.4, 0, cx, y + h*0.4, w*0.4);
+            helmGrad.addColorStop(0, '#a8c0d8');
+            helmGrad.addColorStop(0.7, '#6a82a2');
+            helmGrad.addColorStop(1, '#4a62a2');
+            ctx.fillStyle = helmGrad;
             ctx.beginPath();
-            ctx.arc(cx, y + h*0.45, w*0.35, Math.PI, 0);
+            ctx.arc(cx, y + h*0.42, w*0.38, Math.PI, 0);
             ctx.closePath();
             ctx.fill();
             // 面甲
-            ctx.fillStyle = '#888';
-            ctx.fillRect(x + w*0.25, y + h*0.45, w*0.5, h*0.25);
-            // 观察缝
-            ctx.fillStyle = '#333';
-            ctx.fillRect(x + w*0.3, y + h*0.5, w*0.15, h*0.05);
-            ctx.fillRect(x + w*0.55, y + h*0.5, w*0.15, h*0.05);
-            // 顶部装饰
-            ctx.fillStyle = '#999';
+            ctx.fillStyle = '#5a72a2';
+            ctx.fillRect(x + w*0.22, y + h*0.42, w*0.56, h*0.28);
+            // 观察缝发光效果
+            ctx.fillStyle = '#001';
+            ctx.fillRect(x + w*0.28, y + h*0.48, w*0.18, h*0.06);
+            ctx.fillRect(x + w*0.54, y + h*0.48, w*0.18, h*0.06);
+            ctx.fillStyle = '#4af';
+            ctx.fillRect(x + w*0.3, y + h*0.49, w*0.14, h*0.04);
+            ctx.fillRect(x + w*0.56, y + h*0.49, w*0.14, h*0.04);
+            // 金色顶部装饰
+            ctx.fillStyle = '#ffd700';
             ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.08);
-            ctx.lineTo(cx - w*0.08, y + h*0.18);
-            ctx.lineTo(cx + w*0.08, y + h*0.18);
+            ctx.moveTo(cx, y + h*0.05);
+            ctx.lineTo(cx - w*0.1, y + h*0.15);
+            ctx.lineTo(cx + w*0.1, y + h*0.15);
             ctx.closePath();
             ctx.fill();
             // 护颈
-            ctx.fillStyle = '#666';
-            ctx.fillRect(x + w*0.2, y + h*0.7, w*0.6, h*0.12);
+            ctx.fillStyle = '#4a62a2';
+            ctx.fillRect(x + w*0.18, y + h*0.68, w*0.64, h*0.14);
+            // 金色装饰线
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(x + w*0.2, y + h*0.68, w*0.6, h*0.02);
             
         } else if (sprite === 'leather_helm') {
-            // 皮帽 - 带护耳的冒险者帽子 - 更鲜艳
+            // 皮帽 - 鲜艳的冒险者帽子
             // 主体
-            ctx.fillStyle = '#975';
+            ctx.fillStyle = '#c9863e';
             ctx.beginPath();
-            ctx.arc(cx, y + h*0.4, w*0.3, Math.PI, 0);
+            ctx.arc(cx, y + h*0.38, w*0.32, Math.PI, 0);
             ctx.closePath();
             ctx.fill();
+            // 高光
+            ctx.fillStyle = '#e8a84d';
+            ctx.beginPath();
+            ctx.arc(cx - w*0.08, y + h*0.32, w*0.12, 0, Math.PI*2);
+            ctx.fill();
             // 帽檐
-            ctx.fillStyle = '#864';
-            ctx.fillRect(x + w*0.15, y + h*0.38, w*0.7, h*0.08);
+            ctx.fillStyle = '#a0522d';
+            ctx.fillRect(x + w*0.12, y + h*0.36, w*0.76, h*0.1);
+            // 金色帽檐装饰
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(x + w*0.12, y + h*0.36, w*0.76, h*0.02);
             // 护耳
-            ctx.fillStyle = '#753';
+            ctx.fillStyle = '#8b4513';
             ctx.beginPath();
-            ctx.arc(x + w*0.2, y + h*0.55, w*0.12, 0, Math.PI*2);
+            ctx.arc(x + w*0.18, y + h*0.52, w*0.14, 0, Math.PI*2);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(x + w*0.8, y + h*0.55, w*0.12, 0, Math.PI*2);
+            ctx.arc(x + w*0.82, y + h*0.52, w*0.14, 0, Math.PI*2);
             ctx.fill();
-            // 装饰羽毛 - 更鲜艳的红色
-            ctx.fillStyle = '#c64';
+            // 装饰羽毛 - 鲜艳的红色
+            ctx.fillStyle = '#e63946';
             ctx.beginPath();
-            ctx.ellipse(cx + w*0.15, y + h*0.25, w*0.04, h*0.12, -0.3, 0, Math.PI*2);
+            ctx.ellipse(cx + w*0.15, y + h*0.22, w*0.05, h*0.14, -0.3, 0, Math.PI*2);
             ctx.fill();
-            ctx.fillStyle = '#e86';
+            ctx.fillStyle = '#ff6b6b';
             ctx.beginPath();
-            ctx.ellipse(cx + w*0.18, y + h*0.22, w*0.03, h*0.1, -0.3, 0, Math.PI*2);
+            ctx.ellipse(cx + w*0.18, y + h*0.18, w*0.035, h*0.1, -0.3, 0, Math.PI*2);
             ctx.fill();
             
         } else {
-            // 布帽 - 简单的头巾 - 更鲜艳
-            // 主体
-            ctx.fillStyle = '#ca7';
+            // 布帽 - 鲜艳的法师头巾
+            // 主体渐变
+            const hoodGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+            hoodGrad.addColorStop(0, '#6a4c93');
+            hoodGrad.addColorStop(0.5, '#9b72cf');
+            hoodGrad.addColorStop(1, '#5a3c83');
+            ctx.fillStyle = hoodGrad;
             ctx.beginPath();
-            ctx.arc(cx, y + h*0.4, w*0.28, Math.PI, 0);
+            ctx.arc(cx, y + h*0.38, w*0.3, Math.PI, 0);
             ctx.closePath();
             ctx.fill();
             // 头巾下垂部分
-            ctx.fillStyle = '#b96';
+            ctx.fillStyle = '#7a5ca3';
             ctx.beginPath();
-            ctx.moveTo(x + w*0.25, y + h*0.45);
-            ctx.lineTo(x + w*0.15, y + h*0.75);
-            ctx.lineTo(x + w*0.35, y + h*0.7);
+            ctx.moveTo(x + w*0.22, y + h*0.42);
+            ctx.lineTo(x + w*0.12, y + h*0.78);
+            ctx.lineTo(x + w*0.38, y + h*0.72);
             ctx.closePath();
             ctx.fill();
             ctx.beginPath();
-            ctx.moveTo(x + w*0.75, y + h*0.45);
-            ctx.lineTo(x + w*0.85, y + h*0.75);
-            ctx.lineTo(x + w*0.65, y + h*0.7);
+            ctx.moveTo(x + w*0.78, y + h*0.42);
+            ctx.lineTo(x + w*0.88, y + h*0.78);
+            ctx.lineTo(x + w*0.62, y + h*0.72);
             ctx.closePath();
             ctx.fill();
-            // 装饰图案
-            ctx.fillStyle = '#edc';
+            // 金色装饰图案
+            ctx.fillStyle = '#ffd700';
             ctx.beginPath();
-            ctx.arc(cx, y + h*0.32, w*0.06, 0, Math.PI*2);
+            ctx.arc(cx, y + h*0.3, w*0.08, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#b8860b';
+            ctx.beginPath();
+            ctx.arc(cx, y + h*0.3, w*0.04, 0, Math.PI*2);
             ctx.fill();
         }
     }
     // 靴子渲染 - 完整的 footwear 设计
     else if (item.type === 'boots') {
         if (sprite === 'iron_boots') {
-            // 铁靴 - 重型金属战靴
-            // 左靴
-            ctx.fillStyle = '#555';
+            // 铁靴 - 鲜艳的蓝银战靴
+            // 左靴主体渐变
+            const bootGradL = ctx.createLinearGradient(x + w*0.1, y, x + w*0.35, y);
+            bootGradL.addColorStop(0, '#4a62a2');
+            bootGradL.addColorStop(0.5, '#6a82a2');
+            bootGradL.addColorStop(1, '#5a72a2');
+            ctx.fillStyle = bootGradL;
             ctx.beginPath();
-            ctx.moveTo(x + w*0.15, y + h*0.25);
-            ctx.lineTo(x + w*0.25, y + h*0.25);
-            ctx.lineTo(x + w*0.3, y + h*0.7);
-            ctx.lineTo(x + w*0.35, y + h*0.9);
-            ctx.lineTo(x + w*0.1, y + h*0.9);
-            ctx.lineTo(x + w*0.08, y + h*0.7);
+            ctx.moveTo(x + w*0.12, y + h*0.22);
+            ctx.lineTo(x + w*0.28, y + h*0.22);
+            ctx.lineTo(x + w*0.32, y + h*0.68);
+            ctx.lineTo(x + w*0.38, y + h*0.88);
+            ctx.lineTo(x + w*0.08, y + h*0.88);
+            ctx.lineTo(x + w*0.06, y + h*0.68);
             ctx.closePath();
             ctx.fill();
-            // 左靴金属光泽
-            ctx.fillStyle = '#777';
-            ctx.fillRect(x + w*0.12, y + h*0.35, w*0.1, h*0.25);
-            // 右靴
-            ctx.fillStyle = '#555';
+            // 左靴金属高光
+            ctx.fillStyle = '#a8c0d8';
+            ctx.fillRect(x + w*0.1, y + h*0.32, w*0.12, h*0.28);
+            // 金色装饰
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(x + w*0.12, y + h*0.35, w*0.08, h*0.02);
+            ctx.fillRect(x + w*0.12, y + h*0.5, w*0.08, h*0.02);
+            
+            // 右靴主体渐变
+            const bootGradR = ctx.createLinearGradient(x + w*0.5, y, x + w*0.75, y);
+            bootGradR.addColorStop(0, '#5a72a2');
+            bootGradR.addColorStop(0.5, '#6a82a2');
+            bootGradR.addColorStop(1, '#4a62a2');
+            ctx.fillStyle = bootGradR;
             ctx.beginPath();
-            ctx.moveTo(x + w*0.55, y + h*0.25);
-            ctx.lineTo(x + w*0.65, y + h*0.25);
-            ctx.lineTo(x + w*0.7, y + h*0.7);
-            ctx.lineTo(x + w*0.75, y + h*0.9);
-            ctx.lineTo(x + w*0.5, y + h*0.9);
-            ctx.lineTo(x + w*0.48, y + h*0.7);
+            ctx.moveTo(x + w*0.52, y + h*0.22);
+            ctx.lineTo(x + w*0.68, y + h*0.22);
+            ctx.lineTo(x + w*0.72, y + h*0.68);
+            ctx.lineTo(x + w*0.78, y + h*0.88);
+            ctx.lineTo(x + w*0.48, y + h*0.88);
+            ctx.lineTo(x + w*0.46, y + h*0.68);
             ctx.closePath();
             ctx.fill();
-            // 右靴金属光泽
-            ctx.fillStyle = '#777';
-            ctx.fillRect(x + w*0.52, y + h*0.35, w*0.1, h*0.25);
+            // 右靴金属高光
+            ctx.fillStyle = '#a8c0d8';
+            ctx.fillRect(x + w*0.56, y + h*0.32, w*0.12, h*0.28);
+            // 金色装饰
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(x + w*0.58, y + h*0.35, w*0.08, h*0.02);
+            ctx.fillRect(x + w*0.58, y + h*0.5, w*0.08, h*0.02);
             // 靴底
-            ctx.fillStyle = '#333';
-            ctx.fillRect(x + w*0.08, y + h*0.88, w*0.3, h*0.06);
-            ctx.fillRect(x + w*0.48, y + h*0.88, w*0.3, h*0.06);
+            ctx.fillStyle = '#2a3a5a';
+            ctx.fillRect(x + w*0.06, y + h*0.86, w*0.34, h*0.08);
+            ctx.fillRect(x + w*0.46, y + h*0.86, w*0.34, h*0.08);
             
         } else if (sprite === 'leather_boots') {
-            // 皮靴 - 带扣的冒险者长靴
+            // 皮靴 - 鲜艳的冒险者长靴
             // 左靴
-            ctx.fillStyle = '#753';
+            ctx.fillStyle = '#c9863e';
             ctx.beginPath();
-            ctx.moveTo(x + w*0.18, y + h*0.3);
-            ctx.lineTo(x + w*0.28, y + h*0.3);
-            ctx.quadraticCurveTo(x + w*0.32, y + h*0.55, x + w*0.3, y + h*0.85);
-            ctx.lineTo(x + w*0.12, y + h*0.85);
-            ctx.quadraticCurveTo(x + w*0.1, y + h*0.55, x + w*0.18, y + h*0.3);
+            ctx.moveTo(x + w*0.15, y + h*0.28);
+            ctx.lineTo(x + w*0.32, y + h*0.28);
+            ctx.quadraticCurveTo(x + w*0.35, y + h*0.55, x + w*0.32, y + h*0.82);
+            ctx.lineTo(x + w*0.1, y + h*0.82);
+            ctx.quadraticCurveTo(x + w*0.08, y + h*0.55, x + w*0.15, y + h*0.28);
             ctx.closePath();
             ctx.fill();
-            // 鞋带
-            ctx.fillStyle = '#542';
+            // 高光
+            ctx.fillStyle = '#e8a84d';
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.18, y + h*0.32);
+            ctx.lineTo(x + w*0.28, y + h*0.32);
+            ctx.quadraticCurveTo(x + w*0.3, y + h*0.5, x + w*0.28, y + h*0.7);
+            ctx.lineTo(x + w*0.18, y + h*0.7);
+            ctx.closePath();
+            ctx.fill();
+            // 金色鞋带扣
+            ctx.fillStyle = '#ffd700';
             for(let i=0; i<3; i++) {
-                ctx.fillRect(x + w*0.16, y + h*0.4 + i*h*0.12, w*0.14, h*0.03);
+                ctx.fillRect(x + w*0.14, y + h*0.38 + i*h*0.12, w*0.16, h*0.04);
             }
+            
             // 右靴
-            ctx.fillStyle = '#753';
+            ctx.fillStyle = '#c9863e';
             ctx.beginPath();
-            ctx.moveTo(x + w*0.58, y + h*0.3);
-            ctx.lineTo(x + w*0.68, y + h*0.3);
-            ctx.quadraticCurveTo(x + w*0.72, y + h*0.55, x + w*0.7, y + h*0.85);
-            ctx.lineTo(x + w*0.52, y + h*0.85);
-            ctx.quadraticCurveTo(x + w*0.5, y + h*0.55, x + w*0.58, y + h*0.3);
+            ctx.moveTo(x + w*0.58, y + h*0.28);
+            ctx.lineTo(x + w*0.75, y + h*0.28);
+            ctx.quadraticCurveTo(x + w*0.78, y + h*0.55, x + w*0.75, y + h*0.82);
+            ctx.lineTo(x + w*0.53, y + h*0.82);
+            ctx.quadraticCurveTo(x + w*0.5, y + h*0.55, x + w*0.58, y + h*0.28);
             ctx.closePath();
             ctx.fill();
-            // 鞋带
-            ctx.fillStyle = '#542';
+            // 高光
+            ctx.fillStyle = '#e8a84d';
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.6, y + h*0.32);
+            ctx.lineTo(x + w*0.7, y + h*0.32);
+            ctx.quadraticCurveTo(x + w*0.72, y + h*0.5, x + w*0.7, y + h*0.7);
+            ctx.lineTo(x + w*0.6, y + h*0.7);
+            ctx.closePath();
+            ctx.fill();
+            // 金色鞋带扣
+            ctx.fillStyle = '#ffd700';
             for(let i=0; i<3; i++) {
-                ctx.fillRect(x + w*0.56, y + h*0.4 + i*h*0.12, w*0.14, h*0.03);
+                ctx.fillRect(x + w*0.56, y + h*0.38 + i*h*0.12, w*0.16, h*0.04);
             }
             
         } else {
-            // 草鞋 - 简单的草编鞋
+            // 草鞋 - 鲜艳的绿色草编鞋
             // 左鞋
-            ctx.fillStyle = '#8a5';
+            ctx.fillStyle = '#7cb342';
             ctx.beginPath();
-            ctx.ellipse(x + w*0.22, y + h*0.75, w*0.12, h*0.18, 0, 0, Math.PI*2);
+            ctx.ellipse(x + w*0.22, y + h*0.72, w*0.14, h*0.22, 0, 0, Math.PI*2);
             ctx.fill();
             // 草编纹理
-            ctx.strokeStyle = '#694';
+            ctx.strokeStyle = '#558b2f';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(x + w*0.15, y + h*0.65);
-            ctx.lineTo(x + w*0.29, y + h*0.85);
-            ctx.moveTo(x + w*0.29, y + h*0.65);
-            ctx.lineTo(x + w*0.15, y + h*0.85);
+            ctx.moveTo(x + w*0.12, y + h*0.6);
+            ctx.lineTo(x + w*0.32, y + h*0.85);
+            ctx.moveTo(x + w*0.32, y + h*0.6);
+            ctx.lineTo(x + w*0.12, y + h*0.85);
             ctx.stroke();
             // 右鞋
-            ctx.fillStyle = '#8a5';
+            ctx.fillStyle = '#7cb342';
             ctx.beginPath();
-            ctx.ellipse(x + w*0.62, y + h*0.75, w*0.12, h*0.18, 0, 0, Math.PI*2);
+            ctx.ellipse(x + w*0.62, y + h*0.72, w*0.14, h*0.22, 0, 0, Math.PI*2);
             ctx.fill();
             // 草编纹理
             ctx.beginPath();
-            ctx.moveTo(x + w*0.55, y + h*0.65);
-            ctx.lineTo(x + w*0.69, y + h*0.85);
-            ctx.moveTo(x + w*0.69, y + h*0.65);
-            ctx.lineTo(x + w*0.55, y + h*0.85);
+            ctx.moveTo(x + w*0.52, y + h*0.6);
+            ctx.lineTo(x + w*0.72, y + h*0.85);
+            ctx.moveTo(x + w*0.72, y + h*0.6);
+            ctx.lineTo(x + w*0.52, y + h*0.85);
             ctx.stroke();
         }
     }
@@ -1165,124 +1406,164 @@ window.renderEquipmentIcon = function(item, size = 32) {
         const cx = x + w * 0.5;
         const cy = y + h * 0.5;
         if (sprite === 'power_ring') {
-            // 力量戒指 - 红宝石配金质花纹
-            // 指环
-            ctx.strokeStyle = '#d42';
-            ctx.lineWidth = 6;
+            // 力量戒指 - 鲜艳红宝石配金色
+            // 金色指环
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 7;
             ctx.beginPath();
-            ctx.arc(cx, cy, w*0.25, 0, Math.PI*2);
+            ctx.arc(cx, cy, w*0.26, 0, Math.PI*2);
             ctx.stroke();
             // 戒指表面装饰
-            ctx.strokeStyle = '#f64';
+            ctx.strokeStyle = '#ffec8b';
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.arc(cx, cy, w*0.22, 0, Math.PI*2);
             ctx.stroke();
-            // 红宝石
-            ctx.fillStyle = '#c00';
+            // 红宝石发光
+            ctx.fillStyle = '#ff4444';
             ctx.beginPath();
-            ctx.arc(cx, cy - h*0.05, w*0.15, 0, Math.PI*2);
+            ctx.arc(cx, cy - h*0.02, w*0.18, 0, Math.PI*2);
+            ctx.fill();
+            // 红宝石主体
+            ctx.fillStyle = '#e63946';
+            ctx.beginPath();
+            ctx.arc(cx, cy - h*0.02, w*0.14, 0, Math.PI*2);
             ctx.fill();
             // 宝石高光
-            ctx.fillStyle = '#f44';
+            ctx.fillStyle = '#ff6b6b';
             ctx.beginPath();
-            ctx.arc(cx - w*0.03, cy - h*0.07, w*0.06, 0, Math.PI*2);
+            ctx.arc(cx - w*0.04, cy - h*0.05, w*0.05, 0, Math.PI*2);
             ctx.fill();
-            // 爪镶
-            ctx.fillStyle = '#fa4';
+            ctx.fillStyle = '#ffaaaa';
+            ctx.beginPath();
+            ctx.arc(cx - w*0.02, cy - h*0.04, w*0.02, 0, Math.PI*2);
+            ctx.fill();
+            // 金色爪镶
+            ctx.fillStyle = '#ffd700';
             for(let i=0; i<4; i++) {
                 const angle = (i * Math.PI/2) - Math.PI/4;
                 ctx.beginPath();
-                ctx.arc(cx + Math.cos(angle)*w*0.12, cy - h*0.05 + Math.sin(angle)*w*0.12, w*0.03, 0, Math.PI*2);
+                ctx.arc(cx + Math.cos(angle)*w*0.12, cy - h*0.02 + Math.sin(angle)*w*0.12, w*0.04, 0, Math.PI*2);
                 ctx.fill();
             }
             
         } else if (sprite === 'speed_ring') {
-            // 敏捷戒指 - 蓝宝石配银质闪电纹
-            // 指环
-            ctx.strokeStyle = '#48a';
-            ctx.lineWidth = 5;
+            // 敏捷戒指 - 鲜艳蓝宝石配银色闪电
+            // 银色指环
+            ctx.strokeStyle = '#c0c0c0';
+            ctx.lineWidth = 6;
             ctx.beginPath();
-            ctx.arc(cx, cy, w*0.25, 0, Math.PI*2);
+            ctx.arc(cx, cy, w*0.26, 0, Math.PI*2);
             ctx.stroke();
-            // 闪电纹路
-            ctx.strokeStyle = '#6cf';
+            // 高光环
+            ctx.strokeStyle = '#e8e8e8';
             ctx.lineWidth = 2;
-            for(let i=0; i<3; i++) {
-                ctx.beginPath();
-                ctx.arc(cx, cy, w*(0.18 + i*0.04), 0.5, 2.5);
-                ctx.stroke();
-            }
-            // 蓝宝石
-            ctx.fillStyle = '#04a';
             ctx.beginPath();
-            ctx.moveTo(cx, cy - h*0.18);
-            ctx.lineTo(cx + w*0.12, cy - h*0.05);
-            ctx.lineTo(cx, cy + h*0.08);
-            ctx.lineTo(cx - w*0.12, cy - h*0.05);
+            ctx.arc(cx, cy, w*0.22, 0, Math.PI*2);
+            ctx.stroke();
+            // 蓝宝石发光
+            ctx.fillStyle = '#4fc3f7';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - h*0.2);
+            ctx.lineTo(cx + w*0.14, cy - h*0.04);
+            ctx.lineTo(cx, cy + h*0.1);
+            ctx.lineTo(cx - w*0.14, cy - h*0.04);
+            ctx.closePath();
+            ctx.fill();
+            // 蓝宝石主体
+            ctx.fillStyle = '#29b6f6';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - h*0.16);
+            ctx.lineTo(cx + w*0.1, cy - h*0.02);
+            ctx.lineTo(cx, cy + h*0.06);
+            ctx.lineTo(cx - w*0.1, cy - h*0.02);
             ctx.closePath();
             ctx.fill();
             // 宝石光泽
-            ctx.fillStyle = '#6af';
+            ctx.fillStyle = '#81d4fa';
             ctx.beginPath();
-            ctx.moveTo(cx, cy - h*0.15);
-            ctx.lineTo(cx + w*0.06, cy - h*0.06);
+            ctx.moveTo(cx, cy - h*0.12);
+            ctx.lineTo(cx + w*0.05, cy - h*0.02);
             ctx.lineTo(cx, cy + h*0.02);
-            ctx.lineTo(cx - w*0.06, cy - h*0.06);
+            ctx.lineTo(cx - w*0.05, cy - h*0.02);
             ctx.closePath();
             ctx.fill();
+            // 银色爪镶
+            ctx.fillStyle = '#e0e0e0';
+            for(let i=0; i<4; i++) {
+                const angle = (i * Math.PI/2) - Math.PI/4;
+                ctx.beginPath();
+                ctx.arc(cx + Math.cos(angle)*w*0.11, cy + Math.sin(angle)*w*0.11, w*0.03, 0, Math.PI*2);
+                ctx.fill();
+            }
             
         } else if (sprite === 'health_ring') {
-            // 生命戒指 - 绿宝石配藤蔓装饰
-            // 指环
-            ctx.strokeStyle = '#4a4';
-            ctx.lineWidth = 5;
+            // 生命戒指 - 鲜艳绿宝石配金色藤蔓
+            // 金色指环
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 6;
             ctx.beginPath();
-            ctx.arc(cx, cy, w*0.25, 0, Math.PI*2);
+            ctx.arc(cx, cy, w*0.26, 0, Math.PI*2);
             ctx.stroke();
             // 藤蔓纹理
-            ctx.strokeStyle = '#6c6';
+            ctx.strokeStyle = '#50c878';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            for(let i=0; i<8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
+            for(let i=0; i<6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
                 ctx.moveTo(cx + Math.cos(angle)*w*0.18, cy + Math.sin(angle)*w*0.18);
                 ctx.quadraticCurveTo(
-                    cx + Math.cos(angle + 0.3)*w*0.22, 
-                    cy + Math.sin(angle + 0.3)*w*0.22,
+                    cx + Math.cos(angle + 0.3)*w*0.24, 
+                    cy + Math.sin(angle + 0.3)*w*0.24,
                     cx + Math.cos(angle + 0.5)*w*0.18, 
                     cy + Math.sin(angle + 0.5)*w*0.18
                 );
             }
             ctx.stroke();
-            // 绿宝石（心形）
-            ctx.fillStyle = '#2a2';
+            // 绿宝石发光
+            ctx.fillStyle = '#66bb6a';
             ctx.beginPath();
-            ctx.arc(cx - w*0.06, cy - h*0.1, w*0.08, 0, Math.PI*2);
-            ctx.arc(cx + w*0.06, cy - h*0.1, w*0.08, 0, Math.PI*2);
+            ctx.arc(cx - w*0.06, cy - h*0.08, w*0.1, 0, Math.PI*2);
+            ctx.arc(cx + w*0.06, cy - h*0.08, w*0.1, 0, Math.PI*2);
             ctx.fill();
             ctx.beginPath();
-            ctx.moveTo(cx - w*0.12, cy - h*0.08);
-            ctx.lineTo(cx, cy + h*0.05);
-            ctx.lineTo(cx + w*0.12, cy - h*0.08);
+            ctx.moveTo(cx - w*0.14, cy - h*0.06);
+            ctx.lineTo(cx, cy + h*0.08);
+            ctx.lineTo(cx + w*0.14, cy - h*0.06);
+            ctx.closePath();
+            ctx.fill();
+            // 绿宝石主体
+            ctx.fillStyle = '#43a047';
+            ctx.beginPath();
+            ctx.arc(cx - w*0.04, cy - h*0.06, w*0.07, 0, Math.PI*2);
+            ctx.arc(cx + w*0.04, cy - h*0.06, w*0.07, 0, Math.PI*2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(cx - w*0.1, cy - h*0.04);
+            ctx.lineTo(cx, cy + h*0.04);
+            ctx.lineTo(cx + w*0.1, cy - h*0.04);
             ctx.closePath();
             ctx.fill();
             // 光泽
-            ctx.fillStyle = '#6f6';
+            ctx.fillStyle = '#a5d6a7';
             ctx.beginPath();
-            ctx.arc(cx - w*0.05, cy - h*0.1, w*0.03, 0, Math.PI*2);
+            ctx.arc(cx - w*0.04, cy - h*0.08, w*0.03, 0, Math.PI*2);
             ctx.fill();
             
         } else {
-            // 默认戒指
-            ctx.strokeStyle = '#888';
-            ctx.lineWidth = 4;
+            // 默认戒指 - 金色基础款
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 5;
             ctx.beginPath();
-            ctx.arc(cx, cy, w*0.25, 0, Math.PI*2);
+            ctx.arc(cx, cy, w*0.26, 0, Math.PI*2);
             ctx.stroke();
             ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.arc(cx, cy - h*0.05, w*0.1, 0, Math.PI*2);
+            ctx.arc(cx, cy - h*0.02, w*0.12, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(cx - w*0.03, cy - h*0.04, w*0.04, 0, Math.PI*2);
             ctx.fill();
         }
     }
@@ -1290,172 +1571,194 @@ window.renderEquipmentIcon = function(item, size = 32) {
     else if (item.type === 'necklace') {
         const cx = x + w * 0.5;
         if (sprite === 'health_amulet') {
-            // 生命护符 - 红心形配金链
-            // 链条
-            ctx.strokeStyle = '#d42';
+            // 生命护符 - 鲜艳红心配金链
+            // 金色链条
+            ctx.strokeStyle = '#ffd700';
             ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.08);
-            ctx.lineTo(cx, y + h*0.35);
+            ctx.moveTo(cx - w*0.18, y + h*0.08);
+            ctx.quadraticCurveTo(cx, y + h*0.28, cx + w*0.18, y + h*0.08);
             ctx.stroke();
             // 链条环
-            ctx.strokeStyle = '#f64';
+            ctx.strokeStyle = '#ffec8b';
             ctx.lineWidth = 2;
             for(let i=0; i<5; i++) {
                 ctx.beginPath();
-                ctx.arc(cx, y + h*0.12 + i*h*0.05, w*0.04, 0, Math.PI*2);
+                ctx.arc(cx - w*0.14 + i*w*0.07, y + h*0.12 + i*h*0.03, w*0.03, 0, Math.PI*2);
                 ctx.stroke();
             }
-            // 心形吊坠主体
-            ctx.fillStyle = '#c00';
+            // 心形发光
+            ctx.fillStyle = 'rgba(255, 100, 100, 0.3)';
             ctx.beginPath();
-            ctx.arc(cx - w*0.08, y + h*0.45, w*0.1, 0, Math.PI*2);
-            ctx.arc(cx + w*0.08, y + h*0.45, w*0.1, 0, Math.PI*2);
+            ctx.arc(cx, y + h*0.55, w*0.22, 0, Math.PI*2);
+            ctx.fill();
+            // 心形吊坠主体
+            ctx.fillStyle = '#e63946';
+            ctx.beginPath();
+            ctx.arc(cx - w*0.1, y + h*0.48, w*0.12, 0, Math.PI*2);
+            ctx.arc(cx + w*0.1, y + h*0.48, w*0.12, 0, Math.PI*2);
             ctx.fill();
             ctx.beginPath();
-            ctx.moveTo(cx - w*0.16, y + h*0.48);
-            ctx.lineTo(cx, y + h*0.72);
-            ctx.lineTo(cx + w*0.16, y + h*0.48);
+            ctx.moveTo(cx - w*0.18, y + h*0.52);
+            ctx.lineTo(cx, y + h*0.78);
+            ctx.lineTo(cx + w*0.18, y + h*0.52);
             ctx.closePath();
             ctx.fill();
             // 心形亮部
-            ctx.fillStyle = '#f44';
+            ctx.fillStyle = '#ff6b6b';
             ctx.beginPath();
-            ctx.arc(cx - w*0.06, y + h*0.42, w*0.04, 0, Math.PI*2);
-            ctx.arc(cx + w*0.06, y + h*0.42, w*0.04, 0, Math.PI*2);
+            ctx.arc(cx - w*0.07, y + h*0.44, w*0.05, 0, Math.PI*2);
+            ctx.arc(cx + w*0.07, y + h*0.44, w*0.05, 0, Math.PI*2);
             ctx.fill();
-            // 吊坠边框
-            ctx.strokeStyle = '#fa4';
+            // 金色吊坠边框
+            ctx.strokeStyle = '#ffd700';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(cx - w*0.08, y + h*0.45, w*0.1, 0.5, 3.5);
+            ctx.arc(cx - w*0.1, y + h*0.48, w*0.12, 0.5, 3.5);
             ctx.stroke();
             ctx.beginPath();
-            ctx.arc(cx + w*0.08, y + h*0.45, w*0.1, 5.8, 2.8);
+            ctx.arc(cx + w*0.1, y + h*0.48, w*0.12, 5.8, 2.8);
             ctx.stroke();
             
         } else if (sprite === 'magic_amulet') {
-            // 魔法护符 - 蓝色水晶配银链
-            // 链条
-            ctx.strokeStyle = '#88a';
-            ctx.lineWidth = 2;
+            // 魔法护符 - 鲜艳蓝水晶配银链
+            // 银色链条
+            ctx.strokeStyle = '#c0c0c0';
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.moveTo(cx - w*0.15, y + h*0.08);
-            ctx.quadraticCurveTo(cx, y + h*0.25, cx + w*0.15, y + h*0.08);
+            ctx.moveTo(cx - w*0.18, y + h*0.08);
+            ctx.quadraticCurveTo(cx, y + h*0.28, cx + w*0.18, y + h*0.08);
             ctx.stroke();
             // 链条细节
+            ctx.strokeStyle = '#e8e8e8';
             for(let i=0; i<6; i++) {
                 ctx.beginPath();
-                ctx.arc(cx - w*0.12 + i*w*0.048, y + h*0.12 + i*h*0.03, w*0.02, 0, Math.PI*2);
+                ctx.arc(cx - w*0.14 + i*w*0.055, y + h*0.12 + i*h*0.025, w*0.025, 0, Math.PI*2);
                 ctx.stroke();
             }
             // 吊坠底座
-            ctx.fillStyle = '#668';
+            ctx.fillStyle = '#90a4ae';
             ctx.beginPath();
-            ctx.arc(cx, y + h*0.38, w*0.18, 0, Math.PI*2);
+            ctx.arc(cx, y + h*0.4, w*0.2, 0, Math.PI*2);
+            ctx.fill();
+            // 水晶发光
+            ctx.fillStyle = 'rgba(79, 195, 247, 0.3)';
+            ctx.beginPath();
+            ctx.arc(cx, y + h*0.45, w*0.18, 0, Math.PI*2);
             ctx.fill();
             // 水晶
-            ctx.fillStyle = '#04a';
+            ctx.fillStyle = '#29b6f6';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.22);
-            ctx.lineTo(cx + w*0.12, y + h*0.38);
-            ctx.lineTo(cx, y + h*0.62);
-            ctx.lineTo(cx - w*0.12, y + h*0.38);
+            ctx.lineTo(cx + w*0.14, y + h*0.4);
+            ctx.lineTo(cx, y + h*0.68);
+            ctx.lineTo(cx - w*0.14, y + h*0.4);
             ctx.closePath();
             ctx.fill();
             // 水晶面
-            ctx.fillStyle = '#26c';
+            ctx.fillStyle = '#4fc3f7';
             ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.22);
-            ctx.lineTo(cx + w*0.06, y + h*0.38);
-            ctx.lineTo(cx, y + h*0.62);
-            ctx.lineTo(cx - w*0.06, y + h*0.38);
+            ctx.moveTo(cx, y + h*0.26);
+            ctx.lineTo(cx + w*0.07, y + h*0.4);
+            ctx.lineTo(cx, y + h*0.6);
+            ctx.lineTo(cx - w*0.07, y + h*0.4);
             ctx.closePath();
             ctx.fill();
             // 高光
-            ctx.fillStyle = '#8af';
+            ctx.fillStyle = '#81d4fa';
             ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.26);
-            ctx.lineTo(cx + w*0.03, y + h*0.38);
-            ctx.lineTo(cx, y + h*0.45);
-            ctx.lineTo(cx - w*0.03, y + h*0.38);
+            ctx.moveTo(cx, y + h*0.3);
+            ctx.lineTo(cx + w*0.04, y + h*0.4);
+            ctx.lineTo(cx, y + h*0.48);
+            ctx.lineTo(cx - w*0.04, y + h*0.4);
             ctx.closePath();
             ctx.fill();
             // 魔法符文
-            ctx.strokeStyle = '#aff';
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#e1f5fe';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.arc(cx, y + h*0.45, w*0.06, 0, Math.PI*2);
+            ctx.arc(cx, y + h*0.48, w*0.07, 0, Math.PI*2);
             ctx.stroke();
             
         } else if (sprite === 'power_necklace') {
-            // 力量项链 - 紫色宝石配粗链
-            // 粗链条
-            ctx.strokeStyle = '#848';
+            // 力量项链 - 鲜艳紫宝石配金链
+            // 金色粗链条
+            ctx.strokeStyle = '#ffd700';
             ctx.lineWidth = 5;
             ctx.beginPath();
-            ctx.moveTo(cx - w*0.18, y + h*0.1);
-            ctx.quadraticCurveTo(cx, y + h*0.3, cx + w*0.18, y + h*0.1);
+            ctx.moveTo(cx - w*0.2, y + h*0.1);
+            ctx.quadraticCurveTo(cx, y + h*0.32, cx + w*0.2, y + h*0.1);
             ctx.stroke();
             // 链条节
-            ctx.fillStyle = '#a6a';
+            ctx.fillStyle = '#ffec8b';
             for(let i=0; i<4; i++) {
-                ctx.fillRect(cx - w*0.15 + i*w*0.1, y + h*0.15 + i*h*0.05, w*0.08, h*0.06);
+                ctx.beginPath();
+                ctx.arc(cx - w*0.14 + i*w*0.095, y + h*0.18 + i*h*0.04, w*0.05, 0, Math.PI*2);
+                ctx.fill();
             }
             // 宝石底座
-            ctx.fillStyle = '#636';
+            ctx.fillStyle = '#8e24aa';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.35);
-            ctx.lineTo(cx + w*0.2, y + h*0.45);
-            ctx.lineTo(cx + w*0.15, y + h*0.7);
-            ctx.lineTo(cx - w*0.15, y + h*0.7);
-            ctx.lineTo(cx - w*0.2, y + h*0.45);
+            ctx.lineTo(cx + w*0.22, y + h*0.48);
+            ctx.lineTo(cx + w*0.18, y + h*0.72);
+            ctx.lineTo(cx - w*0.18, y + h*0.72);
+            ctx.lineTo(cx - w*0.22, y + h*0.48);
             ctx.closePath();
             ctx.fill();
+            // 紫色宝石发光
+            ctx.fillStyle = 'rgba(171, 71, 188, 0.3)';
+            ctx.beginPath();
+            ctx.arc(cx, y + h*0.55, w*0.2, 0, Math.PI*2);
+            ctx.fill();
             // 紫色宝石
-            ctx.fillStyle = '#a0a';
+            ctx.fillStyle = '#ab47bc';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.38);
-            ctx.lineTo(cx + w*0.15, y + h*0.52);
-            ctx.lineTo(cx, y + h*0.68);
-            ctx.lineTo(cx - w*0.15, y + h*0.52);
+            ctx.lineTo(cx + w*0.16, y + h*0.55);
+            ctx.lineTo(cx, y + h*0.72);
+            ctx.lineTo(cx - w*0.16, y + h*0.55);
             ctx.closePath();
             ctx.fill();
             // 宝石面
-            ctx.fillStyle = '#c5c';
+            ctx.fillStyle = '#ce93d8';
             ctx.beginPath();
             ctx.moveTo(cx, y + h*0.42);
-            ctx.lineTo(cx + w*0.08, y + h*0.52);
-            ctx.lineTo(cx, y + h*0.62);
-            ctx.lineTo(cx - w*0.08, y + h*0.52);
+            ctx.lineTo(cx + w*0.09, y + h*0.55);
+            ctx.lineTo(cx, y + h*0.66);
+            ctx.lineTo(cx - w*0.09, y + h*0.55);
             ctx.closePath();
             ctx.fill();
             // 高光
-            ctx.fillStyle = '#f8f';
+            ctx.fillStyle = '#e1bee7';
             ctx.beginPath();
-            ctx.ellipse(cx - w*0.02, y + h*0.48, w*0.03, h*0.04, -0.5, 0, Math.PI*2);
+            ctx.ellipse(cx - w*0.03, y + h*0.5, w*0.04, h*0.05, -0.5, 0, Math.PI*2);
             ctx.fill();
             // 力量符文
-            ctx.strokeStyle = '#f0f';
+            ctx.strokeStyle = '#ea80fc';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.48);
-            ctx.lineTo(cx, y + h*0.58);
-            ctx.moveTo(cx - w*0.04, y + h*0.52);
-            ctx.lineTo(cx + w*0.04, y + h*0.52);
+            ctx.moveTo(cx, y + h*0.5);
+            ctx.lineTo(cx, y + h*0.62);
+            ctx.moveTo(cx - w*0.05, y + h*0.55);
+            ctx.lineTo(cx + w*0.05, y + h*0.55);
             ctx.stroke();
             
         } else {
-            // 默认项链
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+            // 默认项链 - 金色基础款
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.moveTo(cx, y + h*0.1);
-            ctx.lineTo(cx, y + h*0.4);
+            ctx.moveTo(cx - w*0.15, y + h*0.1);
+            ctx.quadraticCurveTo(cx, y + h*0.25, cx + w*0.15, y + h*0.1);
             ctx.stroke();
             ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.arc(cx, y + h*0.5, w*0.15, 0, Math.PI*2);
+            ctx.arc(cx, y + h*0.52, w*0.16, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(cx - w*0.04, y + h*0.48, w*0.05, 0, Math.PI*2);
             ctx.fill();
         }
     }
