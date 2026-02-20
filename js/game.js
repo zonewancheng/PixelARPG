@@ -2073,6 +2073,38 @@ function setupUI() {
         rightBtn.addEventListener('mousedown', (e) => { keys['ArrowRight'] = true; });
         rightBtn.addEventListener('mouseup', (e) => { keys['ArrowRight'] = false; });
     }
+    
+    // 对角线方向按钮
+    const upLeftBtn = document.getElementById('up-left');
+    const upRightBtn = document.getElementById('up-right');
+    const downLeftBtn = document.getElementById('down-left');
+    const downRightBtn = document.getElementById('down-right');
+    
+    if (upLeftBtn) {
+        upLeftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowUp'] = true; keys['ArrowLeft'] = true; }, { passive: false });
+        upLeftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowUp'] = false; keys['ArrowLeft'] = false; }, { passive: false });
+        upLeftBtn.addEventListener('mousedown', (e) => { keys['ArrowUp'] = true; keys['ArrowLeft'] = true; });
+        upLeftBtn.addEventListener('mouseup', (e) => { keys['ArrowUp'] = false; keys['ArrowLeft'] = false; });
+    }
+    if (upRightBtn) {
+        upRightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowUp'] = true; keys['ArrowRight'] = true; }, { passive: false });
+        upRightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowUp'] = false; keys['ArrowRight'] = false; }, { passive: false });
+        upRightBtn.addEventListener('mousedown', (e) => { keys['ArrowUp'] = true; keys['ArrowRight'] = true; });
+        upRightBtn.addEventListener('mouseup', (e) => { keys['ArrowUp'] = false; keys['ArrowRight'] = false; });
+    }
+    if (downLeftBtn) {
+        downLeftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowDown'] = true; keys['ArrowLeft'] = true; }, { passive: false });
+        downLeftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowDown'] = false; keys['ArrowLeft'] = false; }, { passive: false });
+        downLeftBtn.addEventListener('mousedown', (e) => { keys['ArrowDown'] = true; keys['ArrowLeft'] = true; });
+        downLeftBtn.addEventListener('mouseup', (e) => { keys['ArrowDown'] = false; keys['ArrowLeft'] = false; });
+    }
+    if (downRightBtn) {
+        downRightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowDown'] = true; keys['ArrowRight'] = true; }, { passive: false });
+        downRightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowDown'] = false; keys['ArrowRight'] = false; }, { passive: false });
+        downRightBtn.addEventListener('mousedown', (e) => { keys['ArrowDown'] = true; keys['ArrowRight'] = true; });
+        downRightBtn.addEventListener('mouseup', (e) => { keys['ArrowDown'] = false; keys['ArrowRight'] = false; });
+    }
+    
     if (attackBtn) {
         attackBtn.addEventListener('click', (e) => {
             e.stopPropagation();
