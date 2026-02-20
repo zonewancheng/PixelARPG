@@ -1496,8 +1496,17 @@ function updateUI() {
     const hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
     const mpPercent = Math.max(0, Math.min(100, (player.mp / player.maxMp) * 100));
     
-    document.getElementById('hp-bar').style.width = `${hpPercent}%`;
-    document.getElementById('mp-bar').style.width = `${mpPercent}%`;
+    // 设置CSS变量用于环形血条/蓝条
+    const hpRing = document.querySelector('.avatar-hp-ring');
+    const mpRing = document.querySelector('.avatar-mp-ring');
+    if (hpRing) hpRing.style.setProperty('--hp-percent', `${hpPercent}%`);
+    if (mpRing) mpRing.style.setProperty('--mp-percent', `${mpPercent}%`);
+    
+    // 更新文字显示
+    const hpText = document.getElementById('hp-text');
+    const mpText = document.getElementById('mp-text');
+    if (hpText) hpText.textContent = `${Math.floor(player.hp)}/${Math.floor(player.maxHp)}`;
+    if (mpText) mpText.textContent = `${Math.floor(player.mp)}/${Math.floor(player.maxMp)}`;
     
     const eqCountEl = document.getElementById('eq-count');
     if (eqCountEl) {

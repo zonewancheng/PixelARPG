@@ -21,9 +21,10 @@
         <canvas id="game" width="480" height="640"></canvas>
         <div id="ui">
             <div id="player-info">
-                <div class="info-avatar-wrapper">
+                <div class="info-avatar-container">
+                    <div class="avatar-hp-ring"></div>
+                    <div class="avatar-mp-ring"></div>
                     <button id="characterBtn" class="info-avatar"><svg viewBox="0 0 24 24" width="24" height="24"><circle fill="%23ff6" cx="12" cy="10" r="8"/><circle fill="%23fff" cx="9" cy="9" r="2"/><circle fill="%23000" cx="9" cy="9" r="1"/><circle fill="%23fff" cx="15" cy="9" r="2"/><circle fill="%23000" cx="15" cy="9" r="1"/><path fill="%23f80" d="M8 14h8v3H8z"/></svg></button>
-                    <div class="avatar-ring"></div>
                 </div>
                 <div class="info-content">
                     <div class="info-header">
@@ -36,22 +37,11 @@
                             <span id="gold">0</span>
                         </div>
                     </div>
-                    <div class="info-bars">
-                        <div class="bar-item">
-                            <div class="bar-label">HP</div>
-                            <div class="bar-track">
-                                <div class="bar hp-bar" id="hp-bar"></div>
-                            </div>
-                        </div>
-                        <div class="bar-item">
-                            <div class="bar-label">MP</div>
-                            <div class="bar-track">
-                                <div class="bar mp-bar" id="mp-bar"></div>
-                            </div>
-                        </div>
+                    <div class="info-stats">
+                        <span class="stat-hp">HP: <span id="hp-text">100/100</span></span>
+                        <span class="stat-mp">MP: <span id="mp-text">50/50</span></span>
                     </div>
                 </div>
-                <div class="info-decoration"></div>
             </div>
             
             <div id="game-buttons">
