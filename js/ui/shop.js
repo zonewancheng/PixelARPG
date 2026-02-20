@@ -54,7 +54,7 @@ window.UIShop = {
         
         this.element.innerHTML = `
             <div class="panel-header">
-                <h2>⚔️ 商店</h2>
+                <h2>商店</h2>
                 <button class="panel-close-btn" id="shop-close-btn">✕</button>
             </div>
             <div class="panel-body">
