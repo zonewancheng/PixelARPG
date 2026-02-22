@@ -78,7 +78,7 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     
     // ========== 计算武器位置（用于层级判断）==========
     let weaponBehind = false;
-    let weaponX, weaponY, weaponCanvas, weaponSize = 22;
+    let weaponX, weaponY, weaponCanvas, weaponSize = 66; // 放大3倍（原22）
     let weaponAngle = 0;
 
     if (player.weapon && window.renderEquipmentIcon) {
@@ -596,13 +596,8 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
             const swingAngle = baseAngle - attackArc/2 + attackProgress * attackArc;
             ctx.rotate(swingAngle);
         } else {
-            console.log(baseAngle);
             if(baseAngle >= Math.PI/2 && baseAngle <= Math.PI) {
-                // ctx.translate(-100*wSize, wSize); // 武器稍微偏上，靠近手部位置
-                ctx.rotate(baseAngle + Math.PI/2) // 武器尖尖朝向玩家朝向
-            }else {
-                // ctx.translate(wSize * 0.15, wSize * 0.1); // 武器稍微偏上，靠近手部位置
-                // ctx.rotate(baseAngle - Math.PI/2); // 武器尖尖朝向玩家朝向
+                ctx.rotate(baseAngle + Math.PI/2);
             }
         }
 

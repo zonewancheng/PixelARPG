@@ -3,8 +3,8 @@
  * 定义游戏全局常量和配置
  */
 
-// 瓦片大小 (像素) - 动态计算
-window.TILE = 32;
+// 瓦片大小 (像素) - 放大2倍
+window.TILE = 64;
 
 // 地图宽度 (瓦片数) - 动态计算
 window.MAP_W = 15;
@@ -15,8 +15,8 @@ window.MAP_H = 20;
 // 根据画布大小自动计算地图参数
 window.initMapSize = function(canvasWidth, canvasHeight) {
     // 计算合适的瓦片大小，使地图填满画布
-    const minTile = 24;
-    const maxTile = 48;
+    const minTile = 48;  // 放大2倍（原24）
+    const maxTile = 96;  // 放大2倍（原48）
     
     // 计算最佳瓦片大小（填满屏幕）
     // 根据屏幕高度动态调整行数

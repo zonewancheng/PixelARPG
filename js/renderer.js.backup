@@ -23,12 +23,6 @@ function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
         return;
     }
     
-    // 放大2倍绘制
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(2, 2);
-    ctx.translate(-x, -y);
-    
     const dir = player.dirX > 0 ? 1 : (player.dirX < 0 ? -1 : 1);
     ctx.fillStyle = color;
     if (type === 'player') {
@@ -77,12 +71,6 @@ function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
             const handX = dir > 0 ? x + 18 : x - 6;
             const handY = y + 14;
             
-            // 武器额外放大2倍
-            ctx.save();
-            ctx.translate(handX, handY);
-            ctx.scale(2, 2);
-            ctx.translate(-handX, -handY);
-            
             if (wp === 'fire_sword') {
                 ctx.fillStyle = '#420';
                 ctx.fillRect(handX + (dir > 0 ? 0 : 2), handY + 4, 6, 4);
@@ -110,7 +98,6 @@ function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
                 ctx.fillStyle = '#ccc';
                 ctx.fillRect(handX + (dir > 0 ? 1.5 : 3.5), handY - 6, 2, 8);
             }
-            ctx.restore();
         }
         
         ctx.fillStyle = '#fff';
@@ -289,7 +276,6 @@ function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
         ctx.fillRect(x + 14, y + 10, 4, 4);
         ctx.fillRect(x + 30, y + 10, 4, 4);
     }
-    ctx.restore(); // 恢复画布状态
 }
 
 // ===== 地图绘制 =====
@@ -892,14 +878,13 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
  * @param {boolean} animate - 是否播放动画
  */
 function drawDrops(ctx, drops, animate = true) {
-    const SCALE = 2; // 放大2倍
     const time = animate ? Date.now() / 200 : 0;
-    const bounce = animate ? Math.sin(time + (drops[0]?.x || 0) * 0.1) * 4 : 0;
-    const glowSize = animate ? 36 + Math.sin(Date.now() / 150) * 6 : 36; // 放大2倍
+    const bounce = animate ? Math.sin(time + (drops[0]?.x || 0) * 0.1) * 2 : 0;
+    const glowSize = animate ? 18 + Math.sin(Date.now() / 150) * 3 : 18;
     
     drops.forEach(d => {
         if (!d.item) return;
-        const drawY = d.y + (animate ? Math.sin(time + d.x * 0.1) * 4 : 0); // 放大2倍
+        const drawY = d.y + (animate ? Math.sin(time + d.x * 0.1) * 2 : 0);
         
         const qualityColor = d.item.color || '#fff';
         
@@ -913,35 +898,35 @@ function drawDrops(ctx, drops, animate = true) {
         if (d.item.type === 'treasure' && d.item.id === 'gold') {
             // 使用道具图标
             if (window.renderConsumableIcon) {
-                const iconUrl = window.renderConsumableIcon(d.item, 48); // 放大2倍
+                const iconUrl = window.renderConsumableIcon(d.item, 24);
                 if (iconUrl) {
                     const img = new Image();
                     img.src = iconUrl;
-                    ctx.drawImage(img, d.x - 24, drawY + 4, 48, 48); // 放大2倍
+                    ctx.drawImage(img, d.x - 12, drawY + 2, 24, 24);
                 }
             } else {
-                ctx.font = '48px Arial'; // 放大2倍
+                ctx.font = '24px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText(d.item.icon || '💰', d.x, drawY + 32); // 放大2倍
+                ctx.fillText(d.item.icon || '💰', d.x, drawY + 16);
             }
             // 显示金币数量
-            ctx.font = 'bold 22px Arial'; // 放大2倍
+            ctx.font = 'bold 11px Arial';
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffd700';
             ctx.strokeStyle = '#000';
-            ctx.lineWidth = 4; // 放大2倍
+            ctx.lineWidth = 2;
             const goldValue = d.item.value || 10;
-            ctx.strokeText(goldValue, d.x, drawY - 12); // 放大2倍
-            ctx.fillText(goldValue, d.x, drawY - 12);
+            ctx.strokeText(goldValue, d.x, drawY - 6);
+            ctx.fillText(goldValue, d.x, drawY - 6);
             return;
         }
         
         // 装备类道具 - 只显示图标，无边框
         if (window.renderEquipmentIcon && ['weapon', 'armor', 'helmet', 'boots', 'ring', 'necklace'].includes(d.item.type)) {
-            const itemCanvas = window.renderEquipmentIcon(d.item, 40); // 放大2倍
-            ctx.drawImage(itemCanvas, d.x - 20, drawY + 8, 40, 40); // 放大2倍
+            const itemCanvas = window.renderEquipmentIcon(d.item, 20);
+            ctx.drawImage(itemCanvas, d.x - 10, drawY + 4, 20, 20);
             // 显示装备名称 - 根据品质显示颜色
-            ctx.font = 'bold 20px Arial'; // 放大2倍
+            ctx.font = 'bold 10px Arial';
             ctx.textAlign = 'center';
             // 品质颜色
             const qualityColors = {
@@ -954,13 +939,13 @@ function drawDrops(ctx, drops, animate = true) {
             const qualityColor = qualityColors[d.item.quality] || '#fff';
             ctx.fillStyle = qualityColor;
             ctx.strokeStyle = '#000';
-            ctx.lineWidth = 4; // 放大2倍
-            ctx.strokeText(d.item.name || '', d.x, drawY - 16); // 放大2倍
-            ctx.fillText(d.item.name || '', d.x, drawY - 16);
+            ctx.lineWidth = 2;
+            ctx.strokeText(d.item.name || '', d.x, drawY - 8);
+            ctx.fillText(d.item.name || '', d.x, drawY - 8);
         } else {
-            ctx.font = '48px Arial'; // 放大2倍
+            ctx.font = '24px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(d.item.icon || '?', d.x, drawY + 32); // 放大2倍
+            ctx.fillText(d.item.icon || '?', d.x, drawY + 16);
         }
         ctx.textAlign = 'left';
     });
@@ -970,7 +955,6 @@ function drawDrops(ctx, drops, animate = true) {
  * 绘制药水类掉落物
  */
 function drawConsumableDrop(ctx, d, drawY, glowSize, time) {
-    const SCALE = 2; // 放大2倍
     const item = d.item;
     const id = item.id || '';
     
@@ -1009,46 +993,46 @@ function drawConsumableDrop(ctx, d, drawY, glowSize, time) {
         bubbleColor = '#eeeeee';
     }
     
-    // 发光效果（放大2倍）
-    const pulseGlow = glowSize + Math.sin(time * 2) * 6;
-    const gradient = ctx.createRadialGradient(d.x, drawY + 16, 0, d.x, drawY + 16, pulseGlow);
+    // 发光效果
+    const pulseGlow = glowSize + Math.sin(time * 2) * 3;
+    const gradient = ctx.createRadialGradient(d.x, drawY + 8, 0, d.x, drawY + 8, pulseGlow);
     gradient.addColorStop(0, glowColor);
     gradient.addColorStop(0.5, glowColor.replace('0.8)', '0.3)'));
     gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
     
     ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(d.x, drawY + 16, pulseGlow, 0, Math.PI * 2);
+    ctx.arc(d.x, drawY + 8, pulseGlow, 0, Math.PI * 2);
     ctx.fill();
     
-    // 药水瓶主体（放大2倍）
-    const bottleX = d.x - 16;
-    const bottleY = drawY + 4;
-    const bottleW = 32;
-    const bottleH = 40;
+    // 药水瓶主体
+    const bottleX = d.x - 8;
+    const bottleY = drawY + 2;
+    const bottleW = 16;
+    const bottleH = 20;
     
     // 瓶身阴影
     ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.fillRect(bottleX + 4, bottleY + 4, bottleW, bottleH);
+    ctx.fillRect(bottleX + 2, bottleY + 2, bottleW, bottleH);
     
     // 瓶身液体
     const liquidLevel = 0.7 + Math.sin(time * 3) * 0.1;
     ctx.fillStyle = potionColor;
     ctx.beginPath();
-    ctx.roundRect(bottleX, bottleY + bottleH * (1 - liquidLevel), bottleW, bottleH * liquidLevel, 8);
+    ctx.roundRect(bottleX, bottleY + bottleH * (1 - liquidLevel), bottleW, bottleH * liquidLevel, 4);
     ctx.fill();
     
     // 液体高光
     ctx.fillStyle = liquidColor;
     ctx.beginPath();
-    ctx.roundRect(bottleX + 4, bottleY + bottleH * (1 - liquidLevel) + 4, bottleW - 8, (bottleH * liquidLevel) / 2, 4);
+    ctx.roundRect(bottleX + 2, bottleY + bottleH * (1 - liquidLevel) + 2, bottleW - 4, (bottleH * liquidLevel) / 2, 2);
     ctx.fill();
     
-    // 气泡效果（放大2倍）
+    // 气泡效果
     for (let i = 0; i < 3; i++) {
-        const bubbleY = bottleY + bottleH - 8 - ((time * 2 + i * 2) % 20);
-        const bubbleX = bottleX + 8 + i * 8;
-        const bubbleSize = 4 + Math.sin(time * 4 + i) * 1;
+        const bubbleY = bottleY + bottleH - 4 - ((time * 2 + i * 2) % 10);
+        const bubbleX = bottleX + 4 + i * 4;
+        const bubbleSize = 2 + Math.sin(time * 4 + i) * 0.5;
         ctx.fillStyle = bubbleColor;
         ctx.globalAlpha = 0.7;
         ctx.beginPath();
@@ -1057,23 +1041,23 @@ function drawConsumableDrop(ctx, d, drawY, glowSize, time) {
     }
     ctx.globalAlpha = 1;
     
-    // 瓶口（放大2倍）
+    // 瓶口
     ctx.fillStyle = '#888888';
-    ctx.fillRect(bottleX + 8, bottleY - 4, bottleW - 16, 6);
+    ctx.fillRect(bottleX + 4, bottleY - 2, bottleW - 8, 3);
     
-    // 瓶塞（放大2倍）
+    // 瓶塞
     ctx.fillStyle = '#654321';
-    ctx.fillRect(bottleX + 10, bottleY - 8, bottleW - 20, 6);
+    ctx.fillRect(bottleX + 5, bottleY - 4, bottleW - 10, 3);
     
-    // 瓶身边框（放大2倍）
+    // 瓶身边框
     ctx.strokeStyle = potionColor;
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 2;
     ctx.strokeRect(bottleX, bottleY, bottleW, bottleH);
     
-    // 高光反射（放大2倍）
+    // 高光反射
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.beginPath();
-    ctx.ellipse(bottleX + 6, bottleY + 8, 4, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(bottleX + 3, bottleY + 4, 2, 4, 0, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -1099,42 +1083,42 @@ function drawProjectiles(ctx, projectiles) {
         const particleColor = p.particleColor || '#fff';
         
         if (p.isLightning) {
-            // 雷电 - 与图标一致的锯齿状闪电（放大2倍）
+            // 雷电 - 与图标一致的锯齿状闪电
             ctx.save();
             
             // 发光效果
             ctx.shadowColor = p.glowColor || '#0ff';
-            ctx.shadowBlur = 30;
+            ctx.shadowBlur = 15;
             
             // 主闪电
             ctx.strokeStyle = p.boltColor || '#ff0';
-            ctx.lineWidth = 8;
+            ctx.lineWidth = 4;
             ctx.lineJoin = 'miter';
             ctx.beginPath();
             ctx.moveTo(p.x - p.vx * 0.3, p.y - p.vy * 0.3);
-            ctx.lineTo(p.x + Math.sin(Date.now() / 50) * 6, p.y - 10);
-            ctx.lineTo(p.x - Math.sin(Date.now() / 50 + 1) * 6, p.y + 6);
+            ctx.lineTo(p.x + Math.sin(Date.now() / 50) * 3, p.y - 5);
+            ctx.lineTo(p.x - Math.sin(Date.now() / 50 + 1) * 3, p.y + 3);
             ctx.lineTo(p.x, p.y);
             ctx.stroke();
             
             // 核心闪电
             ctx.strokeStyle = p.coreColor || '#fff';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(p.x - p.vx * 0.2, p.y - p.vy * 0.2);
-            ctx.lineTo(p.x, p.y - 6);
+            ctx.lineTo(p.x, p.y - 3);
             ctx.lineTo(p.x, p.y);
             ctx.stroke();
             
             // 分支闪电
             ctx.strokeStyle = 'rgba(255,255,0,0.6)';
-            ctx.lineWidth = 2;
-            const branches = 4;
+            ctx.lineWidth = 1;
+            const branches = 3;
             for (let i = 0; i < branches; i++) {
                 const angle = (Date.now() / 30) + i * Math.PI * 2 / branches;
                 ctx.beginPath();
                 ctx.moveTo(p.x, p.y);
-                ctx.lineTo(p.x + Math.cos(angle) * 16, p.y + Math.sin(angle) * 16);
+                ctx.lineTo(p.x + Math.cos(angle) * 8, p.y + Math.sin(angle) * 8);
                 ctx.stroke();
             }
             
@@ -1532,8 +1516,8 @@ function drawPlayerAttack(ctx, player) {
     ctx.save();
     ctx.translate(baseX, baseY);
     
-    // 放大2倍：攻击范围160像素，匹配实际判定范围
-    const attackRadius = 160;
+    // 与攻击判定匹配：范围80像素，角度240度（dot > -0.5）
+    const attackRadius = 80;
     const attackArc = Math.PI * 2 / 3; // 120度扇形（匹配dot > -0.5）
     
     // 绘制攻击范围扇形
@@ -1548,11 +1532,11 @@ function drawPlayerAttack(ctx, player) {
     // 挥砍动画：月牙从一侧扫到另一侧
     const swingAngle = attackAngle - attackArc/2 + attackProgress * attackArc;
     const crescentRadius = attackRadius * 0.7;
-    const crescentWidth = 50; // 放大2倍（原25）
+    const crescentWidth = 25;
     
     // 月牙外发光
     ctx.shadowColor = slashColor;
-    ctx.shadowBlur = 40; // 放大2倍（原20）
+    ctx.shadowBlur = 20;
     ctx.globalAlpha = 0.7 * (1 - attackProgress * 0.3);
     ctx.fillStyle = slashGlow;
     
@@ -1650,9 +1634,6 @@ function drawEnemyAttack(ctx, enemy) {
     
     ctx.save();
     ctx.translate(baseX, baseY);
-    
-    // 攻击动画放大2倍
-    ctx.scale(2, 2);
     
     // 计算攻击角度
     let attackAngle = 0;
@@ -2254,113 +2235,39 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player, animate = true) {
                 cloud.lightningTimer = 0;
             }
             
-            // 雷电攻击 - 找最近的目标发射雷电投射物
-            if (cloud.lightningTimer >= 60 && cloud.lightningTimer % 30 === 0) {
-                // 云的屏幕坐标
-                const cloudScreenX = cloud.x;
-                const cloudScreenY = cloud.y;
+            // 雷电伤害
+            if (cloud.lightningTimer >= 60 && cloud.lightningTimer % 25 === 0) {
+                const cloudCenterX = cloud.x;
+                const cloudCenterY = cloud.y + cloud.size * 0.5;
                 
-                // 玩家的屏幕坐标
-                let camX = window.cameraX || 0;
-                let camY = window.cameraY || 0;
-                const playerScreenX = player.x + player.w / 2 - camX;
-                const playerScreenY = player.y + player.h / 2 - camY;
+                const playerCenterX = player.x + player.w / 2;
+                const playerCenterY = player.y + player.h / 2;
+                const dx = playerCenterX - cloudCenterX;
+                const dy = playerCenterY - cloudCenterY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
                 
-                // 找最近的目标（玩家或怪物）- 攻击范围200
-                let nearestTarget = null;
-                let nearestDist = 200;
-                
-                // 检查玩家（使用屏幕坐标计算距离）
-                const playerDist = Math.sqrt((playerScreenX - cloudScreenX) ** 2 + (playerScreenY - cloudScreenY) ** 2);
-                if (playerDist < nearestDist) {
-                    nearestDist = playerDist;
-                    nearestTarget = { 
-                        screenX: playerScreenX, 
-                        screenY: playerScreenY,
-                        mapX: player.x + player.w / 2, 
-                        mapY: player.y + player.h / 2, 
-                        isPlayer: true 
-                    };
-                }
-                
-                // 检查怪物
-                if (window.enemies && window.enemies.length > 0) {
-                    window.enemies.forEach(e => {
-                        const eScreenX = e.x + e.w / 2 - camX;
-                        const eScreenY = e.y + e.h / 2 - camY;
-                        const eDist = Math.sqrt((eScreenX - cloudScreenX) ** 2 + (eScreenY - cloudScreenY) ** 2);
-                        if (eDist < nearestDist) {
-                            nearestDist = eDist;
-                            nearestTarget = { 
-                                screenX: eScreenX, 
-                                screenY: eScreenY,
-                                mapX: e.x + e.w / 2, 
-                                mapY: e.y + e.h / 2, 
-                                isPlayer: false, 
-                                enemy: e 
-                            };
-                        }
-                    });
-                }
-                
-                // 检查Boss
-                if (window.bosses && window.bosses.length > 0) {
-                    window.bosses.forEach(boss => {
-                        if (!boss || boss.hp <= 0) return;
-                        const bScreenX = boss.x + boss.w / 2 - camX;
-                        const bScreenY = boss.y + boss.h / 2 - camY;
-                        const bDist = Math.sqrt((bScreenX - cloudScreenX) ** 2 + (bScreenY - cloudScreenY) ** 2);
-                        if (bDist < nearestDist) {
-                            nearestDist = bDist;
-                            nearestTarget = { 
-                                screenX: bScreenX, 
-                                screenY: bScreenY,
-                                mapX: boss.x + boss.w / 2, 
-                                mapY: boss.y + boss.h / 2, 
-                                isPlayer: false, 
-                                enemy: boss 
-                            };
-                        }
-                    });
-                }
-                
-                // 发射雷电投射物到最近目标
-                if (nearestTarget && window.projectiles) {
-                    const cloudMapX = cloudScreenX + camX;
-                    const cloudMapY = cloudScreenY + camY;
-                    const dx = nearestTarget.mapX - cloudMapX;
-                    const dy = nearestTarget.mapY - cloudMapY;
-                    const mapDist = Math.sqrt(dx * dx + dy * dy); // 使用地图坐标距离
-                    const speed = 10;
+                // 对玩家造成伤害
+                if (dist < 60 && player.invulnerable <= 0) {
+                    const dmg = Math.max(1, 25 + Math.floor(Math.random() * 15) - player.def);
+                    player.hp -= dmg;
+                    player.invulnerable = 20;
+                    damageFlash = 8;
+                    spawnParticles(playerCenterX, playerCenterY, '#ff0', 8);
+                    spawnDamageNumber(playerCenterX, playerCenterY, dmg);
                     
-                    if (mapDist > 0) {
-                        // 伤害随地图等级增加
-                        const mapLevel = window.mapLevel || 1;
-                        const baseDamage = 15 + mapLevel * 5;
-                        const damage = baseDamage + Math.floor(Math.random() * 10);
-                        
-                        window.projectiles.push({
-                            x: cloudMapX,
-                            y: cloudMapY,
-                            vx: (dx / mapDist) * speed,
-                            vy: (dy / mapDist) * speed,
-                            damage: damage,
-                            color: '#ff0',
-                            particleColor: '#fff',
-                            size: 24,
-                            life: 60,
-                            isLightning: true,
-                            isCloudLightning: true,
-                            boltColor: '#ff0',
-                            coreColor: '#fff',
-                            glowColor: '#0ff'
-                        });
-                        
-                        // 雷电音效
-                        if (typeof playSound === 'function') {
-                            playSound('lightning');
-                        }
+                    // 雷电伤害音效
+                    if (typeof playSound === 'function') {
+                        playSound('lightning');
                     }
+                    
+                    if (player.hp <= 0) {
+                        gameState = 'gameover';
+                    }
+                }
+                
+                // 对怪物造成伤害 - 通过自定义事件通知游戏逻辑
+                if (window.triggerCloudDamage) {
+                    window.triggerCloudDamage(cloudCenterX, cloudCenterY);
                 }
             }
             

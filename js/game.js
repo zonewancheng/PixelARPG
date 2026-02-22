@@ -2,17 +2,30 @@ let canvas, ctx;
 let map = [];
 let mapLevel = 1;
 let enemies = [];
+window.enemies = enemies; // 导出到window供雷电云使用
 let drops = [];
 let particles = [];
 let projectiles = [];
+window.projectiles = projectiles; // 导出到window供雷电云使用
 let damageNumbers = [];
 let gameState = 'playing';
+window.gameState = gameState;
+// 使用 getter/seter 保持同步
+Object.defineProperty(window, 'gameState', {
+    get: () => gameState,
+    set: (v) => { gameState = v; }
+});
 let inventoryOpen = false;
 let characterOpen = false;
 let shopOpen = false;
 let message = '';
 let messageTimer = 0;
 let damageFlash = 0;
+window.damageFlash = 0; // 导出到window供雷电云使用
+Object.defineProperty(window, 'damageFlash', {
+    get: () => damageFlash,
+    set: (v) => { damageFlash = v; }
+});
 let keys = {};
 let deathCountdown = 0;
 
@@ -131,6 +144,10 @@ function updateCamera() {
     const smoothing = 0.15;
     cameraX += (targetX - cameraX) * smoothing;
     cameraY += (targetY - cameraY) * smoothing;
+    
+    // 导出到 window 供雷电云使用
+    window.cameraX = cameraX;
+    window.cameraY = cameraY;
 }
 
 function initGame() {
@@ -244,7 +261,7 @@ function createPlayer() {
     const p = {
         x: 7 * window.TILE,
         y: 15 * window.TILE,
-        w: 24, h: 28,
+        w: 48, h: 56, // 放大2倍
         vx: 0, vy: 0,
         hp: totalMaxHp, maxHp: totalMaxHp,
         mp: totalMaxMp, maxMp: totalMaxMp,
@@ -325,6 +342,7 @@ function getEnemyAttackType(enemyType) {
 
 function spawnEnemies() {
     enemies = [];
+    window.enemies = enemies;
     // 根据地图大小和等级动态计算怪物数量，但至少5个
     const mapSize = window.MAP_W * window.MAP_H;
     const baseCount = Math.floor(mapSize / 80); // 每80格1个怪物
@@ -345,7 +363,7 @@ function spawnEnemies() {
         enemies.push({
             x: ex * window.TILE + 4,
             y: ey * window.TILE + 4,
-            w: 24, h: 24,
+            w: 48, h: 48, // 放大2倍（原24x24）
             hp: et.hp + mapLevel * 10,
             maxHp: et.hp + mapLevel * 10,
             atk: et.atk + mapLevel * 4,
@@ -427,7 +445,7 @@ function spawnBoss() {
             id: `boss_${i}_${Date.now()}`, // 唯一ID
             x: bx,
             y: by,
-            w: bossType.size, h: bossType.size,
+            w: bossType.size * 2, h: bossType.size * 2, // 放大2倍
             hp: bossType.hp + mapLevel * 40,
             maxHp: bossType.hp + mapLevel * 40,
             atk: bossType.atk + mapLevel * 6,
@@ -686,7 +704,7 @@ function spawnPotionEffect(x, y, type) {
 window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
     let hasHit = false;
     
-    // 对怪物造成伤害
+    // 对怪物造成伤害 - 增大范围到200
     enemies.forEach(e => {
         const eCenterX = e.x + e.w / 2;
         const eCenterY = e.y + e.h / 2;
@@ -694,7 +712,7 @@ window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
         const edy = eCenterY - cloudCenterY;
         const edist = Math.sqrt(edx * edx + edy * edy);
         
-        if (edist < 60) {
+        if (edist < 200) {
             const eDmg = Math.max(1, 15 + Math.floor(Math.random() * 10) - (e.def || 0));
             e.hp -= eDmg;
             spawnParticles(eCenterX, eCenterY, '#ff0', 8);
@@ -703,7 +721,7 @@ window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
         }
     });
     
-    // 对所有Boss造成伤害
+    // 对所有Boss造成伤害 - 增大范围到250
     if (window.bosses && window.bosses.length > 0) {
         window.bosses.forEach(boss => {
             if (!boss || boss.hp <= 0) return;
@@ -713,7 +731,7 @@ window.triggerCloudDamage = function(cloudCenterX, cloudCenterY) {
             const bdy = bossCenterY - cloudCenterY;
             const bdist = Math.sqrt(bdx * bdx + bdy * bdy);
             
-            if (bdist < 80) {
+            if (bdist < 250) {
                 const bossDmg = Math.max(1, 20 + Math.floor(Math.random() * 15) - (boss.def || 0));
                 boss.hp -= bossDmg;
                 spawnParticles(bossCenterX, bossCenterY, '#ff0', 12);
@@ -867,8 +885,9 @@ function update() {
         const dy = player.y - e.y;
         const dist = Math.sqrt(dx*dx + dy*dy);
         
-        const detectRange = 150;
-        const chaseRange = 200;
+        // 放大索敌和追踪范围
+        const detectRange = 300; // 原150
+        const chaseRange = 400;  // 原200
         
         if ((dist < chaseRange && dist > 0) && (e.aggro > 0 || dist < detectRange)) {
             if (e.frozen <= 0) {
@@ -877,7 +896,7 @@ function update() {
                 e.y += (dy / dist) * chaseSpeed;
             }
         } else {
-            const patrolRange = 80;
+            const patrolRange = 160; // 原80
             switch(e.moveMode) {
                 case 'patrol_h':
                     if (!e.patrolDir) e.patrolDir = Math.random() > 0.5 ? 1 : -1;
@@ -896,7 +915,7 @@ function update() {
                 case 'circle':
                     if (!e.circleDir) e.circleDir = 1;
                     e.angle += 0.02 * e.circleDir;
-                    const radius = 35;
+                    const radius = 70; // 原35
                     const targetX = e.spawnX + Math.cos(e.angle) * radius;
                     const targetY = e.spawnY + Math.sin(e.angle) * radius;
                     e.x += (targetX - e.x) * 0.03;
@@ -938,8 +957,8 @@ function update() {
             }
         }
         
-        // 敌人攻击逻辑
-        if (dist < 30 && e.attackCooldown <= 0 && player.invulnerable <= 0 && e.frozen <= 0) {
+        // 敌人攻击逻辑 - 攻击范围改为2.5格
+        if (dist < window.TILE * 2.5 && e.attackCooldown <= 0 && player.invulnerable <= 0 && e.frozen <= 0) {
             // 触发攻击动画
             e.isAttacking = true;
             e.attackProgress = 0;
@@ -1007,12 +1026,12 @@ function update() {
             const dy = playerCenterY - bossCenterY;
             const dist = Math.sqrt(dx*dx + dy*dy);
             
-            // Boss chases player when in range but maintains distance
-            if (dist < 250 && dist > 40) {
+            // Boss chases player when in range but maintains distance (放大2倍)
+            if (dist < 500 && dist > 80) {
                 const chaseSpeed = 0.3;
                 boss.x += (dx / dist) * chaseSpeed;
                 boss.y += (dy / dist) * chaseSpeed;
-            } else if (dist >= 250) {
+            } else if (dist >= 500) {
                 // Idle wandering when player is far
                 boss.wanderTimer--;
                 if (boss.wanderTimer <= 0) {
@@ -1059,8 +1078,8 @@ function update() {
                 }
             }
             
-            // Boss普通攻击 - 需要靠近玩家
-            if (dist < 40 && boss.attackCooldown <= 0 && player.invulnerable <= 0) {
+            // Boss普通攻击 - 需要靠近玩家（放大2倍）
+            if (dist < 160 && boss.attackCooldown <= 0 && player.invulnerable <= 0) {
                 playSound('bossAttack');
                 const dmg = Math.max(1, boss.atk - player.def + Math.floor(Math.random() * 5));
                 player.hp -= dmg;
@@ -1149,6 +1168,7 @@ function update() {
     });
     
     enemies = enemies.filter(e => e.hp > 0);
+    window.enemies = enemies; // 同步到window
     
     if (enemies.length === 0 && !window.boss && !window.bosses?.length && gameState === 'playing' && !levelTransitioning) {
         levelTransitioning = true;
@@ -1186,12 +1206,33 @@ function update() {
         p.life--;
         
         let hit = false;
-        // Boss的投射物不会对怪物造成伤害
+        
+        // 雷电云投射物对玩家造成伤害
+        if (p.isCloudLightning && player.invulnerable <= 0) {
+            const dx = p.x - (player.x + player.w/2);
+            const dy = p.y - (player.y + player.h/2);
+            if (Math.sqrt(dx*dx + dy*dy) < 25) {
+                const dmg = Math.max(1, p.damage - player.def);
+                player.hp -= dmg;
+                player.invulnerable = 30;
+                damageFlash = 10;
+                spawnParticles(player.x + player.w/2, player.y + player.h/2, '#ff0', 8);
+                spawnDamageNumber(player.x + player.w/2, player.y + player.h/2, dmg);
+                hit = true;
+                if (player.hp <= 0) {
+                    gameState = 'gameover';
+                    deathCountdown = 300;
+                    showMessage('GAME OVER - Tap to restart', 300);
+                }
+            }
+        }
+        
+        // 投射物对怪物造成伤害（玩家技能和雷电云都能伤害怪物）
         if (!p.isBoss) {
             enemies.forEach(e => {
                 const dx = p.x - (e.x + e.w/2);
                 const dy = p.y - (e.y + e.h/2);
-                if (Math.sqrt(dx*dx + dy*dy) < 20) {
+                if (Math.sqrt(dx*dx + dy*dy) < 25) {
                     e.hp -= p.damage;
                     e.aggro = 120;
                     spawnParticles(e.x + e.w/2, e.y + e.h/2, '#f84', 5);
@@ -1212,6 +1253,7 @@ function update() {
             }
             return true;
         });
+        window.enemies = enemies; // 同步到window
         
         // 检查所有Boss的击中情况
         if (window.bosses && window.bosses.length > 0 && !p.isBoss) {
@@ -1334,6 +1376,7 @@ function update() {
         
         return p.life > 0 && !hit;
     });
+    window.projectiles = projectiles; // 同步到window
     
     // 升级经验要求：随等级递增
     const expToLevel = player.level * 100 + player.level * player.level * 20;
@@ -1605,7 +1648,7 @@ function attack() {
 
     const px = player.x + player.w/2;
     const py = player.y + player.h/2;
-    const range = 80;
+    const range = 160; // 攻击范围放大一倍（原80）
 
     function isTargetInDirection(targetX, targetY) {
         const dx = targetX - px;
@@ -2455,9 +2498,11 @@ function restartGame() {
     window.skills.forEach(s => window.skillCooldowns[s.id] = 0);
     mapLevel = 1;
     enemies = [];
+    window.enemies = enemies;
     drops = [];
     particles = [];
     projectiles = [];
+    window.projectiles = projectiles;
     damageNumbers = [];
     window.boss = null;
     window.bosses = [];
