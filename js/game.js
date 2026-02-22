@@ -349,9 +349,9 @@ function spawnEnemies() {
     window.enemies = enemies;
     // 根据地图大小和等级动态计算怪物数量，但至少5个
     const mapSize = window.MAP_W * window.MAP_H;
-    const baseCount = Math.floor(mapSize / 40); // 每40格1个怪物（密度翻倍）
+    const baseCount = Math.floor(mapSize / 20); // 每20格1个怪物（再翻倍）
     const levelBonus = Math.floor(mapLevel * 0.5);
-    const count = Math.max(10, Math.min(baseCount + levelBonus, 30)); // 至少10个，最多30个（翻倍）
+    const count = Math.max(20, Math.min(baseCount + levelBonus, 60)); // 至少20个，最多60个（再翻倍）
     
     const moveModes = ['patrol_h', 'patrol_v', 'circle', 'idle', 'wander'];
     for (let i = 0; i < count; i++) {
@@ -1072,7 +1072,9 @@ function update() {
                 if (readySkills.length > 0) {
                     const readySkill = readySkills[Math.floor(Math.random() * readySkills.length)];
                     
-                    if (dist < readySkill.range) {
+                    // Boss在5.5格距离外即可释放技能
+                    const bossSkillRange = (window.TILE || 64) * 5.5;
+                    if (dist < bossSkillRange) {
                         // 传入boss实例，让它知道发射者
                         bossUseSkill(readySkill, boss);
                         boss.skillCooldowns[readySkill.id] = readySkill.cd;
@@ -1706,8 +1708,8 @@ function attack() {
             const dx = (boss.x + boss.w/2) - px;
             const dy = (boss.y + boss.h/2) - py;
             const dist = Math.sqrt(dx*dx + dy*dy);
-            // 判定范围根据Boss尺寸计算
-            const bossHitRange = range + Math.min(boss.w, boss.h) / 2;
+            // Boss攻击距离固定4.5格
+            const bossHitRange = window.TILE * 4.5;
             if (dist < bossHitRange && isTargetInDirection(boss.x + boss.w/2, boss.y + boss.h/2)) {
                 const dmg = Math.max(1, player.atk - boss.def + Math.floor(Math.random() * 10));
                 boss.hp -= dmg;
@@ -2169,7 +2171,7 @@ function setupUI() {
     }
     
     // 控制模式变量
-    window.controlMode = 'dpad'; // 'dpad', 'joystick', 'none'
+    window.controlMode = 'none'; // 'dpad', 'joystick', 'none'
     const controlModeBtn = document.getElementById('controlModeBtn');
     const controlsEl = document.getElementById('controls');
     const joystickArea = document.getElementById('joystick-area');
@@ -2530,6 +2532,7 @@ function restartGame() {
     generateMap();
     spawnEnemies();
     updateUI();
+    refreshAttackButton();
 }
 
 function saveGame() {

@@ -1495,11 +1495,11 @@ function drawBoss(ctx, boss, drawPixelSpriteFn) {
     
     // 显示Boss技能图标（在名字上方）
     if (boss.skills && boss.skills.length > 0) {
-        const iconSize = 16;
-        const iconGap = 4;
+        const iconSize = 32; // 放大1倍
+        const iconGap = 8;
         const totalWidth = boss.skills.length * iconSize + (boss.skills.length - 1) * iconGap;
         const startX = boss.x + boss.w / 2 - totalWidth / 2;
-        const iconY = boss.y - 55; // 在名字上方
+        const iconY = boss.y - 70; // 在名字上方
         
         boss.skills.forEach((skill, i) => {
             const iconX = startX + i * (iconSize + iconGap);

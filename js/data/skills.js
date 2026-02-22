@@ -32,7 +32,7 @@ window.SKILLS = [
         innerColor: '#f80', 
         outerColor: '#f00',
         glowColor: '#f40',
-        size: 14, 
+        size: 10, 
         speed: 6, 
         isFire: true, 
         render: 'fireball' 
@@ -50,7 +50,7 @@ window.SKILLS = [
         boltColor: '#ff0',
         coreColor: '#fff',
         glowColor: '#0ff',
-        size: 10, 
+        size: 8, 
         speed: 8, 
         isLightning: true, 
         render: 'thunder' 
@@ -69,7 +69,7 @@ window.SKILLS = [
         leafColor: '#4f4',
         thornColor: '#8f8',
         glowColor: '#6c6',
-        size: 12, 
+        size: 9, 
         speed: 5, 
         isVine: true, 
         render: 'vine' 
@@ -88,7 +88,7 @@ window.SKILLS = [
         midColor: '#aaa',
         outerColor: '#888',
         debrisColor: '#666',
-        size: 16, 
+        size: 12,
         speed: 4, 
         isTornado: true, 
         render: 'tornado' 
@@ -107,7 +107,7 @@ window.SKILLS = [
         crystalColor: '#8ef',
         edgeColor: '#0cf',
         glowColor: '#cef',
-        size: 12, 
+        size: 9, 
         speed: 6, 
         isIce: true, 
         render: 'ice' 
