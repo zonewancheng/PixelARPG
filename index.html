@@ -70,6 +70,9 @@
                 <button id="bestiaryBtn" class="corner-btn">
                     <span class="btn-icon"><svg viewBox="0 0 24 24" width="30" height="30"><rect x="3" y="4" width="9" height="16" rx="1" fill="#b4945a"/><rect x="12" y="4" width="9" height="16" rx="1" fill="#d4b47a"/><rect x="3" y="4" width="9" height="16" rx="1" fill="none" stroke="#8a7a4a" stroke-width="0.5"/><rect x="12" y="4" width="9" height="16" rx="1" fill="none" stroke="#8a7a4a" stroke-width="0.5"/><rect x="12" y="4" width="1" height="16" fill="#6a5a3a"/><rect x="5" y="7" width="5" height="0.8" fill="#fff" opacity="0.7"/><rect x="5" y="10" width="5" height="0.8" fill="#fff" opacity="0.7"/><rect x="5" y="13" width="5" height="0.8" fill="#fff" opacity="0.7"/></svg></span>
                 </button>
+                <button id="skinBtn" class="corner-btn" title="切换皮肤">
+                    <span class="btn-icon"><svg viewBox="0 0 24 24" width="30" height="30"><circle cx="12" cy="8" r="5" fill="#ffb6c1"/><ellipse cx="12" cy="16" rx="7" ry="6" fill="#fff"/><ellipse cx="12" cy="16" rx="7" ry="6" fill="none" stroke="#ddd" stroke-width="0.5"/><circle cx="10" cy="7" r="1" fill="#9932cc"/><circle cx="14" cy="7" r="1" fill="#9932cc"/><path d="M10 10 Q12 12 14 10" fill="none" stroke="#ffb6c1" stroke-width="1"/><ellipse cx="8" cy="12" rx="2" ry="4" fill="#8B4513" opacity="0.7"/><ellipse cx="16" cy="12" rx="2" ry="4" fill="#8B4513" opacity="0.7"/><path d="M6 3 L8 6 L10 4 L12 7 L14 4 L16 6 L18 3" fill="#ffd700" stroke="#daa520" stroke-width="0.5"/></svg></span>
+                </button>
             </div>
             
             <!-- 技能栏 -->
@@ -82,6 +85,13 @@
             <div id="character-panel"></div>
             <div id="shop-panel"></div>
             <div id="bestiary-panel"></div>
+            <div id="skin-panel" class="game-panel" style="display:none;">
+                <div class="panel-header">
+                    <h2>皮肤选择</h2>
+                    <button class="close-btn">✕</button>
+                </div>
+                <div class="panel-content" id="skin-list"></div>
+            </div>
             
             <div id="messages"></div>
             
@@ -101,10 +111,12 @@
 
     <script src="js/data/qualities.js"></script>
     <script src="js/data/consumables.js"></script>
+    <script src="js/data/playerSkins.js"></script>
     <script src="js/data/items.js"></script>
     <script src="js/data/skills.js"></script>
     <script src="js/data/enemies.js"></script>
     <script src="js/data/world.js"></script>
+    <script src="js/data/clouds.js"></script>
     <script src="js/data.js"></script>
     <script src="js/ui/panelManager.js"></script>
     <script src="js/ui/compare.js"></script>
@@ -113,6 +125,7 @@
     <script src="js/ui/character.js"></script>
     <script src="js/ui/shop.js"></script>
     <script src="js/ui/bestiary.js"></script>
+    <script src="js/ui/skinPanel.js"></script>
     <script src="js/renderer.js"></script>
     <script src="js/game.js"></script>
     

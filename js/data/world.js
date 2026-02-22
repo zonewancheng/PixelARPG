@@ -144,68 +144,6 @@ window.drawStonePile = function(ctx, x, y, size, shadowDir, seedX, seedY) {
 // 花朵颜色
 window.FLOWER_COLORS = ['#f44', '#f84', '#f64', '#f48', '#8f8', '#48f', '#f4f', '#fff'];
 
-// 云朵类型
-window.CLOUD_TYPES = ['white', 'dark', 'storm'];
-
-// 云朵颜色
-window.CLOUD_COLORS = {
-    white: '#e8e8f0',
-    dark: '#5a5a6a',
-    storm: '#2a2a2a'
-};
-
-// 云朵圆圈配置 (用于绘制云朵)
-window.CLOUD_CIRCLES = [
-    { ox: 0, oy: 0, r: 0.5 },
-    { ox: -0.35, oy: 0.1, r: 0.35 },
-    { ox: 0.35, oy: 0.1, r: 0.35 },
-    { ox: -0.2, oy: -0.2, r: 0.3 },
-    { ox: 0.2, oy: -0.2, r: 0.3 }
-];
-
-/**
- * 创建云朵实例
- * @param {number} canvasWidth - 画布宽度
- * @param {number} canvasHeight - 画布高度
- * @returns {Object} 云朵对象
- */
-window.createCloud = function(canvasWidth, canvasHeight) {
-    const types = ['white', 'dark', 'storm'];
-    const rand = Math.random();
-    const type = rand < 0.3 ? 'storm' : (rand < 0.6 ? 'dark' : 'white');
-    const size = 20 + Math.random() * 30;
-    const speedX = (Math.random() * 0.15 + 0.05) * (Math.random() > 0.5 ? 1 : -1);
-    
-    return {
-        x: Math.random() * canvasWidth,
-        y: 10 + Math.random() * (canvasHeight * 0.3),
-        size: size,
-        speedX: speedX,
-        speedY: (Math.random() - 0.5) * 0.1,
-        type: type,
-        phase: Math.random() * Math.PI * 2,
-        wobbleSpeed: 0.5 + Math.random() * 0.5,
-        wobblePhase: Math.random() * Math.PI * 2,
-        circles: window.CLOUD_CIRCLES,
-        lightningTimer: 0
-    };
-};
-
-/**
- * 初始化云朵
- * @param {number} canvasWidth - 画布宽度
- * @param {number} canvasHeight - 画布高度
- */
-window.initClouds = function(canvasWidth, canvasHeight) {
-    window.clouds = [];
-    // 根据地图大小动态计算云朵数量
-    const mapArea = canvasWidth * canvasHeight;
-    const cloudCount = Math.min(Math.floor(mapArea / 50000) + 3, 12); // 每50000像素1个云，最少3个，最多12个
-    for (let i = 0; i < cloudCount; i++) {
-        window.clouds.push(window.createCloud(canvasWidth, canvasHeight));
-    }
-};
-
 /**
  * 获取瓦片颜色
  * @param {number} tileType - 瓦片类型

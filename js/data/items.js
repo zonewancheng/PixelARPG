@@ -55,30 +55,41 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
     const time = Date.now() / 1000;
     const breathe = Math.sin(time * 2) * 1.5;
     
-    // ========== 精致动漫风格配色 ==========
-    // 皮肤 - 红润透亮的肤色
-    const skinColor = '#ffe4d0';
-    const skinShadow = '#f5c4a8';
-    const skinHighlight = '#fff0e8';
+    // 获取当前皮肤配置
+    const skin = window.PlayerSkins?.getCurrentSkin() || {
+        skinColor: '#ffe4d0',
+        skinShadow: '#f5c4a8',
+        skinHighlight: '#fff0e8',
+        hairColor: '#f4c542',
+        hairHighlight: '#ffe066',
+        hairShadow: '#d4a012',
+        eyeColor: '#40d0b0',
+        eyeHighlight: '#60ffe0',
+        clothesColor: '#4a9eff',
+        clothesDark: '#2070cc',
+        clothesLight: '#7ac0ff',
+        clothesAccent: '#ffd700'
+    };
     
-    // 头发 - 金色阳光感
-    const hairColor = '#f4c542';
-    const hairHighlight = '#ffe066';
-    const hairShadow = '#d4a012';
+    const skinColor = skin.skinColor;
+    const skinShadow = skin.skinShadow;
+    const skinHighlight = skin.skinHighlight;
+    const hairColor = skin.hairColor;
+    const hairHighlight = skin.hairHighlight;
+    const hairShadow = skin.hairShadow;
+    const eyeColor = skin.eyeColor;
+    const eyeHighlight = skin.eyeHighlight;
+    const clothesColor = skin.clothesColor;
+    const clothesDark = skin.clothesDark;
+    const clothesLight = skin.clothesLight;
+    const clothesAccent = skin.clothesAccent;
     
-    // 衣服 - 鲜艳的蓝色披风风格
-    const clothesColor = '#4a9eff';
-    const clothesDark = '#2070cc';
-    const clothesLight = '#7ac0ff';
-    const clothesAccent = '#ffd700'; // 金色装饰
-    
-    // 眼睛 - 明亮的青绿色
-    const eyeColor = '#40d0b0';
-    const eyeHighlight = '#60ffe0';
+    // 获取皮肤特征
+    const features = skin.features || {};
     
     // ========== 计算武器位置（用于层级判断）==========
     let weaponBehind = false;
-    let weaponX, weaponY, weaponCanvas, weaponSize = 66; // 放大3倍（原22）
+    let weaponX, weaponY, weaponCanvas, weaponSize = 66;
     let weaponAngle = 0;
 
     if (player.weapon && window.renderEquipmentIcon) {
@@ -112,16 +123,809 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
         drawWeapon(ctx, weaponX, weaponY, weaponCanvas, weaponSize, player.weapon.color, player.attacking > 0, player.attacking ? (20 - player.attacking) / 20 : 0);
     }
     
-    // ========== 头部（精致动漫风格）==========
+    // ========== 根据皮肤类型渲染不同角色 ==========
+    const currentSkinId = window.PlayerSkins?.current || 'hero';
     
-    // 头发 - 后层（带阴影）
-    ctx.fillStyle = hairShadow;
-    ctx.beginPath();
-    ctx.arc(cx, y + h*0.16, w*0.21, Math.PI, 0);
-    ctx.lineTo(x + w*0.87, y + h*0.26);
-    ctx.lineTo(x + w*0.13, y + h*0.26);
-    ctx.closePath();
-    ctx.fill();
+    if (currentSkinId === 'bride') {
+        // ========== 新娘形象 - 精细商用级别渲染 ==========
+        
+        // 高级动画参数
+        const time2 = time * 2;
+        const time3 = time * 3;
+        const hairWave1 = Math.sin(time * 1.2) * 2.5;
+        const hairWave2 = Math.sin(time * 1.5 + 0.5) * 2;
+        const hairWave3 = Math.sin(time * 0.9 + 1) * 3;
+        const legKick = player.attacking > 0 ? Math.sin((20 - player.attacking) / 20 * Math.PI) * 0.7 : 0;
+        const dressSway1 = Math.sin(time * 0.8) * 2;
+        const dressSway2 = Math.sin(time * 1.1 + 0.3) * 1.5;
+        const veilFloat1 = Math.sin(time * 0.6) * 3;
+        const veilFloat2 = Math.sin(time * 0.9 + 0.5) * 2;
+        const breathe2 = Math.sin(time * 2.5) * 1.2;
+        const blinkPhase = Math.floor(time * 0.3) % 10;
+        const isBlinking = blinkPhase === 0;
+        
+        // 粒子效果 - 闪光
+        const sparkleCount = 5;
+        for (let i = 0; i < sparkleCount; i++) {
+            const sparkTime = (time * 2 + i * 1.3) % 3;
+            if (sparkTime < 1) {
+                const sparkX = x + w * (0.2 + Math.sin(i * 2.1) * 0.3);
+                const sparkY = y + h * (0.1 + Math.cos(i * 1.7) * 0.4);
+                const sparkAlpha = Math.sin(sparkTime * Math.PI) * 0.6;
+                const sparkSize = 2 + Math.sin(sparkTime * Math.PI * 2) * 1.5;
+                ctx.fillStyle = `rgba(255, 255, 255, ${sparkAlpha})`;
+                ctx.beginPath();
+                ctx.arc(sparkX + hairWave1 * 0.3, sparkY, sparkSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // ========== 头纱（多层飘动）==========
+        if (features.hasVeil) {
+            // 头纱底层 - 最远层
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.28, y + h*0.08);
+            ctx.bezierCurveTo(
+                x + w*0.05 - hairWave3, y + h*0.25 + veilFloat1,
+                x + w*0.02, y + h*0.45 + veilFloat2,
+                x + w*0.12, y + h*0.65
+            );
+            ctx.lineTo(x + w*0.22, y + h*0.65);
+            ctx.bezierCurveTo(
+                x + w*0.18, y + h*0.45,
+                x + w*0.22, y + h*0.25 + hairWave2,
+                x + w*0.36, y + h*0.12
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.72, y + h*0.08);
+            ctx.bezierCurveTo(
+                x + w*0.95 + hairWave3, y + h*0.25 + veilFloat1,
+                x + w*0.98, y + h*0.45 + veilFloat2,
+                x + w*0.88, y + h*0.65
+            );
+            ctx.lineTo(x + w*0.78, y + h*0.65);
+            ctx.bezierCurveTo(
+                x + w*0.82, y + h*0.45,
+                x + w*0.78, y + h*0.25 - hairWave2,
+                x + w*0.64, y + h*0.12
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            // 头纱中层
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.30, y + h*0.1);
+            ctx.bezierCurveTo(
+                x + w*0.1 - hairWave2, y + h*0.28 + veilFloat2,
+                x + w*0.08, y + h*0.48,
+                x + w*0.16, y + h*0.6
+            );
+            ctx.lineTo(x + w*0.26, y + h*0.6);
+            ctx.bezierCurveTo(
+                x + w*0.22, y + h*0.45,
+                x + w*0.25, y + h*0.28 + hairWave1,
+                x + w*0.38, y + h*0.14
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.70, y + h*0.1);
+            ctx.bezierCurveTo(
+                x + w*0.9 + hairWave2, y + h*0.28 + veilFloat2,
+                x + w*0.92, y + h*0.48,
+                x + w*0.84, y + h*0.6
+            );
+            ctx.lineTo(x + w*0.74, y + h*0.6);
+            ctx.bezierCurveTo(
+                x + w*0.78, y + h*0.45,
+                x + w*0.75, y + h*0.28 - hairWave1,
+                x + w*0.62, y + h*0.14
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // ========== 长卷发（多层级精细渲染）==========
+        if (features.hairStyle === 'wavy') {
+            // 头发最底层阴影
+            ctx.fillStyle = '#3d1f0d';
+            // 左侧长发底层
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.22, y + h*0.12);
+            ctx.bezierCurveTo(
+                x + w*0.08 + hairWave3*0.5, y + h*0.22,
+                x + w*0.05 - hairWave2, y + h*0.38 + breathe,
+                x + w*0.12 - hairWave1, y + h*0.52 + breathe
+            );
+            ctx.lineTo(x + w*0.22 - hairWave2*0.5, y + h*0.52 + breathe);
+            ctx.bezierCurveTo(
+                x + w*0.18 + hairWave2*0.5, y + h*0.38,
+                x + w*0.2, y + h*0.22,
+                x + w*0.32, y + h*0.15
+            );
+            ctx.closePath();
+            ctx.fill();
+            // 右侧长发底层
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.78, y + h*0.12);
+            ctx.bezierCurveTo(
+                x + w*0.92 - hairWave3*0.5, y + h*0.22,
+                x + w*0.95 + hairWave2, y + h*0.38 + breathe,
+                x + w*0.88 + hairWave1, y + h*0.52 + breathe
+            );
+            ctx.lineTo(x + w*0.78 + hairWave2*0.5, y + h*0.52 + breathe);
+            ctx.bezierCurveTo(
+                x + w*0.82 - hairWave2*0.5, y + h*0.38,
+                x + w*0.8, y + h*0.22,
+                x + w*0.68, y + h*0.15
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            // 头发中层 - 主色
+            ctx.fillStyle = hairColor;
+            // 左侧
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.24, y + h*0.13);
+            ctx.bezierCurveTo(
+                x + w*0.1 + hairWave2*0.3, y + h*0.23,
+                x + w*0.08 - hairWave1, y + h*0.36 + breathe,
+                x + w*0.14 - hairWave2, y + h*0.5 + breathe
+            );
+            ctx.lineTo(x + w*0.24 - hairWave1*0.5, y + h*0.5 + breathe);
+            ctx.bezierCurveTo(
+                x + w*0.2 + hairWave1*0.5, y + h*0.36,
+                x + w*0.22, y + h*0.23,
+                x + w*0.34, y + h*0.16
+            );
+            ctx.closePath();
+            ctx.fill();
+            // 右侧
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.76, y + h*0.13);
+            ctx.bezierCurveTo(
+                x + w*0.9 - hairWave2*0.3, y + h*0.23,
+                x + w*0.92 + hairWave1, y + h*0.36 + breathe,
+                x + w*0.86 + hairWave2, y + h*0.5 + breathe
+            );
+            ctx.lineTo(x + w*0.76 + hairWave1*0.5, y + h*0.5 + breathe);
+            ctx.bezierCurveTo(
+                x + w*0.8 - hairWave1*0.5, y + h*0.36,
+                x + w*0.78, y + h*0.23,
+                x + w*0.66, y + h*0.16
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            // 头发高光层
+            ctx.fillStyle = hairHighlight;
+            // 左侧高光
+            ctx.beginPath();
+            ctx.ellipse(x + w*0.2, y + h*0.28, w*0.04, h*0.08, -0.3 + hairWave1*0.02, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(x + w*0.18, y + h*0.4, w*0.025, h*0.05, -0.2 + hairWave2*0.02, 0, Math.PI * 2);
+            ctx.fill();
+            // 右侧高光
+            ctx.beginPath();
+            ctx.ellipse(x + w*0.8, y + h*0.28, w*0.04, h*0.08, 0.3 - hairWave1*0.02, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(x + w*0.82, y + h*0.4, w*0.025, h*0.05, 0.2 - hairWave2*0.02, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 发丝细节线条
+            ctx.strokeStyle = 'rgba(93, 58, 26, 0.3)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(x + w*(0.2 + i*0.03), y + h*0.2);
+                ctx.bezierCurveTo(
+                    x + w*(0.15 + i*0.02) + hairWave1, y + h*0.3,
+                    x + w*(0.14 + i*0.02) - hairWave2, y + h*0.4,
+                    x + w*(0.16 + i*0.02) - hairWave3, y + h*0.5
+                );
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x + w*(0.8 - i*0.03), y + h*0.2);
+                ctx.bezierCurveTo(
+                    x + w*(0.85 - i*0.02) - hairWave1, y + h*0.3,
+                    x + w*(0.86 - i*0.02) + hairWave2, y + h*0.4,
+                    x + w*(0.84 - i*0.02) + hairWave3, y + h*0.5
+                );
+                ctx.stroke();
+            }
+        }
+        
+        // ========== 脸部 ==========
+        ctx.fillStyle = skinColor;
+        ctx.strokeStyle = skinShadow;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.ellipse(cx, y + h*0.18, w*0.18, h*0.14, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // 脸部高光
+        ctx.fillStyle = skinHighlight;
+        ctx.beginPath();
+        ctx.ellipse(cx - 2, y + h*0.14, w*0.05, h*0.03, -0.3, 0, Math.PI*2);
+        ctx.fill();
+        
+        // ========== 花冠头饰 ==========
+        if (features.hasTiara) {
+            ctx.fillStyle = skin.tiaraColor || '#FFD700';
+            // 头冠基底
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.3, y + h*0.08);
+            ctx.lineTo(x + w*0.35, y + h*0.02);
+            ctx.lineTo(x + w*0.42, y + h*0.06);
+            ctx.lineTo(x + w*0.5, y);
+            ctx.lineTo(x + w*0.58, y + h*0.06);
+            ctx.lineTo(x + w*0.65, y + h*0.02);
+            ctx.lineTo(x + w*0.7, y + h*0.08);
+            ctx.closePath();
+            ctx.fill();
+            // 头冠花朵装饰
+            ctx.fillStyle = skin.tiaraGem || '#FF69B4';
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.arc(x + w*(0.38 + i*0.12), y + h*0.04, w*0.02, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+        
+        // ========== 刘海（波浪状）==========
+        ctx.fillStyle = hairColor;
+        ctx.beginPath();
+        ctx.moveTo(x + w*0.2, y + h*0.08);
+        ctx.quadraticCurveTo(x + w*0.3, y + h*0.14, x + w*0.38, y + h*0.1);
+        ctx.quadraticCurveTo(x + w*0.45, y + h*0.15, x + w*0.5, y + h*0.1);
+        ctx.quadraticCurveTo(x + w*0.55, y + h*0.15, x + w*0.62, y + h*0.1);
+        ctx.quadraticCurveTo(x + w*0.7, y + h*0.14, x + w*0.8, y + h*0.08);
+        ctx.lineTo(x + w*0.75, y + h*0.02);
+        ctx.quadraticCurveTo(cx, y - h*0.02, x + w*0.25, y + h*0.02);
+        ctx.closePath();
+        ctx.fill();
+        
+        // ========== 紫色眼睛（精致动漫风格）==========
+        const eyeY = y + h*0.2;
+        const leftEyeX = x + w*0.38;
+        const rightEyeX = x + w*0.62;
+        
+        // 眼睛阴影（深度）
+        ctx.fillStyle = 'rgba(100, 50, 100, 0.15)';
+        ctx.beginPath();
+        ctx.ellipse(leftEyeX, eyeY + 2, w*0.06, h*0.04, 0, 0, Math.PI*2);
+        ctx.ellipse(rightEyeX, eyeY + 2, w*0.06, h*0.04, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 眼白（带轻微渐变）
+        const whiteGrad = ctx.createLinearGradient(leftEyeX - 5, eyeY - 5, leftEyeX + 5, eyeY + 5);
+        whiteGrad.addColorStop(0, '#ffffff');
+        whiteGrad.addColorStop(1, '#f8f0ff');
+        ctx.fillStyle = whiteGrad;
+        ctx.beginPath();
+        ctx.ellipse(leftEyeX, eyeY, w*0.055, h*0.06, 0, 0, Math.PI*2);
+        ctx.ellipse(rightEyeX, eyeY, w*0.055, h*0.06, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 紫色眼珠（多层渐变）
+        ctx.shadowColor = '#9932CC';
+        ctx.shadowBlur = 6;
+        const eyeGrad = ctx.createRadialGradient(leftEyeX + (dir > 0 ? 1 : -1), eyeY - 1, 0, leftEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.04);
+        eyeGrad.addColorStop(0, '#E8B0FF');
+        eyeGrad.addColorStop(0.3, eyeHighlight);
+        eyeGrad.addColorStop(0.6, eyeColor);
+        eyeGrad.addColorStop(0.85, '#6B238E');
+        eyeGrad.addColorStop(1, '#4B0082');
+        ctx.fillStyle = eyeGrad;
+        ctx.beginPath();
+        ctx.arc(leftEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.038, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(rightEyeX + (dir > 0 ? 1 : -1), eyeY, w*0.038, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // 瞳孔
+        ctx.fillStyle = '#2a0a3a';
+        ctx.beginPath();
+        ctx.arc(leftEyeX + (dir > 0 ? 1 : -1), eyeY + 1, w*0.015, 0, Math.PI*2);
+        ctx.arc(rightEyeX + (dir > 0 ? 1 : -1), eyeY + 1, w*0.015, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 眼睛主高光
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.beginPath();
+        ctx.ellipse(leftEyeX + 2, eyeY - 2, w*0.018, h*0.02, 0.3, 0, Math.PI*2);
+        ctx.ellipse(rightEyeX + 2, eyeY - 2, w*0.018, h*0.02, 0.3, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 眼睛次高光
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.beginPath();
+        ctx.arc(leftEyeX - 1, eyeY + 2, w*0.008, 0, Math.PI*2);
+        ctx.arc(rightEyeX - 1, eyeY + 2, w*0.008, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 睫毛（上）
+        ctx.strokeStyle = '#3d1f0d';
+        ctx.lineWidth = 1.2;
+        ctx.lineCap = 'round';
+        for (let i = -2; i <= 2; i++) {
+            const lashX1 = leftEyeX + i * 2.2;
+            const lashX2 = rightEyeX + i * 2.2;
+            const lashLen = 3 + Math.abs(i) * 0.5;
+            const lashAng = -0.4 - Math.abs(i) * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(lashX1, eyeY - 4);
+            ctx.lineTo(lashX1 + Math.sin(lashAng) * lashLen, eyeY - 4 - Math.cos(lashAng) * lashLen);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(lashX2, eyeY - 4);
+            ctx.lineTo(lashX2 + Math.sin(lashAng) * lashLen, eyeY - 4 - Math.cos(lashAng) * lashLen);
+            ctx.stroke();
+        }
+        
+        // 眼线
+        ctx.strokeStyle = '#2a1a1a';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(leftEyeX, eyeY, w*0.055, -Math.PI*0.7, Math.PI*0.2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(rightEyeX, eyeY, w*0.055, -Math.PI*0.7, Math.PI*0.2);
+        ctx.stroke();
+        
+        // 眉毛（精致）
+        ctx.strokeStyle = hairShadow;
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(leftEyeX - 5, eyeY - 7);
+        ctx.quadraticCurveTo(leftEyeX, eyeY - 9, leftEyeX + 4, eyeY - 6);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(rightEyeX - 4, eyeY - 6);
+        ctx.quadraticCurveTo(rightEyeX, eyeY - 9, rightEyeX + 5, eyeY - 7);
+        ctx.stroke();
+        
+        // 嘴巴（精致唇形）
+        const lipGrad = ctx.createLinearGradient(cx - 4, y + h*0.255, cx + 4, y + h*0.275);
+        lipGrad.addColorStop(0, '#FFB0C0');
+        lipGrad.addColorStop(0.5, '#FF8DA0');
+        lipGrad.addColorStop(1, '#E87088');
+        ctx.fillStyle = lipGrad;
+        ctx.beginPath();
+        ctx.moveTo(cx - 4, y + h*0.265);
+        ctx.quadraticCurveTo(cx - 2, y + h*0.255, cx, y + h*0.26);
+        ctx.quadraticCurveTo(cx + 2, y + h*0.255, cx + 4, y + h*0.265);
+        ctx.quadraticCurveTo(cx + 3, y + h*0.275, cx, y + h*0.278);
+        ctx.quadraticCurveTo(cx - 3, y + h*0.275, cx - 4, y + h*0.265);
+        ctx.fill();
+        // 嘴唇高光
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.beginPath();
+        ctx.ellipse(cx - 1.5, y + h*0.263, 1.5, 0.8, -0.2, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 腮红（渐变）
+        const blushGrad = ctx.createRadialGradient(leftEyeX - 4, eyeY + 5, 0, leftEyeX - 4, eyeY + 5, 5);
+        blushGrad.addColorStop(0, 'rgba(255, 150, 160, 0.35)');
+        blushGrad.addColorStop(1, 'rgba(255, 150, 160, 0)');
+        ctx.fillStyle = blushGrad;
+        ctx.beginPath();
+        ctx.ellipse(leftEyeX - 4, eyeY + 5, 4, 2.5, -0.2, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(rightEyeX + 4, eyeY + 5, 4, 2.5, 0.2, 0, Math.PI*2);
+        ctx.fill();
+        
+        // ========== 白色婚纱身体 ==========
+        // 脖子
+        const neckGrad = ctx.createLinearGradient(cx - 4, y + h*0.3, cx + 4, y + h*0.34);
+        neckGrad.addColorStop(0, skinHighlight);
+        neckGrad.addColorStop(1, skinColor);
+        ctx.fillStyle = neckGrad;
+        ctx.beginPath();
+        ctx.ellipse(cx, y + h*0.32, 4, 3, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 白色蕾丝紧身胸衣（带渐变）
+        const corsetGrad = ctx.createLinearGradient(cx - 12, y + h*0.34, cx + 12, y + h*0.5);
+        corsetGrad.addColorStop(0, '#FFFFFF');
+        corsetGrad.addColorStop(0.3, '#FFFAFA');
+        corsetGrad.addColorStop(0.7, '#F8F8FF');
+        corsetGrad.addColorStop(1, '#F0F0F0');
+        ctx.fillStyle = corsetGrad;
+        ctx.strokeStyle = '#E8E8E8';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 10, y + h*0.34);
+        ctx.bezierCurveTo(cx - 12, y + h*0.38, cx - 13, y + h*0.44, cx - 12, y + h*0.5 + breathe*0.3);
+        ctx.lineTo(cx + 12, y + h*0.5 + breathe*0.3);
+        ctx.bezierCurveTo(cx + 13, y + h*0.44, cx + 12, y + h*0.38, cx + 10, y + h*0.34);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // 胸衣蕾丝纹理（精致花纹）
+        ctx.strokeStyle = 'rgba(255, 182, 193, 0.6)';
+        ctx.lineWidth = 0.8;
+        for (let row = 0; row < 4; row++) {
+            const rowY = y + h*(0.36 + row*0.035);
+            ctx.beginPath();
+            for (let i = -4; i <= 4; i++) {
+                const px = cx + i * 2.2;
+                const py = rowY + Math.sin(time * 2 + i * 0.5) * 0.3;
+                if (i === -4) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+        }
+        
+        // 胸衣珠饰
+        ctx.fillStyle = 'rgba(255, 215, 223, 0.8)';
+        for (let i = -3; i <= 3; i++) {
+            ctx.beginPath();
+            ctx.arc(cx + i * 2.5, y + h*0.38, 0.8, 0, Math.PI*2);
+            ctx.fill();
+        }
+        
+        // 胸衣中心宝石
+        const gemGrad = ctx.createRadialGradient(cx, y + h*0.42, 0, cx, y + h*0.42, 3);
+        gemGrad.addColorStop(0, '#FFFFFF');
+        gemGrad.addColorStop(0.3, '#FFE4E8');
+        gemGrad.addColorStop(1, '#FFB6C1');
+        ctx.fillStyle = gemGrad;
+        ctx.beginPath();
+        ctx.arc(cx, y + h*0.42, 2.5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = '#FFD0D8';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+        
+        // ========== 白色长手套（精致蕾丝）==========
+        if (features.hasGloves) {
+            // 左手臂和手套
+            const gloveGradL = ctx.createLinearGradient(x + w*0.1, y + h*0.38, x + w*0.2, y + h*0.6);
+            gloveGradL.addColorStop(0, '#FFFFFF');
+            gloveGradL.addColorStop(0.5, '#FFFAFA');
+            gloveGradL.addColorStop(1, '#F5F5F5');
+            ctx.fillStyle = gloveGradL;
+            ctx.strokeStyle = '#E0E0E0';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.ellipse(x + w*0.15, y + h*0.48, w*0.045, h*0.15, -0.15, 0, Math.PI*2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 手套蕾丝花边
+            ctx.strokeStyle = 'rgba(255, 182, 193, 0.5)';
+            ctx.lineWidth = 0.6;
+            for (let i = 0; i < 5; i++) {
+                const laceY = y + h*(0.52 + i*0.015);
+                ctx.beginPath();
+                ctx.arc(x + w*0.15 + Math.sin(time * 2 + i) * 1, laceY, w*0.025, 0.2, Math.PI - 0.2);
+                ctx.stroke();
+            }
+            
+            // 右手臂和手套
+            const gloveGradR = ctx.createLinearGradient(x + w*0.8, y + h*0.38, x + w*0.9, y + h*0.6);
+            gloveGradR.addColorStop(0, '#FFFFFF');
+            gloveGradR.addColorStop(0.5, '#FFFAFA');
+            gloveGradR.addColorStop(1, '#F5F5F5');
+            ctx.fillStyle = gloveGradR;
+            ctx.strokeStyle = '#E0E0E0';
+            ctx.beginPath();
+            ctx.ellipse(x + w*0.85, y + h*0.48, w*0.045, h*0.15, 0.15, 0, Math.PI*2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 手套蕾丝花边
+            ctx.strokeStyle = 'rgba(255, 182, 193, 0.5)';
+            for (let i = 0; i < 5; i++) {
+                const laceY = y + h*(0.52 + i*0.015);
+                ctx.beginPath();
+                ctx.arc(x + w*0.85 - Math.sin(time * 2 + i) * 1, laceY, w*0.025, 0.2 + Math.PI, Math.PI * 1.8);
+                ctx.stroke();
+            }
+        }
+        
+        // ========== 婚纱裙摆（高开叉 + 褶皱 + 渐变）==========
+        
+        // 高开叉婚纱 - 左侧裙摆
+        const skirtGradL = ctx.createLinearGradient(cx - 18, y + h*0.5, cx - 8, y + h*0.95);
+        skirtGradL.addColorStop(0, '#FFFFFF');
+        skirtGradL.addColorStop(0.3, '#FFFAFA');
+        skirtGradL.addColorStop(0.6, '#F8F8FF');
+        skirtGradL.addColorStop(1, '#F0F0F0');
+        ctx.fillStyle = skirtGradL;
+        ctx.strokeStyle = '#E8E8E8';
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(cx - 12, y + h*0.52 + breathe*0.2);
+        ctx.bezierCurveTo(
+            cx - 20 + dressSway1, y + h*0.6,
+            cx - 22 + dressSway2, y + h*0.75,
+            cx - 16, y + h*0.95
+        );
+        ctx.lineTo(cx - 4, y + h*0.95);
+        ctx.bezierCurveTo(
+            cx - 6, y + h*0.75,
+            cx - 6 + dressSway1*0.5, y + h*0.6,
+            cx - 8, y + h*0.55 + breathe*0.2
+        );
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // 高开叉婚纱 - 右侧裙摆
+        const skirtGradR = ctx.createLinearGradient(cx + 8, y + h*0.5, cx + 18, y + h*0.95);
+        skirtGradR.addColorStop(0, '#FFFFFF');
+        skirtGradR.addColorStop(0.3, '#FFFAFA');
+        skirtGradR.addColorStop(0.6, '#F8F8FF');
+        skirtGradR.addColorStop(1, '#F0F0F0');
+        ctx.fillStyle = skirtGradR;
+        ctx.beginPath();
+        ctx.moveTo(cx + 12, y + h*0.52 + breathe*0.2);
+        ctx.bezierCurveTo(
+            cx + 20 - dressSway1, y + h*0.6,
+            cx + 22 - dressSway2, y + h*0.75,
+            cx + 16, y + h*0.95
+        );
+        ctx.lineTo(cx + 4, y + h*0.95);
+        ctx.bezierCurveTo(
+            cx + 6, y + h*0.75,
+            cx + 6 - dressSway1*0.5, y + h*0.6,
+            cx + 8, y + h*0.55 + breathe*0.2
+        );
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // 裙摆褶皱装饰（精致花纹）
+        ctx.strokeStyle = 'rgba(255, 182, 193, 0.4)';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < 4; i++) {
+            const foldY = y + h*(0.58 + i*0.08);
+            ctx.beginPath();
+            ctx.moveTo(cx - 16 + i*1.5, foldY);
+            ctx.quadraticCurveTo(cx - 10, foldY + 2 + Math.sin(time + i) * 0.5, cx - 5, foldY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx + 16 - i*1.5, foldY);
+            ctx.quadraticCurveTo(cx + 10, foldY + 2 + Math.sin(time + i) * 0.5, cx + 5, foldY);
+            ctx.stroke();
+        }
+        
+        // 裙摆蕾丝边缘
+        ctx.strokeStyle = 'rgba(255, 182, 193, 0.6)';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        for (let i = 0; i <= 8; i++) {
+            const t = i / 8;
+            const baseX = cx - 16 + t * 12;
+            const baseY = y + h*0.95;
+            const waveY = Math.sin(time * 2 + i * 0.5) * 1;
+            if (i === 0) ctx.moveTo(baseX, baseY + waveY);
+            else ctx.lineTo(baseX, baseY + waveY);
+        }
+        ctx.stroke();
+        ctx.beginPath();
+        for (let i = 0; i <= 8; i++) {
+            const t = i / 8;
+            const baseX = cx + 4 + t * 12;
+            const baseY = y + h*0.95;
+            const waveY = Math.sin(time * 2 + i * 0.5) * 1;
+            if (i === 0) ctx.moveTo(baseX, baseY + waveY);
+            else ctx.lineTo(baseX, baseY + waveY);
+        }
+        ctx.stroke();
+        
+        // ========== 腿部（高开叉露出大腿和臀部曲线）==========
+        
+        // 高开叉露出的臀部/大腿上部区域
+        const hipGrad = ctx.createRadialGradient(cx, y + h*0.58, 0, cx, y + h*0.62, w*0.12);
+        hipGrad.addColorStop(0, skinHighlight);
+        hipGrad.addColorStop(0.5, skinColor);
+        hipGrad.addColorStop(1, skinShadow);
+        ctx.fillStyle = hipGrad;
+        ctx.beginPath();
+        ctx.ellipse(cx, y + h*0.58, w*0.08, h*0.06, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 大腿内侧阴影
+        ctx.fillStyle = 'rgba(245, 200, 180, 0.3)';
+        ctx.beginPath();
+        ctx.ellipse(cx - 3, y + h*0.6, w*0.03, h*0.04, 0.2, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + 3, y + h*0.6, w*0.03, h*0.04, -0.2, 0, Math.PI*2);
+        ctx.fill();
+        
+        // 左腿
+        const legGradL = ctx.createLinearGradient(x + w*0.31, y + h*0.65, x + w*0.39, y + h*0.9);
+        legGradL.addColorStop(0, skinHighlight);
+        legGradL.addColorStop(0.4, skinColor);
+        legGradL.addColorStop(1, skinShadow);
+        ctx.fillStyle = legGradL;
+        ctx.strokeStyle = skinShadow;
+        ctx.lineWidth = 0.5;
+        ctx.save();
+        ctx.translate(x + w*0.35, y + h*0.65);
+        ctx.rotate(-0.05 + breathe*0.01);
+        ctx.beginPath();
+        ctx.ellipse(0, h*0.14, w*0.045, h*0.14, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+        // 腿部高光
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(-1, h*0.1, w*0.015, h*0.06, -0.1, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+        
+        // 右腿（动态高踢腿）
+        const legGradR = ctx.createLinearGradient(x + w*0.61, y + h*0.65, x + w*0.69, y + h*0.9);
+        legGradR.addColorStop(0, skinHighlight);
+        legGradR.addColorStop(0.4, skinColor);
+        legGradR.addColorStop(1, skinShadow);
+        ctx.fillStyle = legGradR;
+        ctx.save();
+        ctx.translate(x + w*0.65, y + h*0.65);
+        const kickAngle = -0.1 + legKick;
+        ctx.rotate(kickAngle);
+        ctx.beginPath();
+        ctx.ellipse(0, h*0.14, w*0.045, h*0.14, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = skinShadow;
+        ctx.stroke();
+        // 腿部高光
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(-1, h*0.1, w*0.015, h*0.06, -0.1, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+        
+        // ========== 白色高跟鞋（精致）==========
+        if (features.hasHighHeels) {
+            // 左鞋
+            ctx.save();
+            ctx.translate(x + w*0.35, y + h*0.88);
+            // 鞋体渐变
+            const shoeGradL = ctx.createLinearGradient(-4, -2, 4, 6);
+            shoeGradL.addColorStop(0, '#FFFFFF');
+            shoeGradL.addColorStop(0.5, '#F8F8FF');
+            shoeGradL.addColorStop(1, '#E8E8E8');
+            ctx.fillStyle = shoeGradL;
+            ctx.strokeStyle = '#D0D0D0';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(-4, -1);
+            ctx.lineTo(4, -1);
+            ctx.lineTo(5, 4);
+            ctx.quadraticCurveTo(3, 6, -3, 6);
+            ctx.lineTo(-5, 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            // 鞋跟
+            ctx.fillStyle = '#E0E0E0';
+            ctx.fillRect(-1.5, 6, 3, 5);
+            ctx.strokeStyle = '#C0C0C0';
+            ctx.strokeRect(-1.5, 6, 3, 5);
+            // 鞋面装饰
+            ctx.fillStyle = 'rgba(255, 182, 193, 0.6)';
+            ctx.beginPath();
+            ctx.arc(0, 1, 1.5, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+            
+            // 右鞋（跟随踢腿）
+            ctx.save();
+            ctx.translate(x + w*0.65, y + h*0.88);
+            ctx.rotate(legKick * 0.5);
+            // 鞋体渐变
+            const shoeGradR = ctx.createLinearGradient(-4, -2, 4, 6);
+            shoeGradR.addColorStop(0, '#FFFFFF');
+            shoeGradR.addColorStop(0.5, '#F8F8FF');
+            shoeGradR.addColorStop(1, '#E8E8E8');
+            ctx.fillStyle = shoeGradR;
+            ctx.strokeStyle = '#D0D0D0';
+            ctx.beginPath();
+            ctx.moveTo(-4, -1);
+            ctx.lineTo(4, -1);
+            ctx.lineTo(5, 4);
+            ctx.quadraticCurveTo(3, 6, -3, 6);
+            ctx.lineTo(-5, 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            // 鞋跟
+            ctx.fillStyle = '#E0E0E0';
+            ctx.fillRect(-1.5, 6, 3, 5);
+            ctx.strokeStyle = '#C0C0C0';
+            ctx.strokeRect(-1.5, 6, 3, 5);
+            // 鞋面装饰
+            ctx.fillStyle = 'rgba(255, 182, 193, 0.6)';
+            ctx.beginPath();
+            ctx.arc(0, 1, 1.5, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        // ========== 花瓣粒子效果 ==========
+        const petalCount = 4;
+        const petalColors = ['rgba(255, 182, 193, 0.7)', 'rgba(255, 228, 225, 0.6)', 'rgba(255, 240, 245, 0.5)'];
+        for (let i = 0; i < petalCount; i++) {
+            const petalTime = (time * 0.5 + i * 2.5) % 4;
+            const petalX = x + w * (0.15 + (i % 2) * 0.7 + Math.sin(time + i) * 0.15);
+            const petalY = y + h * (0.2 + petalTime * 0.2);
+            const petalAlpha = Math.max(0, 1 - petalTime / 4);
+            const petalRot = time * 2 + i * 1.2;
+            const petalSize = 2.5 + Math.sin(time * 3 + i) * 0.5;
+            
+            ctx.save();
+            ctx.translate(petalX, petalY);
+            ctx.rotate(petalRot);
+            ctx.fillStyle = petalColors[i % petalColors.length];
+            ctx.globalAlpha = petalAlpha * 0.8;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, petalSize, petalSize * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        ctx.globalAlpha = 1;
+        
+        // ========== 飘动的头纱前层（多层精致）==========
+        if (features.hasVeil) {
+            // 头纱前层渐变
+            const veilGrad = ctx.createLinearGradient(x + w*0.35, y + h*0.08, x + w*0.65, y + h*0.18);
+            veilGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+            veilGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.35)');
+            veilGrad.addColorStop(1, 'rgba(255, 255, 255, 0.45)');
+            ctx.fillStyle = veilGrad;
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.35, y + h*0.1);
+            ctx.quadraticCurveTo(x + w*0.5, y + h*0.06 + veilFloat1, x + w*0.65, y + h*0.1);
+            ctx.lineTo(x + w*0.62, y + h*0.18);
+            ctx.quadraticCurveTo(x + w*0.5, y + h*0.14 + veilFloat1, x + w*0.38, y + h*0.18);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 头纱闪亮点
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            for (let i = 0; i < 3; i++) {
+                const sparkleX = x + w*(0.42 + i*0.08);
+                const sparkleY = y + h*(0.1 + Math.sin(time * 2 + i) * 0.02);
+                const sparkleSize = 0.8 + Math.sin(time * 3 + i * 0.7) * 0.3;
+                ctx.beginPath();
+                ctx.arc(sparkleX, sparkleY, sparkleSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+    } else {
+        // ========== 默认勇者形象 ==========
+        
+        // ========== 头部（精致动漫风格）==========
+        
+        // 头发 - 后层（带阴影）
+        ctx.fillStyle = hairShadow;
+        ctx.beginPath();
+        ctx.arc(cx, y + h*0.16, w*0.21, Math.PI, 0);
+        ctx.lineTo(x + w*0.87, y + h*0.26);
+        ctx.lineTo(x + w*0.13, y + h*0.26);
+        ctx.closePath();
+        ctx.fill();
     
     // 脸部基础（带轮廓）
     ctx.fillStyle = skinColor;
@@ -558,6 +1362,8 @@ window.renderPlayerSprite = function(ctx, player, x, y, w, h) {
         }
         ctx.restore();
     }
+    
+    } // 结束 else (hero skin)
     
     // ========== 绘制前面的武器（在所有身体元素之后，确保显示在最上层）==========
     if (!weaponBehind && weaponCanvas) {

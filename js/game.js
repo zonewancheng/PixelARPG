@@ -18,6 +18,8 @@ Object.defineProperty(window, 'gameState', {
 let inventoryOpen = false;
 let characterOpen = false;
 let shopOpen = false;
+let bestiaryOpen = false;
+let skinOpen = false;
 let message = '';
 let messageTimer = 0;
 let damageFlash = 0;
@@ -190,7 +192,9 @@ function initGame() {
     window.discoveredSkills['slash'] = true;
     
     if (window.initClouds) {
-        window.initClouds(canvas.width, canvas.height);
+        const mapWidth = (window.MAP_W || 66) * (window.TILE || 64);
+        const mapHeight = (window.MAP_H || 66) * (window.TILE || 64);
+        window.initClouds(mapWidth, mapHeight);
     }
     
     generateMap();
@@ -345,9 +349,9 @@ function spawnEnemies() {
     window.enemies = enemies;
     // 根据地图大小和等级动态计算怪物数量，但至少5个
     const mapSize = window.MAP_W * window.MAP_H;
-    const baseCount = Math.floor(mapSize / 80); // 每80格1个怪物
+    const baseCount = Math.floor(mapSize / 40); // 每40格1个怪物（密度翻倍）
     const levelBonus = Math.floor(mapLevel * 0.5);
-    const count = Math.max(5, Math.min(baseCount + levelBonus, 15)); // 至少5个，最多15个
+    const count = Math.max(10, Math.min(baseCount + levelBonus, 30)); // 至少10个，最多30个（翻倍）
     
     const moveModes = ['patrol_h', 'patrol_v', 'circle', 'idle', 'wander'];
     for (let i = 0; i < count; i++) {
@@ -817,7 +821,7 @@ function showConfirm(message, onConfirm) {
 }
 
 function gameLoop() {
-    if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen) {
+    if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen && !bestiaryOpen && !skinOpen) {
         update();
     }
     updateCamera();
@@ -877,7 +881,7 @@ function update() {
         if (e.frozen > 0) e.frozen--;
         if (e.aggro > 0) e.aggro--;
         
-        const speed = 0.2;
+        const speed = 1;
         if (e.slowed > 0) speed *= 0.5;
         if (e.frozen > 0) speed = 0;
         
@@ -1028,7 +1032,7 @@ function update() {
             
             // Boss chases player when in range but maintains distance (放大2倍)
             if (dist < 500 && dist > 80) {
-                const chaseSpeed = 0.3;
+                const chaseSpeed = 0.6;
                 boss.x += (dx / dist) * chaseSpeed;
                 boss.y += (dy / dist) * chaseSpeed;
             } else if (dist >= 500) {
@@ -1038,7 +1042,7 @@ function update() {
                     boss.wanderDir = Math.random() * Math.PI * 2;
                     boss.wanderTimer = 60 + Math.random() * 60;
                 }
-                const wanderSpeed = 0.1;
+                const wanderSpeed = 0.2;
                 boss.x += Math.cos(boss.wanderDir) * wanderSpeed;
                 boss.y += Math.sin(boss.wanderDir) * wanderSpeed;
             }
@@ -1255,13 +1259,15 @@ function update() {
         });
         window.enemies = enemies; // 同步到window
         
-        // 检查所有Boss的击中情况
+        // 检查所有Boss的击中情况（判定范围随Boss尺寸放大）
         if (window.bosses && window.bosses.length > 0 && !p.isBoss) {
             window.bosses.forEach((boss, bossIndex) => {
                 if (!boss || boss.hp <= 0) return;
                 const dx = p.x - (boss.x + boss.w/2);
                 const dy = p.y - (boss.y + boss.h/2);
-                if (Math.sqrt(dx*dx + dy*dy) < 30) {
+                // 判定范围根据Boss尺寸计算，至少60
+                const hitRange = Math.max(60, Math.min(boss.w, boss.h) / 2);
+                if (Math.sqrt(dx*dx + dy*dy) < hitRange) {
                     boss.hp -= p.damage;
                     boss.aggro = 120;
                     spawnParticles(boss.x + boss.w/2, boss.y + boss.h/2, '#f84', 10);
@@ -1409,7 +1415,7 @@ function render() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     
     // 检查是否有面板打开
-    const panelOpen = inventoryOpen || characterOpen || shopOpen;
+    const panelOpen = inventoryOpen || characterOpen || shopOpen || bestiaryOpen || skinOpen;
     
     if (damageFlash > 0 && !panelOpen) {
         ctx.fillStyle = `rgba(255, 0, 0, ${damageFlash / 30})`;
@@ -1470,8 +1476,13 @@ function render() {
     // 恢复摄像机偏移
     ctx.restore();
     
-    // 云层（不应用摄像机偏移，保持在屏幕固定位置，面板打开时暂停动画）
-    drawClouds(ctx, gameWidth, gameHeight, player, !panelOpen);
+    // 云层（基于地图坐标移动，不跟随玩家）
+    const camX = window.cameraX || 0;
+    const camY = window.cameraY || 0;
+    const mapLevel = window.mapLevel || 1;
+    window.drawClouds(ctx, window.clouds, player, enemies, 
+        (window.bosses && window.bosses.length > 0 ? window.bosses : (window.boss ? [window.boss] : [])),
+        projectiles, camX, camY, mapLevel, !panelOpen);
     
     if (message) {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
@@ -1611,8 +1622,8 @@ function setupInput() {
             player.dirX = normDx;
             player.dirY = normDy;
             
-            const nx = player.x + normDx * 3;
-            const ny = player.y + normDy * 3;
+            const nx = player.x + normDx * 6;
+            const ny = player.y + normDy * 6;
             
             const tx = Math.floor((nx + 10) / window.TILE);
             const ty = Math.floor((ny + 10) / window.TILE);
@@ -1686,7 +1697,7 @@ function attack() {
         }
     });
     
-    // 攻击所有Boss
+    // 攻击所有Boss（判定范围随Boss尺寸放大）
     if (window.bosses && window.bosses.length > 0) {
         // 先处理死亡
         const deadBosses = [];
@@ -1695,7 +1706,9 @@ function attack() {
             const dx = (boss.x + boss.w/2) - px;
             const dy = (boss.y + boss.h/2) - py;
             const dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < range + 20 && isTargetInDirection(boss.x + boss.w/2, boss.y + boss.h/2)) {
+            // 判定范围根据Boss尺寸计算
+            const bossHitRange = range + Math.min(boss.w, boss.h) / 2;
+            if (dist < bossHitRange && isTargetInDirection(boss.x + boss.w/2, boss.y + boss.h/2)) {
                 const dmg = Math.max(1, player.atk - boss.def + Math.floor(Math.random() * 10));
                 boss.hp -= dmg;
                 boss.vx = dirX * 8;

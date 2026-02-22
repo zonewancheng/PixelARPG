@@ -20,14 +20,15 @@ window.enemyTypes = window.ENEMY_TYPES;
 
 // Boss怪物类型
 window.BOSS_TYPES = [
-    { name: '史莱姆王', type: 'slime_king', hp: 80, atk: 12, def: 2, exp: 40, gold: 80, color: '#7f7', size: 40, render: 'boss_slime', skills: ['ice'] },
-    { name: '哥布林领主', type: 'goblin_lord', hp: 120, atk: 18, def: 4, exp: 60, gold: 120, color: '#6f6', size: 36, render: 'boss_goblin', skills: ['vine'] },
-    { name: '兽人统领', type: 'orc_king', hp: 180, atk: 25, def: 8, exp: 100, gold: 180, color: '#6f6', size: 44, render: 'boss_orc', skills: ['tornado'] },
-    { name: '黑暗法师', type: 'dark_mage', hp: 150, atk: 35, def: 5, exp: 150, gold: 250, color: '#a7a', size: 32, render: 'boss_mage', skills: ['thunder', 'fireball'] },
-    { name: '火龙', type: 'fire_dragon', hp: 300, atk: 40, def: 15, exp: 300, gold: 500, color: '#d55', size: 56, render: 'boss_dragon', skills: ['fireball', 'tornado'] },
-    { name: '冰魔', type: 'ice_devil', hp: 350, atk: 45, def: 18, exp: 400, gold: 600, color: '#ccf', size: 48, render: 'boss_ice', skills: ['ice', 'thunder'] },
-    { name: '恶魔领主', type: 'demon_lord', hp: 500, atk: 60, def: 25, exp: 600, gold: 1000, color: '#d6d', size: 52, render: 'boss_demon', skills: ['fireball', 'thunder', 'ice'] }
-];
+     { name: '史莱姆王', type: 'slime_king', hp: 80, atk: 12, def: 2, exp: 40, gold: 80, color: '#7f7', size: 40, render: 'boss_slime', skills: ['ice'] },
+     { name: '哥布林领主', type: 'goblin_lord', hp: 120, atk: 18, def: 4, exp: 60, gold: 120, color: '#6f6', size: 36, render: 'boss_goblin', skills: ['vine'] },
+     { name: '兽人统领', type: 'orc_king', hp: 180, atk: 25, def: 8, exp: 100, gold: 180, color: '#6f6', size: 44, render: 'boss_orc', skills: ['tornado'] },
+     { name: '黑暗法师', type: 'dark_mage', hp: 150, atk: 35, def: 5, exp: 150, gold: 250, color: '#a7a', size: 32, render: 'boss_mage', skills: ['thunder', 'fireball'] },
+     { name: '白骨夫人', type: 'skeleton_queen', hp: 250, atk: 38, def: 10, exp: 200, gold: 350, color: '#fff', size: 44, render: 'boss_skeleton_queen', skills: ['ice', 'vine'] },
+     { name: '火龙', type: 'fire_dragon', hp: 300, atk: 40, def: 15, exp: 300, gold: 500, color: '#d55', size: 56, render: 'boss_dragon', skills: ['fireball', 'tornado'] },
+     { name: '冰魔', type: 'ice_devil', hp: 350, atk: 45, def: 18, exp: 400, gold: 600, color: '#ccf', size: 48, render: 'boss_ice', skills: ['ice', 'thunder'] },
+     { name: '恶魔领主', type: 'demon_lord', hp: 500, atk: 60, def: 25, exp: 600, gold: 1000, color: '#d6d', size: 52, render: 'boss_demon', skills: ['fireball', 'thunder', 'ice'] }
+ ];
 
 // 兼容旧版本
 window.bossTypes = window.BOSS_TYPES;
@@ -839,6 +840,147 @@ window.renderEnemyIcon = function(enemyType, size = 32) {
             ctx.lineTo(x + w*0.5 + Math.sin(time)*5 + w*0.03, y + h*0.98);
             ctx.closePath();
             ctx.fill();
+        } else if (renderType === 'boss_skeleton_queen') {
+            // 白骨夫人 - 优雅的骷髅女王
+            const time = Date.now() / 500;
+            const float = Math.sin(time) * 3;
+            const hairWave = Math.sin(time * 0.8) * 2;
+            
+            // 披风 - 紫色流动效果
+            ctx.fillStyle = '#4a0080';
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.2, y + h*0.4 + float);
+            ctx.quadraticCurveTo(x + w*0.05, y + h*0.6 + hairWave, x + w*0.1, y + h*0.95 + float);
+            ctx.lineTo(x + w*0.3, y + h*0.95 + float);
+            ctx.quadraticCurveTo(x + w*0.25, y + h*0.6, x + w*0.35, y + h*0.4 + float);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.8, y + h*0.4 + float);
+            ctx.quadraticCurveTo(x + w*0.95, y + h*0.6 - hairWave, x + w*0.9, y + h*0.95 + float);
+            ctx.lineTo(x + w*0.7, y + h*0.95 + float);
+            ctx.quadraticCurveTo(x + w*0.75, y + h*0.6, x + w*0.65, y + h*0.4 + float);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 头发 - 紫色长发飘动
+            ctx.fillStyle = '#8a2be2';
+            // 左发
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.3, y + h*0.15 + float);
+            ctx.quadraticCurveTo(x + w*0.1, y + h*0.2 + hairWave, x + w*0.15, y + h*0.5 + float);
+            ctx.lineTo(x + w*0.25, y + h*0.5 + float);
+            ctx.quadraticCurveTo(x + w*0.2, y + h*0.25, x + w*0.35, y + h*0.2 + float);
+            ctx.closePath();
+            ctx.fill();
+            // 右发
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.7, y + h*0.15 + float);
+            ctx.quadraticCurveTo(x + w*0.9, y + h*0.2 - hairWave, x + w*0.85, y + h*0.5 + float);
+            ctx.lineTo(x + w*0.75, y + h*0.5 + float);
+            ctx.quadraticCurveTo(x + w*0.8, y + h*0.25, x + w*0.65, y + h*0.2 + float);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 皇冠 - 金色闪耀
+            const crownShine = Math.sin(time * 2) * 0.1;
+            ctx.fillStyle = `rgb(255, ${215 + crownShine*30}, 0)`;
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.3, y + h*0.12 + float);
+            ctx.lineTo(x + w*0.25, y + h*0.02 + float);
+            ctx.lineTo(x + w*0.35, y + h*0.08 + float);
+            ctx.lineTo(x + w*0.5, y - h*0.02 + float);
+            ctx.lineTo(x + w*0.65, y + h*0.08 + float);
+            ctx.lineTo(x + w*0.75, y + h*0.02 + float);
+            ctx.lineTo(x + w*0.7, y + h*0.12 + float);
+            ctx.closePath();
+            ctx.fill();
+            // 皇冠宝石
+            ctx.fillStyle = '#ff69b4';
+            ctx.beginPath();
+            ctx.arc(x + w*0.5, y + h*0.05 + float, w*0.05, 0, Math.PI*2);
+            ctx.fill();
+            
+            // 头部 - 白色骷髅
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.ellipse(x + w*0.5, y + h*0.22 + float, w*0.22, h*0.15, 0, 0, Math.PI*2);
+            ctx.fill();
+            // 颅骨阴影
+            ctx.fillStyle = '#ddd';
+            ctx.beginPath();
+            ctx.ellipse(x + w*0.5, y + h*0.25 + float, w*0.15, h*0.08, 0, 0, Math.PI*2);
+            ctx.fill();
+            
+            // 眼睛 - 紫色发光
+            ctx.shadowColor = '#9932cc';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = '#9932cc';
+            ctx.beginPath();
+            ctx.ellipse(x + w*0.4, y + h*0.2 + float, w*0.06, h*0.08, 0, 0, Math.PI*2);
+            ctx.ellipse(x + w*0.6, y + h*0.2 + float, w*0.06, h*0.08, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            // 眼睛高光
+            ctx.fillStyle = '#ff00ff';
+            ctx.beginPath();
+            ctx.arc(x + w*0.4, y + h*0.18 + float, w*0.02, 0, Math.PI*2);
+            ctx.arc(x + w*0.6, y + h*0.18 + float, w*0.02, 0, Math.PI*2);
+            ctx.fill();
+            
+            // 鼻子 - 三角形空洞
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.5, y + h*0.22 + float);
+            ctx.lineTo(x + w*0.47, y + h*0.28 + float);
+            ctx.lineTo(x + w*0.53, y + h*0.28 + float);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 嘴 - 骷髅牙齿
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(x + w*0.4, y + h*0.3 + float, w*0.2, h*0.04);
+            ctx.fillStyle = '#333';
+            for (let i = 0; i < 4; i++) {
+                ctx.fillRect(x + w*0.42 + i * w*0.04, y + h*0.3 + float, w*0.02, h*0.04);
+            }
+            
+            // 身体 - 白色骨骼
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(x + w*0.35, y + h*0.35 + float, w*0.3, h*0.35);
+            // 肋骨
+            ctx.fillStyle = '#eee';
+            for (let i = 0; i < 3; i++) {
+                ctx.fillRect(x + w*0.32, y + h*(0.4 + i*0.08) + float, w*0.36, h*0.02);
+            }
+            // 脊椎
+            ctx.fillStyle = '#ddd';
+            ctx.fillRect(x + w*0.48, y + h*0.35 + float, w*0.04, h*0.35);
+            
+            // 项链 - 蓝宝石
+            ctx.fillStyle = '#00bfff';
+            ctx.shadowColor = '#00bfff';
+            ctx.shadowBlur = 5;
+            ctx.beginPath();
+            ctx.arc(x + w*0.5, y + h*0.38 + float, w*0.06, 0, Math.PI*2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // 手臂 - 骨头
+            ctx.fillStyle = '#fff';
+            // 左臂
+            ctx.fillRect(x + w*0.2, y + h*0.4 + float, w*0.12, h*0.04);
+            ctx.fillRect(x + w*0.15, y + h*0.44 + float, w*0.08, h*0.15);
+            // 右臂
+            ctx.fillRect(x + w*0.68, y + h*0.4 + float, w*0.12, h*0.04);
+            ctx.fillRect(x + w*0.77, y + h*0.44 + float, w*0.08, h*0.15);
+            
+            // 骨手指
+            ctx.fillStyle = '#fff';
+            for (let i = 0; i < 3; i++) {
+                ctx.fillRect(x + w*0.12 + i*w*0.03, y + h*0.59 + float, w*0.02, h*0.05);
+                ctx.fillRect(x + w*0.79 + i*w*0.03, y + h*0.59 + float, w*0.02, h*0.05);
+            }
         }
     }
     

@@ -9,7 +9,17 @@ window.PanelManager = {
         inventory: false,
         character: false,
         shop: false,
-        bestiary: false
+        bestiary: false,
+        skin: false
+    },
+    
+    // 面板变量映射
+    panelVars: {
+        inventory: 'inventoryOpen',
+        character: 'characterOpen',
+        shop: 'shopOpen',
+        bestiary: 'bestiaryOpen',
+        skin: 'skinOpen'
     },
     
     // 当前标签页
@@ -22,29 +32,44 @@ window.PanelManager = {
      * @returns {boolean} 是否有面板打开
      */
     isAnyOpen: function() {
-        return this.panels.inventory || this.panels.character || this.panels.shop || this.panels.bestiary;
+        return this.panels.inventory || this.panels.character || this.panels.shop || this.panels.bestiary || this.panels.skin;
     },
     
     /**
      * 关闭所有面板
      */
     closeAll: function() {
-        if (this.panels.inventory) {
-            this.panels.inventory = false;
-            if (window.UIInventory) window.UIInventory.close();
-        }
-        if (this.panels.character) {
-            this.panels.character = false;
-            if (window.UICharacter) window.UICharacter.close();
-        }
-        if (this.panels.shop) {
-            this.panels.shop = false;
-            if (window.UIShop) window.UIShop.close();
-        }
-        if (this.panels.bestiary) {
-            this.panels.bestiary = false;
-            if (window.UIBestiary) window.UIBestiary.close();
-        }
+        Object.keys(this.panels).forEach(panelName => {
+            if (this.panels[panelName]) {
+                this.panels[panelName] = false;
+                
+                // 设置全局变量
+                const varName = this.panelVars[panelName];
+                if (varName && typeof window[varName] !== 'undefined') {
+                    window[varName] = false;
+                }
+                
+                // 关闭UI
+                switch(panelName) {
+                    case 'inventory':
+                        if (window.UIInventory) window.UIInventory.close();
+                        break;
+                    case 'character':
+                        if (window.UICharacter) window.UICharacter.close();
+                        break;
+                    case 'shop':
+                        if (window.UIShop) window.UIShop.close();
+                        break;
+                    case 'bestiary':
+                        if (window.UIBestiary) window.UIBestiary.close();
+                        break;
+                    case 'skin':
+                        const skinPanel = document.getElementById('skin-panel');
+                        if (skinPanel) skinPanel.style.display = 'none';
+                        break;
+                }
+            }
+        });
     },
     
     /**
@@ -54,6 +79,12 @@ window.PanelManager = {
     openPanel: function(panelName) {
         this.closeAll();
         this.panels[panelName] = true;
+        
+        // 设置全局变量
+        const varName = this.panelVars[panelName];
+        if (varName && typeof window[varName] !== 'undefined') {
+            window[varName] = true;
+        }
         
         // 根据面板名称打开对应的UI
         switch(panelName) {
@@ -69,6 +100,10 @@ window.PanelManager = {
             case 'bestiary':
                 if (window.UIBestiary) window.UIBestiary.open();
                 break;
+            case 'skin':
+                const skinPanel = document.getElementById('skin-panel');
+                if (skinPanel) skinPanel.style.display = 'block';
+                break;
         }
     },
     
@@ -78,6 +113,12 @@ window.PanelManager = {
      */
     closePanel: function(panelName) {
         this.panels[panelName] = false;
+        
+        // 设置全局变量
+        const varName = this.panelVars[panelName];
+        if (varName && typeof window[varName] !== 'undefined') {
+            window[varName] = false;
+        }
         
         switch(panelName) {
             case 'inventory':
@@ -91,6 +132,10 @@ window.PanelManager = {
                 break;
             case 'bestiary':
                 if (window.UIBestiary) window.UIBestiary.close();
+                break;
+            case 'skin':
+                const skinPanel = document.getElementById('skin-panel');
+                if (skinPanel) skinPanel.style.display = 'none';
                 break;
         }
     },

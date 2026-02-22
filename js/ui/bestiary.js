@@ -14,12 +14,14 @@ window.UIBestiary = {
     open: function() {
         if (!this.element) this.init();
         this.element.style.display = 'flex';
+        if (typeof bestiaryOpen !== 'undefined') bestiaryOpen = true;
         this.render();
     },
     
     close: function() {
         if (!this.element) return;
         this.element.style.display = 'none';
+        if (typeof bestiaryOpen !== 'undefined') bestiaryOpen = false;
     },
     
     render: function() {

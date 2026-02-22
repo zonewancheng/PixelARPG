@@ -276,6 +276,48 @@ function drawPixelSprite(ctx, x, y, w, h, color, type, player) {
         ctx.fillStyle = '#f00';
         ctx.fillRect(x + 10, y + 5, 2, 2);
         ctx.fillRect(x + 18, y + 5, 2, 2);
+    } else if (type === 'boss_skeleton_queen') {
+        // 白骨夫人 - 优雅的骷髅女王
+        // 头部 - 白色骷髅
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(x + 8, y + 2, 16, 14);
+        // 头发 - 紫色长发
+        ctx.fillStyle = '#8a2be2';
+        ctx.fillRect(x + 4, y + 4, 4, 20);
+        ctx.fillRect(x + 24, y + 4, 4, 20);
+        ctx.fillRect(x + 6, y + 2, 20, 4);
+        // 皇冠 - 金色
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(x + 10, y - 2, 12, 4);
+        ctx.fillRect(x + 8, y, 4, 4);
+        ctx.fillRect(x + 20, y, 4, 4);
+        ctx.fillRect(x + 14, y - 4, 4, 6);
+        // 眼睛 - 紫色发光
+        ctx.fillStyle = '#9932cc';
+        ctx.fillRect(x + 10, y + 6, 4, 4);
+        ctx.fillRect(x + 18, y + 6, 4, 4);
+        ctx.fillStyle = '#ff00ff';
+        ctx.fillRect(x + 11, y + 7, 2, 2);
+        ctx.fillRect(x + 19, y + 7, 2, 2);
+        // 身体 - 白色骨骼
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(x + 10, y + 16, 12, 16);
+        // 肋骨
+        ctx.fillStyle = '#eee';
+        ctx.fillRect(x + 8, y + 18, 16, 2);
+        ctx.fillRect(x + 8, y + 22, 16, 2);
+        ctx.fillRect(x + 8, y + 26, 16, 2);
+        // 披风 - 紫色
+        ctx.fillStyle = '#6a0dad';
+        ctx.fillRect(x + 2, y + 16, 8, 20);
+        ctx.fillRect(x + 22, y + 16, 8, 20);
+        // 手臂 - 骨头
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(x + 4, y + 18, 4, 12);
+        ctx.fillRect(x + 24, y + 18, 4, 12);
+        // 装饰 - 蓝宝石项链
+        ctx.fillStyle = '#00bfff';
+        ctx.fillRect(x + 13, y + 16, 6, 4);
     } else if (type === 'boss') {
         ctx.fillStyle = '#a22';
         ctx.fillRect(x + 8, y, 32, 16);
@@ -2129,250 +2171,6 @@ function drawPlayer(ctx, player, drawPixelSpriteFn, invulnerable) {
     ctx.lineTo(centerX + 3, markerY - 1);
     ctx.closePath();
     ctx.fill();
-}
-
-// ===== 云朵获取 =====
-
-/**
- * 获取云朵数据
- */
-function getClouds() {
-    return window.clouds || clouds;
-}
-
-// ===== 云朵绘制 =====
-
-/**
- * 绘制云朵和天气效果
- * 包括白云、乌云、闪电云
- * @param {CanvasRenderingContext2D} ctx
- * @param {number} canvasWidth
- * @param {number} canvasHeight
- * @param {Object} player
- * @param {boolean} animate - 是否播放动画
- */
-function drawClouds(ctx, canvasWidth, canvasHeight, player, animate = true) {
-    const cloudData = getClouds();
-    if (!cloudData || !cloudData.length) return;
-    
-    const time = animate ? Date.now() / 1000 : 0;
-    const shadowDir = getShadowDirection();
-    
-    if (animate) {
-        cloudData.forEach(cloud => {
-            cloud.x += cloud.speedX;
-            cloud.y += cloud.speedY + Math.sin(time * cloud.wobbleSpeed + cloud.wobblePhase) * 0.15;
-            
-            if ((cloud.speedX > 0 && cloud.x > canvasWidth + cloud.size * 2) ||
-                (cloud.speedX < 0 && cloud.x < -cloud.size * 2)) {
-                cloud.x = cloud.speedX > 0 ? -cloud.size * 2 : canvasWidth + cloud.size * 2;
-                cloud.y = 10 + Math.random() * (canvasHeight - 20);
-                const rand = Math.random();
-                if (rand < 0.15) cloud.type = 'storm';
-                else if (rand < 0.45) cloud.type = 'dark';
-                else cloud.type = 'white';
-                cloud.lightningTimer = 0;
-            }
-            if (cloud.y < 5) cloud.y = 5;
-            if (cloud.y > canvasHeight - 5) cloud.y = canvasHeight - 5;
-        });
-    }
-    
-    cloudData.forEach(cloud => {
-        if (cloud.y < 5) cloud.y = 5;
-        if (cloud.y > canvasHeight - 5) cloud.y = canvasHeight - 5;
-        
-        const breathe = Math.sin(time * 0.3 + cloud.phase) * 0.08 + 1;
-        
-        const baseX = cloud.x + Math.sin(time * cloud.wobbleSpeed * 0.7 + cloud.wobblePhase) * 3;
-        const baseY = cloud.y;
-        const size = cloud.size;
-        
-        // 云朵主体
-        if (cloud.type === 'storm') {
-            ctx.fillStyle = '#2a2a2a';
-        } else if (cloud.type === 'dark') {
-            ctx.fillStyle = '#5a5a6a';
-        } else {
-            ctx.fillStyle = '#e8e8f0';
-        }
-        
-        // 绘制云朵阴影 - 在云朵底部形成阴影效果
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
-        cloud.circles.forEach((c, i) => {
-            if (c.oy > 0) { // 只在云朵下半部分画阴影
-                ctx.beginPath();
-                ctx.arc(baseX + c.ox * size + shadowDir.x * 0.3, 
-                       baseY + c.oy * size + 4 + shadowDir.y * 0.3, 
-                       c.r * size * breathe * 0.9, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
-        
-        // 绘制云朵本体 - 分层渲染增加立体感
-        cloud.circles.forEach((c, i) => {
-            // 底层阴影
-            ctx.fillStyle = cloud.type === 'storm' ? '#1a1a1a' : 
-                          cloud.type === 'dark' ? '#3a3a4a' : '#c8c8d0';
-            ctx.beginPath();
-            ctx.arc(baseX + c.ox * size + 2, baseY + c.oy * size + 2, c.r * size * breathe * 0.95, 0, Math.PI * 2);
-            ctx.fill();
-        });
-        
-        cloud.circles.forEach((c, i) => {
-            // 主体
-            ctx.fillStyle = cloud.type === 'storm' ? '#2a2a2a' : 
-                          cloud.type === 'dark' ? '#5a5a6a' : '#e8e8f0';
-            ctx.beginPath();
-            ctx.arc(baseX + c.ox * size, baseY + c.oy * size, c.r * size * breathe, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 高光（只在白云上）
-            if (cloud.type === 'white') {
-                ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                ctx.beginPath();
-                ctx.arc(baseX + c.ox * size - c.r * size * 0.3, baseY + c.oy * size - c.r * size * 0.3, 
-                       c.r * size * breathe * 0.4, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
-        
-        // 绘制底部阴影线
-        ctx.strokeStyle = cloud.type === 'storm' ? 'rgba(0,0,0,0.3)' : 
-                         cloud.type === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(100,100,120,0.15)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(baseX - size * 0.6, baseY + size * 0.3);
-        ctx.quadraticCurveTo(baseX, baseY + size * 0.5, baseX + size * 0.6, baseY + size * 0.3);
-        ctx.stroke();
-        
-        // 雷电云逻辑
-        if (cloud.type === 'storm') {
-            if (!cloud.lightningTimer) cloud.lightningTimer = 0;
-            cloud.lightningTimer++;
-            if (cloud.lightningTimer > 120) {
-                cloud.lightningTimer = 0;
-            }
-            
-            // 雷电攻击 - 找最近的目标发射雷电投射物
-            if (cloud.lightningTimer >= 60 && cloud.lightningTimer % 30 === 0) {
-                // 云的屏幕坐标
-                const cloudScreenX = cloud.x;
-                const cloudScreenY = cloud.y;
-                
-                // 玩家的屏幕坐标
-                let camX = window.cameraX || 0;
-                let camY = window.cameraY || 0;
-                const playerScreenX = player.x + player.w / 2 - camX;
-                const playerScreenY = player.y + player.h / 2 - camY;
-                
-                // 找最近的目标（玩家或怪物）- 攻击范围100
-                let nearestTarget = null;
-                let nearestDist = 100;
-                
-                // 检查玩家（使用屏幕坐标计算距离）
-                const playerDist = Math.sqrt((playerScreenX - cloudScreenX) ** 2 + (playerScreenY - cloudScreenY) ** 2);
-                if (playerDist < nearestDist) {
-                    nearestDist = playerDist;
-                    nearestTarget = { 
-                        screenX: playerScreenX, 
-                        screenY: playerScreenY,
-                        mapX: player.x + player.w / 2, 
-                        mapY: player.y + player.h / 2, 
-                        isPlayer: true 
-                    };
-                }
-                
-                // 检查怪物
-                if (window.enemies && window.enemies.length > 0) {
-                    window.enemies.forEach(e => {
-                        const eScreenX = e.x + e.w / 2 - camX;
-                        const eScreenY = e.y + e.h / 2 - camY;
-                        const eDist = Math.sqrt((eScreenX - cloudScreenX) ** 2 + (eScreenY - cloudScreenY) ** 2);
-                        if (eDist < nearestDist) {
-                            nearestDist = eDist;
-                            nearestTarget = { 
-                                screenX: eScreenX, 
-                                screenY: eScreenY,
-                                mapX: e.x + e.w / 2, 
-                                mapY: e.y + e.h / 2, 
-                                isPlayer: false, 
-                                enemy: e 
-                            };
-                        }
-                    });
-                }
-                
-                // 检查Boss
-                if (window.bosses && window.bosses.length > 0) {
-                    window.bosses.forEach(boss => {
-                        if (!boss || boss.hp <= 0) return;
-                        const bScreenX = boss.x + boss.w / 2 - camX;
-                        const bScreenY = boss.y + boss.h / 2 - camY;
-                        const bDist = Math.sqrt((bScreenX - cloudScreenX) ** 2 + (bScreenY - cloudScreenY) ** 2);
-                        if (bDist < nearestDist) {
-                            nearestDist = bDist;
-                            nearestTarget = { 
-                                screenX: bScreenX, 
-                                screenY: bScreenY,
-                                mapX: boss.x + boss.w / 2, 
-                                mapY: boss.y + boss.h / 2, 
-                                isPlayer: false, 
-                                enemy: boss 
-                            };
-                        }
-                    });
-                }
-                
-                // 发射雷电投射物到最近目标
-                if (nearestTarget && window.projectiles) {
-                    const cloudMapX = cloudScreenX + camX;
-                    const cloudMapY = cloudScreenY + camY;
-                    const dx = nearestTarget.mapX - cloudMapX;
-                    const dy = nearestTarget.mapY - cloudMapY;
-                    const mapDist = Math.sqrt(dx * dx + dy * dy); // 使用地图坐标距离
-                    const speed = 10;
-                    
-                    if (mapDist > 0) {
-                        // 伤害随地图等级增加
-                        const mapLevel = window.mapLevel || 1;
-                        const baseDamage = 15 + mapLevel * 5;
-                        const damage = baseDamage + Math.floor(Math.random() * 10);
-                        
-                        window.projectiles.push({
-                            x: cloudMapX,
-                            y: cloudMapY,
-                            vx: (dx / mapDist) * speed,
-                            vy: (dy / mapDist) * speed,
-                            damage: damage,
-                            color: '#ff0',
-                            particleColor: '#fff',
-                            size: 24,
-                            life: 60,
-                            isLightning: true,
-                            isCloudLightning: true,
-                            boltColor: '#ff0',
-                            coreColor: '#fff',
-                            glowColor: '#0ff'
-                        });
-                        
-                        // 雷电音效
-                        if (typeof playSound === 'function') {
-                            playSound('lightning');
-                        }
-                    }
-                }
-            }
-            
-            // 显示闪电图标
-            ctx.font = `${Math.floor(size * 0.55)}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            if (cloud.lightningTimer >= 60 && cloud.lightningTimer <= 90) {
-                ctx.fillText('⚡', baseX, baseY);
-            }
-        }
-    });
 }
 
 // ===== 伤害数字绘制 =====
