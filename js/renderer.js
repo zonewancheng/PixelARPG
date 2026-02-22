@@ -2266,9 +2266,9 @@ function drawClouds(ctx, canvasWidth, canvasHeight, player, animate = true) {
                 const playerScreenX = player.x + player.w / 2 - camX;
                 const playerScreenY = player.y + player.h / 2 - camY;
                 
-                // 找最近的目标（玩家或怪物）- 攻击范围200
+                // 找最近的目标（玩家或怪物）- 攻击范围100
                 let nearestTarget = null;
-                let nearestDist = 200;
+                let nearestDist = 100;
                 
                 // 检查玩家（使用屏幕坐标计算距离）
                 const playerDist = Math.sqrt((playerScreenX - cloudScreenX) ** 2 + (playerScreenY - cloudScreenY) ** 2);
