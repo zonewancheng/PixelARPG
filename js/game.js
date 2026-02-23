@@ -34,6 +34,7 @@ let deathCountdown = 0;
 let portal = null;
 let portalConfirmTimer = 0;
 let portalConfirmed = false;
+let portalCancelled = false; // 玩家是否取消了传送
 
 const DB_NAME = 'PixelHeroDB';
 const DB_VERSION = 1;
@@ -847,6 +848,7 @@ function showPortalConfirm() {
     cancelBtn.onclick = () => {
         cleanup();
         portalConfirmTimer = 0;
+        portalCancelled = true; // 标记已取消
     };
     
     okBtn.onclick = () => {
@@ -884,6 +886,7 @@ function enterNextLevel() {
     portal = null;
     portalConfirmTimer = 0;
     portalConfirmed = false;
+    portalCancelled = false;
     
     showMessage(`欢迎来到关卡 ${mapLevel}!`);
 }
@@ -1312,7 +1315,8 @@ function update() {
         const dist = Math.sqrt(dx*dx + dy*dy);
         
         if (dist < portal.radius) {
-            if (!portalConfirmed && portalConfirmTimer === 0) {
+            // 只有未取消且未确认且没有倒计时时才显示弹窗
+            if (!portalConfirmed && !portalCancelled && portalConfirmTimer === 0) {
                 showPortalConfirm();
             }
             
@@ -1332,9 +1336,14 @@ function update() {
                 }
             }
         } else {
+            // 离开传送阵范围
             if (portalConfirmTimer > 0 && !portalConfirmed) {
                 portalConfirmTimer = 0;
                 hideConfirm();
+            }
+            // 离开后重置取消状态，允许再次进入时显示弹窗
+            if (portalCancelled) {
+                portalCancelled = false;
             }
         }
     }
@@ -1554,7 +1563,7 @@ function drawPortal(ctx, portal, camX, camY) {
     
     // 外层发光
     ctx.shadowColor = '#88f';
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 12;
     
     // 多层漩涡
     for (let layer = 3; layer >= 0; layer--) {
@@ -1585,14 +1594,14 @@ function drawPortal(ctx, portal, camX, camY) {
         
         // 漩涡纹理
         ctx.strokeStyle = `rgba(200, 230, 255, ${0.3 - layer * 0.05})`;
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 6; i++) {
-            const angle = (i / 6) * Math.PI * 2;
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2;
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            for (let t = 0; t <= 1; t += 0.1) {
+            for (let t = 0; t <= 1; t += 0.15) {
                 const spiralR = layerR * t;
-                const spiralAngle = angle + t * Math.PI * 2;
+                const spiralAngle = angle + t * Math.PI * 1.5;
                 ctx.lineTo(
                     Math.cos(spiralAngle) * spiralR,
                     Math.sin(spiralAngle) * spiralR
@@ -1607,26 +1616,26 @@ function drawPortal(ctx, portal, camX, camY) {
     ctx.shadowBlur = 0;
     
     // 中心光点
-    const centerGrad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, r * 0.3);
+    const centerGrad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, r * 0.35);
     centerGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
     centerGrad.addColorStop(0.5, 'rgba(200, 230, 255, 0.5)');
     centerGrad.addColorStop(1, 'rgba(100, 180, 255, 0)');
     ctx.fillStyle = centerGrad;
     ctx.beginPath();
-    ctx.arc(screenX, screenY, r * 0.3, 0, Math.PI * 2);
+    ctx.arc(screenX, screenY, r * 0.35, 0, Math.PI * 2);
     ctx.fill();
     
-    // 粒子效果
-    for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2 + time * 2;
-        const dist = r * 0.8 + Math.sin(time * 4 + i) * 10;
+    // 粒子效果（减少数量）
+    for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2 + time * 2;
+        const dist = r * 0.7 + Math.sin(time * 4 + i) * 5;
         const px = screenX + Math.cos(angle) * dist;
         const py = screenY + Math.sin(angle) * dist;
         const pAlpha = 0.5 + Math.sin(time * 3 + i) * 0.3;
         
         ctx.fillStyle = `rgba(200, 230, 255, ${pAlpha})`;
         ctx.beginPath();
-        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.arc(px, py, 2, 0, Math.PI * 2);
         ctx.fill();
     }
     
@@ -2755,6 +2764,7 @@ function restartGame() {
     portal = null;
     portalConfirmTimer = 0;
     portalConfirmed = false;
+    portalCancelled = false;
     const invEl = document.getElementById('inventory');
     if (invEl) invEl.classList.remove('show');
     generateMap();
