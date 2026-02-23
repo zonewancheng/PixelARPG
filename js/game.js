@@ -224,6 +224,7 @@ function createPlayer() {
     };
     
     const getItemByType = (type) => {
+        if (!window.items) return null;
         const items = window.items.filter(i => i.type === type);
         return items[0] || null;
     };
@@ -279,11 +280,11 @@ function createPlayer() {
         ring: ring,
         necklace: necklace,
         inventory: [
-            createItemWithUid(window.items[21]), 
-            createItemWithUid(window.items[21]), 
-            createItemWithUid(window.items[22]), 
-            createItemWithUid(window.items[23]), 
-            createItemWithUid(window.items[24])
+            createItemWithUid(window.items ? window.items[21] : null), 
+            createItemWithUid(window.items ? window.items[21] : null), 
+            createItemWithUid(window.items ? window.items[22] : null), 
+            createItemWithUid(window.items ? window.items[23] : null), 
+            createItemWithUid(window.items ? window.items[24] : null)
         ],
         attacking: 0,
         dirX: 1, dirY: 0,
@@ -580,7 +581,7 @@ function spawnDrop(x, y, isBoss = false) {
         item = window.createConsumableInstance ? window.createConsumableInstance('gold') : { id: 'gold', name: '金币', type: 'treasure', value: 10 };
     } else {
         const type = equipTypes[Math.floor(Math.random() * equipTypes.length)];
-        item = window.generateRandomItem(type, level);
+        item = window.generateItemByQuality ? window.generateItemByQuality('common', type, level) : null;
         if (item && item.baseId) window.discoverItem(item.baseId);
     }
     drops.push({ x: x + 10, y: y + 10, item: item, life: 1800 });
@@ -1113,12 +1114,21 @@ function update() {
         const dy = player.y + player.h/2 - d.y;
         const dist = Math.sqrt(dx*dx + dy*dy);
         
-        if (dist < 100 && d.life < 1600) {
+        // 掉落后30帧（0.5秒）后才能被拾取
+        const canPickup = d.life < 1770;
+        // 3格内自动吸引
+        const attractRange = window.TILE * 3;
+        // 接触距离
+        const pickupDist = 20;
+        
+        // 3格内飞向玩家
+        if (dist < attractRange && canPickup) {
             d.x += dx * 0.15;
             d.y += dy * 0.15;
         }
         
-            if (dist < 20) {
+        // 接触玩家后拾取
+        if (dist < pickupDist && canPickup) {
                 if (d.item.type === 'treasure') {
                     player.gold += d.item.value;
                     showMessage(`+${d.item.value} Gold!`);
@@ -1189,6 +1199,9 @@ function update() {
             cameraY = 0;
             player.invulnerable = 300; // 5秒无敌
             player.levelUpShield = 300;
+            particles = [];
+            projectiles = [];
+            window.projectiles = projectiles;
             levelTransitioning = false;
         }, 1500);
     }
@@ -1481,10 +1494,11 @@ function render() {
     // 云层（基于地图坐标移动，不跟随玩家）
     const camX = window.cameraX || 0;
     const camY = window.cameraY || 0;
-    const mapLevel = window.mapLevel || 1;
-    window.drawClouds(ctx, window.clouds, player, enemies, 
-        (window.bosses && window.bosses.length > 0 ? window.bosses : (window.boss ? [window.boss] : [])),
-        projectiles, camX, camY, mapLevel, !panelOpen);
+    if (window.drawClouds && window.clouds) {
+        window.drawClouds(ctx, window.clouds, player, enemies,
+            (window.bosses && window.bosses.length > 0 ? window.bosses : (window.boss ? [window.boss] : [])),
+            projectiles, camX, camY, mapLevel, !panelOpen);
+    }
     
     if (message) {
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
@@ -1633,7 +1647,10 @@ function setupInput() {
             if (map[ty] && map[ty][tx] !== 1) {
                 player.x = nx;
                 player.y = ny;
+                player.isMoving = true;
             }
+        } else {
+            player.isMoving = false;
         }
     }, 1000/60);
 }
@@ -1754,8 +1771,11 @@ function attack() {
                 player.y = 15 * window.TILE;
                 cameraX = 0;
                 cameraY = 0;
-                player.invulnerable = 300; // 5秒无敌
+                player.invulnerable = 300;
                 player.levelUpShield = 300;
+                particles = [];
+                projectiles = [];
+                window.projectiles = projectiles;
                 levelTransitioning = false;
                 showMessage(`Level ${mapLevel}!`);
             }, 10000);
@@ -1795,7 +1815,10 @@ function attack() {
                     player.y = 15 * window.TILE;
                     cameraX = 0;
                     cameraY = 0;
-                    player.invulnerable = 300; // 5秒无敌
+                    player.invulnerable = 300;
+                    particles = [];
+                    projectiles = [];
+                    window.projectiles = projectiles;
                     levelTransitioning = false;
                     showMessage(`Level ${mapLevel}!`);
                 }, 10000);
@@ -2528,7 +2551,8 @@ function restartGame() {
     message = '';
     inventoryOpen = false;
     levelTransitioning = false;
-    document.getElementById('inventory').classList.remove('show');
+    const invEl = document.getElementById('inventory');
+    if (invEl) invEl.classList.remove('show');
     generateMap();
     spawnEnemies();
     updateUI();
