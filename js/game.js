@@ -2,15 +2,14 @@ let canvas, ctx;
 let map = [];
 let mapLevel = 1;
 let enemies = [];
-window.enemies = enemies; // 导出到window供雷电云使用
+window.enemies = enemies;
 let drops = [];
 let particles = [];
 let projectiles = [];
-window.projectiles = projectiles; // 导出到window供雷电云使用
+window.projectiles = projectiles;
 let damageNumbers = [];
 let gameState = 'playing';
 window.gameState = gameState;
-// 使用 getter/seter 保持同步
 Object.defineProperty(window, 'gameState', {
     get: () => gameState,
     set: (v) => { gameState = v; }
@@ -23,13 +22,18 @@ let skinOpen = false;
 let message = '';
 let messageTimer = 0;
 let damageFlash = 0;
-window.damageFlash = 0; // 导出到window供雷电云使用
+window.damageFlash = 0;
 Object.defineProperty(window, 'damageFlash', {
     get: () => damageFlash,
     set: (v) => { damageFlash = v; }
 });
 let keys = {};
 let deathCountdown = 0;
+
+// 传送阵系统
+let portal = null;
+let portalConfirmTimer = 0;
+let portalConfirmed = false;
 
 const DB_NAME = 'PixelHeroDB';
 const DB_VERSION = 1;
@@ -821,6 +825,106 @@ function showConfirm(message, onConfirm) {
     modal.classList.add('show');
 }
 
+// 传送阵确认弹窗
+function showPortalConfirm() {
+    if (!portal) return;
+    
+    const modal = document.getElementById('confirm-modal') || createConfirmModal();
+    const msgEl = modal.querySelector('.confirm-message');
+    const cancelBtn = modal.querySelector('.confirm-cancel');
+    const okBtn = modal.querySelector('.confirm-ok');
+    
+    msgEl.innerHTML = `<div style="font-size:18px;color:#88f;margin-bottom:10px">🌀 传送阵</div>
+        <div style="font-size:16px;color:#fff">进入 <span style="color:#8f8;font-weight:bold">关卡 ${portal.nextLevel}</span> ?</div>
+        <div id="portal-countdown" style="font-size:14px;color:#aaa;margin-top:10px">3秒后自动进入</div>`;
+    
+    const cleanup = () => {
+        modal.classList.remove('show');
+        cancelBtn.onclick = null;
+        okBtn.onclick = null;
+    };
+    
+    cancelBtn.onclick = () => {
+        cleanup();
+        portalConfirmTimer = 0;
+    };
+    
+    okBtn.onclick = () => {
+        cleanup();
+        portalConfirmed = true;
+        enterNextLevel();
+    };
+    
+    modal.classList.add('show');
+    portalConfirmTimer = 180; // 3秒 = 180帧
+}
+
+function hideConfirm() {
+    const modal = document.getElementById('confirm-modal');
+    if (modal) modal.classList.remove('show');
+}
+
+function enterNextLevel() {
+    if (!portal) return;
+    
+    mapLevel = portal.nextLevel;
+    generateMap();
+    spawnEnemies();
+    player.x = 7 * window.TILE;
+    player.y = 15 * window.TILE;
+    cameraX = 0;
+    cameraY = 0;
+    player.invulnerable = 300;
+    player.levelUpShield = 300;
+    particles = [];
+    projectiles = [];
+    window.projectiles = projectiles;
+    
+    // 重置传送阵
+    portal = null;
+    portalConfirmTimer = 0;
+    portalConfirmed = false;
+    
+    showMessage(`欢迎来到关卡 ${mapLevel}!`);
+}
+
+function createConfirmModal() {
+    const modal = document.createElement('div');
+    modal.id = 'confirm-modal';
+    modal.innerHTML = `
+        <div class="confirm-overlay"></div>
+        <div class="confirm-box">
+            <div class="confirm-message"></div>
+            <div class="confirm-buttons">
+                <button class="confirm-cancel">取消</button>
+                <button class="confirm-ok">进入</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    if (!document.getElementById('confirm-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'confirm-modal-style';
+        style.textContent = `
+            #confirm-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; display: none; }
+            #confirm-modal.show { display: flex; align-items: center; justify-content: center; }
+            #confirm-modal .confirm-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+            #confirm-modal .confirm-box { position: relative; background: linear-gradient(145deg, #1a1d26, #12151c); border: 1px solid rgba(100,140,180,0.3); border-radius: 12px; padding: 20px; max-width: 280px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            #confirm-modal .confirm-message { color: #e8f0ff; font-size: 15px; margin-bottom: 20px; line-height: 1.5; white-space: pre-line; }
+            #confirm-modal .confirm-buttons { display: flex; gap: 12px; }
+            #confirm-modal button { flex: 1; padding: 10px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+            #confirm-modal .confirm-cancel { background: rgba(80,90,100,0.4); color: #99aabb; border: 1px solid rgba(120,130,150,0.3); }
+            #confirm-modal .confirm-cancel:hover { background: rgba(100,110,120,0.5); }
+            #confirm-modal .confirm-ok { background: linear-gradient(135deg, rgba(80,150,100,0.5), rgba(60,120,80,0.5)); color: #8feda3; border: 1px solid rgba(100,200,130,0.3); }
+            #confirm-modal .confirm-ok:hover { background: linear-gradient(135deg, rgba(90,170,110,0.6), rgba(70,140,90,0.6)); }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    return modal;
+}
+
 function gameLoop() {
     if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen && !bestiaryOpen && !skinOpen) {
         update();
@@ -1184,26 +1288,55 @@ function update() {
     });
     
     enemies = enemies.filter(e => e.hp > 0);
-    window.enemies = enemies; // 同步到window
+    window.enemies = enemies;
     
-    if (enemies.length === 0 && !window.boss && !window.bosses?.length && gameState === 'playing' && !levelTransitioning) {
-        levelTransitioning = true;
-        showMessage(`Level ${mapLevel} cleared! Next level...`, 180);
-        setTimeout(() => {
-            mapLevel++;
-            generateMap();
-            spawnEnemies();
-            player.x = 7 * window.TILE;
-            player.y = 15 * window.TILE;
-            cameraX = 0;
-            cameraY = 0;
-            player.invulnerable = 300; // 5秒无敌
-            player.levelUpShield = 300;
-            particles = [];
-            projectiles = [];
-            window.projectiles = projectiles;
-            levelTransitioning = false;
-        }, 1500);
+    // 清理所有怪物后创建传送阵（而不是自动进入下一关）
+    if (enemies.length === 0 && !window.boss && !window.bosses?.length && gameState === 'playing' && !levelTransitioning && !portal) {
+        // 在地图中心创建传送阵
+        portal = {
+            x: window.MAP_W * window.TILE / 2,
+            y: window.MAP_H * window.TILE / 2,
+            radius: window.TILE * 0.75,
+            nextLevel: mapLevel + 1,
+            time: 0
+        };
+        showMessage(`关卡 ${mapLevel} 已清空！找到传送阵进入下一关`);
+    }
+    
+    // 检测玩家是否在传送阵范围内
+    if (portal) {
+        portal.time += 0.016;
+        
+        const dx = (player.x + player.w/2) - portal.x;
+        const dy = (player.y + player.h/2) - portal.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if (dist < portal.radius) {
+            if (!portalConfirmed && portalConfirmTimer === 0) {
+                showPortalConfirm();
+            }
+            
+            if (portalConfirmTimer > 0) {
+                portalConfirmTimer--;
+                
+                // 更新倒计时显示
+                const countdownEl = document.getElementById('portal-countdown');
+                if (countdownEl) {
+                    const seconds = Math.ceil(portalConfirmTimer / 60);
+                    countdownEl.textContent = `${seconds}秒后自动进入`;
+                }
+                
+                if (portalConfirmTimer <= 0 && !portalConfirmed) {
+                    hideConfirm();
+                    enterNextLevel();
+                }
+            }
+        } else {
+            if (portalConfirmTimer > 0 && !portalConfirmed) {
+                portalConfirmTimer = 0;
+                hideConfirm();
+            }
+        }
     }
     
     particles = particles.filter(p => {
@@ -1297,6 +1430,10 @@ function update() {
                         window.discoverEnemy?.(boss.render, boss.name);
                         showMessage(`${boss.name} DEFEATED! +${Math.floor(boss.exp * 1.5)} EXP!`);
                         
+                        // 保存Boss位置用于创建传送阵
+                        const bossX = boss.x + boss.w/2;
+                        const bossY = boss.y + boss.h/2;
+                        
                         // 从bosses数组中移除
                         window.bosses.splice(bossIndex, 1);
                         
@@ -1306,31 +1443,15 @@ function update() {
                         } else {
                             window.boss = null;
                             
-                            // 所有Boss都死亡，进入下一关
-                            if (!levelTransitioning) {
-                                levelTransitioning = true;
-                                mapLevel++;
-                                
-                                // 10秒后进入下一关
-                                let countdown = 10;
-                                const countdownMsg = setInterval(() => {
-                                    showMessage(`Next level in ${countdown}s...`);
-                                    countdown--;
-                                    if (countdown <= 0) clearInterval(countdownMsg);
-                                }, 1000);
-                                
-                                setTimeout(() => {
-                                    generateMap();
-                                    spawnEnemies();
-                                    player.x = 7 * window.TILE;
-                                    player.y = 15 * window.TILE;
-                                    cameraX = 0;
-                                    cameraY = 0;
-                                    player.invulnerable = 300;
-                                    player.levelUpShield = 300;
-                                    levelTransitioning = false;
-                                    showMessage(`Level ${mapLevel}!`);
-                                }, 10000);
+                            // 所有Boss都死亡，创建传送阵
+                            if (!portal) {
+                                portal = {
+                                    x: bossX,
+                                    y: bossY,
+                                    radius: window.TILE * 0.75,
+                                    nextLevel: mapLevel + 1,
+                                    time: 0
+                                };
                             }
                         }
                     }
@@ -1423,6 +1544,111 @@ function update() {
     
     updateUI();
 }
+
+// 绘制传送阵（漩涡效果）
+function drawPortal(ctx, portal, camX, camY) {
+    const screenX = portal.x - camX;
+    const screenY = portal.y - camY;
+    const time = portal.time;
+    const r = portal.radius;
+    
+    // 外层发光
+    ctx.shadowColor = '#88f';
+    ctx.shadowBlur = 20;
+    
+    // 多层漩涡
+    for (let layer = 3; layer >= 0; layer--) {
+        const layerR = r * (1 - layer * 0.2);
+        const rotation = time * (2 + layer * 0.5);
+        const alpha = 0.3 + layer * 0.15;
+        
+        ctx.save();
+        ctx.translate(screenX, screenY);
+        ctx.rotate(rotation);
+        
+        // 漩涡渐变
+        const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, layerR);
+        if (layer === 0) {
+            grad.addColorStop(0, `rgba(150, 200, 255, ${alpha})`);
+            grad.addColorStop(0.5, `rgba(100, 150, 255, ${alpha * 0.8})`);
+            grad.addColorStop(1, `rgba(50, 100, 200, 0)`);
+        } else {
+            grad.addColorStop(0, `rgba(100, 180, 255, ${alpha})`);
+            grad.addColorStop(0.5, `rgba(70, 130, 220, ${alpha * 0.7})`);
+            grad.addColorStop(1, `rgba(40, 80, 180, 0)`);
+        }
+        
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, layerR, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 漩涡纹理
+        ctx.strokeStyle = `rgba(200, 230, 255, ${0.3 - layer * 0.05})`;
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            for (let t = 0; t <= 1; t += 0.1) {
+                const spiralR = layerR * t;
+                const spiralAngle = angle + t * Math.PI * 2;
+                ctx.lineTo(
+                    Math.cos(spiralAngle) * spiralR,
+                    Math.sin(spiralAngle) * spiralR
+                );
+            }
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+    
+    ctx.shadowBlur = 0;
+    
+    // 中心光点
+    const centerGrad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, r * 0.3);
+    centerGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+    centerGrad.addColorStop(0.5, 'rgba(200, 230, 255, 0.5)');
+    centerGrad.addColorStop(1, 'rgba(100, 180, 255, 0)');
+    ctx.fillStyle = centerGrad;
+    ctx.beginPath();
+    ctx.arc(screenX, screenY, r * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 粒子效果
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2 + time * 2;
+        const dist = r * 0.8 + Math.sin(time * 4 + i) * 10;
+        const px = screenX + Math.cos(angle) * dist;
+        const py = screenY + Math.sin(angle) * dist;
+        const pAlpha = 0.5 + Math.sin(time * 3 + i) * 0.3;
+        
+        ctx.fillStyle = `rgba(200, 230, 255, ${pAlpha})`;
+        ctx.beginPath();
+        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // 显示关卡名称
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // 文字阴影
+    ctx.fillStyle = 'rgba(0, 0, 50, 0.8)';
+    ctx.fillText(`关卡 ${portal.nextLevel}`, screenX + 1, screenY - r - 14);
+    
+    // 文字
+    ctx.fillStyle = '#8cf';
+    ctx.fillText(`关卡 ${portal.nextLevel}`, screenX, screenY - r - 15);
+    
+    // 提示文字
+    ctx.font = '12px Arial';
+    ctx.fillStyle = 'rgba(200, 230, 255, 0.8)';
+    ctx.fillText('进入传送', screenX, screenY + r + 15);
+}
+
 function render() {
     const player = window.player;
     
@@ -1498,6 +1724,11 @@ function render() {
         window.drawClouds(ctx, window.clouds, player, enemies,
             (window.bosses && window.bosses.length > 0 ? window.bosses : (window.boss ? [window.boss] : [])),
             projectiles, camX, camY, mapLevel, !panelOpen);
+    }
+    
+    // 绘制传送阵
+    if (portal) {
+        drawPortal(ctx, portal, camX, camY);
     }
     
     if (message) {
@@ -1752,33 +1983,18 @@ function attack() {
         window.boss = window.bosses[0] || null;
         
         // 检查是否所有Boss都死亡
-        if (window.bosses.length === 0 && deadBosses.length > 0 && !levelTransitioning) {
+        if (window.bosses.length === 0 && deadBosses.length > 0 && !levelTransitioning && !portal) {
             showMessage(`ALL BOSSES DEFEATED! +${deadBosses.reduce((s, b) => s + Math.floor(b.exp * 1.5), 0)} EXP!`);
-            mapLevel++;
-            levelTransitioning = true;
             
-            let countdown = 10;
-            const countdownMsg = setInterval(() => {
-                showMessage(`Next level in ${countdown}s...`);
-                countdown--;
-                if (countdown <= 0) clearInterval(countdownMsg);
-            }, 1000);
-            
-            setTimeout(() => {
-                generateMap();
-                spawnEnemies();
-                player.x = 7 * window.TILE;
-                player.y = 15 * window.TILE;
-                cameraX = 0;
-                cameraY = 0;
-                player.invulnerable = 300;
-                player.levelUpShield = 300;
-                particles = [];
-                projectiles = [];
-                window.projectiles = projectiles;
-                levelTransitioning = false;
-                showMessage(`Level ${mapLevel}!`);
-            }, 10000);
+            // 在最后一个Boss死亡位置创建传送阵
+            const lastBoss = deadBosses[deadBosses.length - 1];
+            portal = {
+                x: lastBoss.x + lastBoss.w/2,
+                y: lastBoss.y + lastBoss.h/2,
+                radius: window.TILE * 0.75,
+                nextLevel: mapLevel + 1,
+                time: 0
+            };
         }
     } else if (window.boss) {
         const dx = (window.boss.x + window.boss.w/2) - px;
@@ -1797,31 +2013,16 @@ function attack() {
                 spawnDrop(window.boss.x, window.boss.y, true);
                 window.discoverEnemy?.(window.boss.render, window.boss.name);
                 showMessage(`BOSS DEFEATED! +${Math.floor(window.boss.exp * 1.5)} EXP!`);
-                mapLevel++;
-                levelTransitioning = true;
                 
-                // 10秒后进入下一关
-                let countdown = 10;
-                const countdownMsg = setInterval(() => {
-                    showMessage(`Next level in ${countdown}s...`);
-                    countdown--;
-                    if (countdown <= 0) clearInterval(countdownMsg);
-                }, 1000);
+                // 创建传送阵而不是自动进入下一关
+                portal = {
+                    x: window.boss.x + window.boss.w/2,
+                    y: window.boss.y + window.boss.h/2,
+                    radius: window.TILE * 0.75,
+                    nextLevel: mapLevel + 1,
+                    time: 0
+                };
                 
-                setTimeout(() => {
-                    generateMap();
-                    spawnEnemies();
-                    player.x = 7 * window.TILE;
-                    player.y = 15 * window.TILE;
-                    cameraX = 0;
-                    cameraY = 0;
-                    player.invulnerable = 300;
-                    particles = [];
-                    projectiles = [];
-                    window.projectiles = projectiles;
-                    levelTransitioning = false;
-                    showMessage(`Level ${mapLevel}!`);
-                }, 10000);
                 window.boss = null;
             }
         }
@@ -2551,6 +2752,9 @@ function restartGame() {
     message = '';
     inventoryOpen = false;
     levelTransitioning = false;
+    portal = null;
+    portalConfirmTimer = 0;
+    portalConfirmed = false;
     const invEl = document.getElementById('inventory');
     if (invEl) invEl.classList.remove('show');
     generateMap();
