@@ -276,19 +276,40 @@ window.SpriteManager = {
 // 预生成默认角色精灵
 window.SpriteManager.defaultHero = null;
 window.SpriteManager.generateDefaultHero = function() {
-    if (window.SpriteManager.defaultHero) return window.SpriteManager.defaultHero;
-    
-    window.SpriteManager.defaultHero = window.SpriteManager.generateCharacterSprite({
-        name: 'hero',
+    // 使用当前皮肤配置
+    const skin = window.PlayerSkins ? window.PlayerSkins.getCurrentSkin() : {
         skinColor: '#ffe4d0',
         hairColor: '#f4c542',
         clothesColor: '#4a9eff',
-        eyeColor: '#40d0b0',
+        eyeColor: '#40d0b0'
+    };
+    
+    // 如果已有精灵且皮肤未变，直接返回
+    if (window.SpriteManager.defaultHero && 
+        window.SpriteManager.defaultHero.skinId === window.PlayerSkins?.current) {
+        return window.SpriteManager.defaultHero;
+    }
+    
+    window.SpriteManager.defaultHero = window.SpriteManager.generateCharacterSprite({
+        name: skin.name || 'hero',
+        skinColor: skin.skinColor || '#ffe4d0',
+        hairColor: skin.hairColor || '#f4c542',
+        clothesColor: skin.clothesColor || '#4a9eff',
+        eyeColor: skin.eyeColor || '#40d0b0',
         size: 64
     });
     
+    // 记录皮肤ID
+    window.SpriteManager.defaultHero.skinId = window.PlayerSkins?.current || 'hero';
+    
     return window.SpriteManager.defaultHero;
 };
+
+// 皮肤切换时重新生成精灵
+window.addEventListener('skinChanged', () => {
+    window.SpriteManager.defaultHero = null;
+    window.SpriteManager.generateDefaultHero();
+});
 
 // 页面加载后预生成
 setTimeout(() => {
