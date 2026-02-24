@@ -93,6 +93,24 @@
                 <div class="panel-content" id="skin-list"></div>
             </div>
             
+            <div id="dialogue-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;width:100vw;background:linear-gradient(to top, rgba(0,0,0,0.95), rgba(20,18,15,0.9));border-top:2px solid rgba(255,215,0,0.3);z-index:10000;box-sizing:border-box;">
+                <div style="width:100%;margin:0 auto;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:linear-gradient(to right, rgba(40,30,20,0.9), rgba(60,50,40,0.9));">
+                        <h2 id="dialogue-npc-name" style="color:#FFD700;font-size:18px;margin:0;">萨满</h2>
+                        <button id="dialogue-close-btn" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:20px;padding:20px;cursor:pointer;" id="dialogue-content-area">
+                        <canvas id="dialogue-npc-avatar" width="64" height="80" style="flex-shrink:0;border-radius:8px;background:rgba(255,255,255,0.05);"></canvas>
+                        <div style="flex:1;min-width:0;">
+                            <div id="dialogue-text" style="color:#e8f0ff;font-size:16px;line-height:1.8;"></div>
+                        </div>
+                    </div>
+                    <div style="text-align:center;padding:10px;color:#888;font-size:12px;border-top:1px solid rgba(255,255,255,0.1);">
+                        <span id="dialogue-hint">点击/空格继续</span>
+                    </div>
+                </div>
+            </div>
+            
             <div id="messages"></div>
             
             <div id="controls">
@@ -116,6 +134,7 @@
     <script src="js/data/items.js"></script>
     <script src="js/data/skills.js"></script>
     <script src="js/data/enemies.js"></script>
+    <script src="js/data/npc.js"></script>
     <script src="js/data/world.js"></script>
     <script src="js/data/clouds.js"></script>
     <script src="js/data.js"></script>

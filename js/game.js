@@ -183,6 +183,12 @@ function initGame() {
     
     window.boss = null;
     window.player = createPlayer();
+    
+    // 初始化出生点NPC
+    if (window.initSpawnPoint) {
+        window.initSpawnPoint(window.player.x, window.player.y);
+    }
+    
     // 只获取主动技能（不包括被动技能）
     const activeSkills = window.skills ? window.skills.filter(s => !s.passive).slice(0, 7) : [];
     window.playerSkills = activeSkills;
@@ -929,7 +935,8 @@ function createConfirmModal() {
 }
 
 function gameLoop() {
-    if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen && !bestiaryOpen && !skinOpen) {
+    const dialogueOpen = window.dialogueOpen || false;
+    if (gameState === 'playing' && !inventoryOpen && !characterOpen && !shopOpen && !bestiaryOpen && !skinOpen && !dialogueOpen) {
         update();
     }
     updateCamera();
@@ -939,6 +946,46 @@ function gameLoop() {
 
 function update() {
     const player = window.player;
+    
+    // 玩家自动走向NPC
+    if (window.playerWalkingToNPC && window.targetNPC) {
+        const npc = window.targetNPC;
+        const npcCenterX = npc.x + npc.size / 2;
+        const npcCenterY = npc.y + npc.size / 2;
+        const playerCenterX = player.x + player.w / 2;
+        const playerCenterY = player.y + player.h / 2;
+        
+        const dx = npcCenterX - playerCenterX;
+        const dy = npcCenterY - playerCenterY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        const talkRange = window.TILE * 2;
+        
+        if (dist <= talkRange) {
+            // 到达NPC，开始对话
+            window.playerWalkingToNPC = false;
+            window.targetNPC = null;
+            if (window.showDialogue) {
+                window.showDialogue(npc);
+            }
+        } else {
+            // 继续走向NPC
+            const speed = 4;
+            const nx = player.x + (dx / dist) * speed;
+            const ny = player.y + (dy / dist) * speed;
+            
+            const tx = Math.floor((nx + 10) / window.TILE);
+            const ty = Math.floor((ny + 10) / window.TILE);
+            
+            if (map[ty] && map[ty][tx] !== 1) {
+                player.x = nx;
+                player.y = ny;
+                player.dirX = dx / dist;
+                player.dirY = dy / dist;
+                player.isMoving = true;
+            }
+        }
+    }
     
     if (player.attacking > 0) player.attacking--;
     if (player.invulnerable > 0) player.invulnerable--;
@@ -1692,6 +1739,15 @@ function render() {
     // 绘制地图
     drawMap(ctx, map, window.TILE, window.MAP_W, window.MAP_H);
     
+    // 绘制出生点的竹楼（萨满在1层平台上）
+    if (window.drawHouse && window.npcs && window.npcs.length > 0) {
+        const firstNpc = window.npcs[0];
+        // npc.y是NPC顶部，NPC脚部在npc.y + 48
+        // 1层平台在houseY - 48处，平台厚度8
+        // 所以npc.y + 48 = houseY - 48 + 8 => houseY = npc.y + 88
+        window.drawHouse(ctx, firstNpc.x - 50, firstNpc.y + 88);
+    }
+    
     // 绘制掉落物（面板打开时不动画）
     drawDrops(ctx, drops, !panelOpen);
     
@@ -1716,6 +1772,13 @@ function render() {
     // 绘制玩家
     drawPlayer(ctx, player, drawPixelSprite, player.invulnerable);
     drawPlayerAttack(ctx, player);
+    
+    // 绘制NPC
+    if (window.drawNPC && window.npcs) {
+        window.npcs.forEach(npc => {
+            window.drawNPC(ctx, npc);
+        });
+    }
     
     // 绘制粒子
     drawParticles(ctx, particles);
@@ -2324,14 +2387,49 @@ function setupUI() {
         }
     }
     
-    canvas.addEventListener('click', () => {
+    canvas.addEventListener('click', (e) => {
         if (gameState === 'gameover') {
             if (deathCountdown <= 0) {
                 restartGame();
             }
-        } else {
-            attack();
+            return;
         }
+        
+        // 获取点击坐标（屏幕坐标）
+        const rect = canvas.getBoundingClientRect();
+        const clickScreenX = e.clientX - rect.left;
+        const clickScreenY = e.clientY - rect.top;
+        
+        // 计算地图偏移（用于居中显示小地图）
+        let offsetX = 0, offsetY = 0;
+        if (window.MAP_W && window.MAP_H && window.TILE) {
+            const mapWidth = window.MAP_W * window.TILE;
+            const mapHeight = window.MAP_H * window.TILE;
+            if (mapWidth < gameWidth) offsetX = (gameWidth - mapWidth) / 2;
+            if (mapHeight < gameHeight) offsetY = (gameHeight - mapHeight) / 2;
+        }
+        
+        // 检查是否点击了NPC（需要考虑偏移）
+        const adjustedX = clickScreenX - offsetX + cameraX;
+        const adjustedY = clickScreenY - offsetY + cameraY;
+        
+        if (window.npcs && window.npcs.length > 0) {
+            for (const npc of window.npcs) {
+                const size = npc.size || 48;
+                const hitArea = size * 1.5;
+                
+                // 检查点击是否在NPC世界坐标范围内
+                if (adjustedX >= npc.x - hitArea/2 && adjustedX <= npc.x + size + hitArea/2 &&
+                    adjustedY >= npc.y - hitArea/2 && adjustedY <= npc.y + size + hitArea/2) {
+                    if (window.walkToNPCAndTalk) {
+                        window.walkToNPCAndTalk(npc);
+                    }
+                    return;
+                }
+            }
+        }
+        
+        attack();
     });
     
     const upBtn = document.getElementById('up');
@@ -2769,6 +2867,12 @@ function restartGame() {
     if (invEl) invEl.classList.remove('show');
     generateMap();
     spawnEnemies();
+    
+    // 重新初始化出生点NPC
+    if (window.initSpawnPoint) {
+        window.initSpawnPoint(window.player.x, window.player.y);
+    }
+    
     updateUI();
     refreshAttackButton();
 }
