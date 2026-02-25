@@ -177,16 +177,25 @@ window.UIBestiary = {
     },
     
     renderSkinPreview: function(skin) {
-        // 直接返回canvas渲染
         const canvas = document.createElement('canvas');
         canvas.width = 48;
         canvas.height = 48;
         canvas.style.imageRendering = 'pixelated';
         
+        const ctx = canvas.getContext('2d');
+        
+        if (window.SpriteManager && typeof window.SpriteManager.drawCharacterFrame === 'function') {
+            window.SpriteManager.drawCharacterFrame(ctx, skin, 'down', 'idle', 0, 48);
+        } else {
+            this.renderSkinPreviewFallback(ctx, skin);
+        }
+        
+        return canvas.toDataURL();
+    },
+    
+    renderSkinPreviewFallback: function(ctx, skin) {
         const cx = 24;
         const size = 48;
-        
-        const ctx = canvas.getContext('2d');
         
         // 阴影
         ctx.fillStyle = 'rgba(0,0,0,0.2)';

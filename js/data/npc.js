@@ -701,7 +701,28 @@ window.initDialoguePanel = function() {
         contentArea.onclick = () => {
             window.continueDialogue();
         };
+        
+        // 移动端触摸支持 - 点击继续
+        contentArea.ontouchend = (e) => {
+            e.preventDefault();
+            window.continueDialogue();
+        };
     }
+    
+    // 点击面板外部关闭对话
+    panel.onclick = (e) => {
+        if (e.target === panel) {
+            window.closeDialogue();
+        }
+    };
+    
+    // 移动端触摸面板外部关闭
+    panel.ontouchend = (e) => {
+        if (e.target === panel) {
+            e.preventDefault();
+            window.closeDialogue();
+        }
+    };
     
     // 空格键继续对话，ESC关闭
     document.addEventListener('keydown', (e) => {

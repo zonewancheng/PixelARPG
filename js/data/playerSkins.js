@@ -1,6 +1,7 @@
 /**
  * 玩家形象系统
  * Boss掉落皮肤，皮肤在图鉴中收集
+ * 每个皮肤融入对应Boss的独特特征
  */
 
 window.PlayerSkins = {
@@ -26,12 +27,12 @@ window.PlayerSkins = {
             clothesDark: '#2070cc',
             clothesLight: '#7ac0ff',
             clothesAccent: '#ffd700',
-            features: { hasVeil: false, hasTiara: false, dressStyle: 'tunic', hairStyle: 'short', hasGloves: false }
+            features: { hasVeil: false, hasTiara: false, dressStyle: 'tunic', hairStyle: 'short', hasGloves: false, hasWings: false, hasHorns: false, hasCrown: false, aura: null }
         },
         slime_king: {
             id: 'slime_king',
             name: '史莱姆勇者',
-            description: '史莱姆王之力，透明的蓝色胶质身体',
+            description: '史莱姆王之力！半透明的胶质身体，头戴金色王冠，周身环绕水滴',
             source: '史莱姆王',
             rarity: 'rare',
             skinColor: '#88ddff',
@@ -46,12 +47,12 @@ window.PlayerSkins = {
             clothesDark: '#229977',
             clothesLight: '#77eedd',
             clothesAccent: '#aaffdd',
-            features: { hasVeil: false, hasTiara: false, dressStyle: 'slime', hairStyle: 'droopy', hasGloves: true }
+            features: { hasVeil: false, hasTiara: true, dressStyle: 'slime', hairStyle: 'droopy', hasGloves: true, hasWings: false, hasHorns: false, hasCrown: true, aura: 'water', bodyType: 'gelatinous' }
         },
         goblin_lord: {
             id: 'goblin_lord',
             name: '哥布林猎手',
-            description: '哥布林领主的皮甲，绿色的肌肤',
+            description: '哥布林领主的血脉！绿色肌肤，尖耳朵和獠牙，身穿皮甲',
             source: '哥布林领主',
             rarity: 'rare',
             skinColor: '#7ccc66',
@@ -66,12 +67,12 @@ window.PlayerSkins = {
             clothesDark: '#443322',
             clothesLight: '#887744',
             clothesAccent: '#aa7733',
-            features: { hasVeil: false, hasTiara: false, dressStyle: 'leather', hairStyle: 'messy', hasGloves: true }
+            features: { hasVeil: false, hasTiara: false, dressStyle: 'leather', hairStyle: 'messy', hasGloves: true, hasWings: false, hasHorns: false, hasCrown: false, aura: null, bodyType: 'pointed_ears' }
         },
         orc_king: {
             id: 'orc_king',
             name: '兽战士',
-            description: '兽人统领的肌肉与獠牙，凶猛无比',
+            description: '兽人统领之魂！浑身肌肉条纹，獠牙外露，部落战纹遍布全身',
             source: '兽人统领',
             rarity: 'epic',
             skinColor: '#558855',
@@ -86,12 +87,12 @@ window.PlayerSkins = {
             clothesDark: '#5c2e0a',
             clothesLight: '#a0522d',
             clothesAccent: '#cd853f',
-            features: { hasVeil: false, hasTiara: false, dressStyle: 'warrior', hairStyle: 'short', hasGloves: false }
+            features: { hasVeil: false, hasTiara: false, dressStyle: 'warrior', hairStyle: 'short', hasGloves: false, hasWings: false, hasHorns: false, hasCrown: false, aura: 'rage', bodyType: 'muscular' }
         },
         dark_mage: {
             id: 'dark_mage',
             name: '暗法师',
-            description: '黑暗法师的神秘长袍与法杖',
+            description: '黑暗法师的魔法传承！笼罩在黑袍中，手持发光法球，周身环绕神秘符文',
             source: '黑暗法师',
             rarity: 'epic',
             skinColor: '#d8bfd8',
@@ -106,12 +107,12 @@ window.PlayerSkins = {
             clothesDark: '#1a0a3a',
             clothesLight: '#4a2a6a',
             clothesAccent: '#6633cc',
-            features: { hasVeil: true, hasTiara: true, dressStyle: 'robe', hairStyle: 'long', hasGloves: true }
+            features: { hasVeil: true, hasTiara: true, dressStyle: 'robe', hairStyle: 'long', hasGloves: true, hasWings: false, hasHorns: false, hasCrown: false, aura: 'magic', bodyType: 'hooded' }
         },
         skeleton_queen: {
             id: 'skeleton_queen',
             name: '白骨公主',
-            description: '白骨夫人的华丽骨骼装扮',
+            description: '白骨夫人的意志！隐约可见骨骼轮廓，华丽蕾丝装扮，头冠镶嵌骷髅宝石',
             source: '白骨夫人',
             rarity: 'legendary',
             skinColor: '#f5f5f5',
@@ -126,12 +127,12 @@ window.PlayerSkins = {
             clothesDark: '#1a1a1a',
             clothesLight: '#4a4a4a',
             clothesAccent: '#cc00cc',
-            features: { hasVeil: true, hasTiara: true, dressStyle: 'elegant', hairStyle: 'wavy', hasGloves: true }
+            features: { hasVeil: true, hasTiara: true, dressStyle: 'elegant', hairStyle: 'wavy', hasGloves: true, hasWings: false, hasHorns: false, hasCrown: true, aura: 'ghost', bodyType: 'bony' }
         },
         fire_dragon: {
             id: 'fire_dragon',
             name: '龙骑士',
-            description: '火龙的火焰之力，炽热的红色鳞片',
+            description: '火龙之血！覆盖炽热鳞片，背生小龙翼，周身火焰环绕，散发龙威',
             source: '火龙',
             rarity: 'legendary',
             skinColor: '#ff6644',
@@ -146,12 +147,12 @@ window.PlayerSkins = {
             clothesDark: '#5c0000',
             clothesLight: '#a52a2a',
             clothesAccent: '#ff4500',
-            features: { hasVeil: false, hasTiara: true, dressStyle: 'armor', hairStyle: 'spiky', hasGloves: true }
+            features: { hasVeil: false, hasTiara: true, dressStyle: 'armor', hairStyle: 'spiky', hasGloves: true, hasWings: true, hasHorns: true, hasCrown: false, aura: 'fire', bodyType: 'scaled' }
         },
         ice_devil: {
             id: 'ice_devil',
             name: '冰霜行者',
-            description: '冰魔的寒冰之力，冰雪般的肌肤',
+            description: '冰魔的寒气！冰雪肌肤覆盖冰晶，发梢凝结霜花，周身寒气缭绕',
             source: '冰魔',
             rarity: 'legendary',
             skinColor: '#e0f0ff',
@@ -166,12 +167,12 @@ window.PlayerSkins = {
             clothesDark: '#225577',
             clothesLight: '#77aadd',
             clothesAccent: '#00eeff',
-            features: { hasVeil: true, hasTiara: false, dressStyle: 'frost', hairStyle: 'flowing', hasGloves: true }
+            features: { hasVeil: true, hasTiara: false, dressStyle: 'frost', hairStyle: 'flowing', hasGloves: true, hasWings: false, hasHorns: true, hasCrown: false, aura: 'ice', bodyType: 'frozen' }
         },
         demon_lord: {
             id: 'demon_lord',
             name: '恶魔猎手',
-            description: '恶魔领主的暗黑之力，强大的气场',
+            description: '恶魔领主之力！暗黑魔角破颅而出，背后展开深渊之翼，黑暗能量环绕',
             source: '恶魔领主',
             rarity: 'mythical',
             skinColor: '#4a2a5a',
@@ -186,7 +187,7 @@ window.PlayerSkins = {
             clothesDark: '#1a051a',
             clothesLight: '#4a2a5a',
             clothesAccent: '#8800ff',
-            features: { hasVeil: true, hasTiara: true, dressStyle: 'demon', hairStyle: 'horned', hasGloves: true }
+            features: { hasVeil: true, hasTiara: true, dressStyle: 'demon', hairStyle: 'horned', hasGloves: true, hasWings: true, hasHorns: true, hasCrown: false, aura: 'darkness', bodyType: 'demonic' }
         }
     },
     
