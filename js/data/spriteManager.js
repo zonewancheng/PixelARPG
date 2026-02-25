@@ -207,23 +207,40 @@ window.SpriteManager = {
             // 史莱姆：半透明胶质腿
             ctx.fillStyle = skinColor + 'aa';
             ctx.globalAlpha = 0.7;
-            ctx.beginPath();
-            ctx.ellipse(cx - 6 + legOffset * 0.5, size * 0.7, 10, 12, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.ellipse(cx + 6 - legOffset * 0.5, size * 0.7, 10, 12, 0, 0, Math.PI * 2);
-            ctx.fill();
+            if (isSide) {
+                ctx.beginPath();
+                ctx.ellipse(cx + (isLeft ? -4 : 4), size * 0.7, 8, 10, 0, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.ellipse(cx - 6 + legOffset * 0.5, size * 0.7, 10, 12, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(cx + 6 - legOffset * 0.5, size * 0.7, 10, 12, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
             ctx.globalAlpha = 1;
         } else if (bodyType === 'muscular') {
             // 兽人：粗壮腿部
             ctx.fillStyle = skinColor;
-            ctx.fillRect(cx - 12 - legOffset, size * 0.58 + offsetY, 10, size * 0.28);
-            ctx.fillRect(cx + 2 + legOffset, size * 0.58 + offsetY, 10, size * 0.28);
+            if (isSide) {
+                ctx.fillRect(cx + (isLeft ? -10 : 0), size * 0.58 + offsetY, 10, size * 0.28);
+            } else if (isUp) {
+                ctx.fillRect(cx - 12, size * 0.58 + offsetY, 10, size * 0.2);
+                ctx.fillRect(cx + 2, size * 0.58 + offsetY, 10, size * 0.2);
+            } else {
+                ctx.fillRect(cx - 12 - legOffset, size * 0.58 + offsetY, 10, size * 0.28);
+                ctx.fillRect(cx + 2 + legOffset, size * 0.58 + offsetY, 10, size * 0.28);
+            }
         } else if (bodyType === 'bony') {
             // 白骨：纤细骨骼腿
             ctx.fillStyle = '#e0e0e0';
-            ctx.fillRect(cx - 8 - legOffset * 0.5, size * 0.6 + offsetY, 4, size * 0.25);
-            ctx.fillRect(cx + 4 + legOffset * 0.5, size * 0.6 + offsetY, 4, size * 0.25);
+            if (isSide) {
+                ctx.fillRect(cx + (isLeft ? -6 : 2), size * 0.6 + offsetY, 4, size * 0.25);
+            } else {
+                ctx.fillRect(cx - 8 - legOffset * 0.5, size * 0.6 + offsetY, 4, size * 0.25);
+                ctx.fillRect(cx + 4 + legOffset * 0.5, size * 0.6 + offsetY, 4, size * 0.25);
+            }
         } else {
             // 普通腿部
             ctx.fillStyle = clothesDark;
@@ -245,14 +262,26 @@ window.SpriteManager = {
             ctx.fillStyle = skinColor + 'cc';
             ctx.globalAlpha = 0.8;
             ctx.beginPath();
-            ctx.ellipse(cx, size * 0.45 + offsetY, 16, 18, 0, 0, Math.PI * 2);
+            if (isSide) {
+                ctx.ellipse(cx, size * 0.45 + offsetY, 12, 16, 0, 0, Math.PI * 2);
+            } else {
+                ctx.ellipse(cx, size * 0.45 + offsetY, 16, 18, 0, 0, Math.PI * 2);
+            }
             ctx.fill();
             ctx.globalAlpha = 1;
         } else if (bodyType === 'scaled') {
             // 龙：鳞片身体
             ctx.fillStyle = clothesColor;
-            ctx.beginPath();
-            ctx.roundRect(cx - 14, size * 0.35 + offsetY, 28, size * 0.28, 4);
+            if (isSide) {
+                ctx.beginPath();
+                ctx.roundRect(cx - 10, size * 0.35 + offsetY, 20, size * 0.28, 4);
+            } else if (isUp) {
+                ctx.beginPath();
+                ctx.roundRect(cx - 14, size * 0.35 + offsetY, 28, size * 0.2, 4);
+            } else {
+                ctx.beginPath();
+                ctx.roundRect(cx - 14, size * 0.35 + offsetY, 28, size * 0.28, 4);
+            }
             ctx.fill();
             // 鳞片纹理
             ctx.fillStyle = clothesDark;
@@ -270,34 +299,60 @@ window.SpriteManager = {
             ctx.fillStyle = clothesColor;
             if (isSide) {
                 ctx.beginPath();
-                ctx.roundRect(cx - 8, size * 0.35 + offsetY, 16, size * 0.28, 4);
+                ctx.roundRect(cx - 10, size * 0.35 + offsetY, 20, size * 0.28, 4);
+            } else if (isUp) {
+                ctx.beginPath();
+                ctx.roundRect(cx - 14, size * 0.35 + offsetY, 28, size * 0.2, 4);
             } else {
                 ctx.beginPath();
                 ctx.roundRect(cx - 14, size * 0.35 + offsetY, 28, size * 0.28, 4);
             }
             ctx.fill();
             // 恶魔纹理
-            ctx.strokeStyle = '#8800ff';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(cx - 10, size * 0.4 + offsetY);
-            ctx.lineTo(cx, size * 0.55 + offsetY);
-            ctx.lineTo(cx + 10, size * 0.4 + offsetY);
-            ctx.stroke();
+            if (!isSide) {
+                ctx.strokeStyle = '#8800ff';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx - 10, size * 0.4 + offsetY);
+                ctx.lineTo(cx, size * 0.55 + offsetY);
+                ctx.lineTo(cx + 10, size * 0.4 + offsetY);
+                ctx.stroke();
+            }
         } else if (bodyType === 'bony') {
             // 白骨：可见肋骨
             ctx.fillStyle = '#2a2a2a';
-            ctx.beginPath();
-            ctx.roundRect(cx - 14, size * 0.35 + offsetY, 28, size * 0.28, 4);
+            if (isSide) {
+                ctx.beginPath();
+                ctx.roundRect(cx - 8, size * 0.35 + offsetY, 16, size * 0.28, 4);
+            } else if (isUp) {
+                ctx.beginPath();
+                ctx.roundRect(cx - 14, size * 0.35 + offsetY, 28, size * 0.2, 4);
+            } else {
+                ctx.beginPath();
+                ctx.roundRect(cx - 14, size * 0.35 + offsetY, 28, size * 0.28, 4);
+            }
             ctx.fill();
             // 肋骨
-            ctx.strokeStyle = '#e0e0e0';
-            ctx.lineWidth = 2;
-            for (let i = 0; i < 3; i++) {
-                ctx.beginPath();
-                ctx.arc(cx, size * 0.42 + offsetY, 4 + i * 3, 0, Math.PI, false);
-                ctx.stroke();
+            if (!isSide) {
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.arc(cx, size * 0.42 + offsetY, 4 + i * 3, 0, Math.PI, false);
+                    ctx.stroke();
+                }
             }
+        } else if (bodyType === 'hooded') {
+            // 法师：兜帽身体
+            ctx.fillStyle = clothesColor;
+            if (isSide) {
+                ctx.beginPath();
+                ctx.roundRect(cx - 10, size * 0.35 + offsetY, 20, size * 0.3, 4);
+            } else {
+                ctx.beginPath();
+                ctx.roundRect(cx - 14, size * 0.35 + offsetY, 28, size * 0.3, 4);
+            }
+            ctx.fill();
         } else {
             // 普通身体
             ctx.fillStyle = clothesColor;
@@ -360,53 +415,140 @@ window.SpriteManager = {
             ctx.fillStyle = skinColor + 'dd';
             ctx.globalAlpha = 0.85;
             ctx.beginPath();
-            ctx.ellipse(cx, size * 0.22 + offsetY, 14, 16, 0, 0, Math.PI * 2);
+            if (isSide) {
+                ctx.ellipse(cx, size * 0.22 + offsetY, 10, 14, 0, 0, Math.PI * 2);
+            } else {
+                ctx.ellipse(cx, size * 0.22 + offsetY, 14, 16, 0, 0, Math.PI * 2);
+            }
             ctx.fill();
             ctx.globalAlpha = 1;
         } else if (bodyType === 'pointed_ears') {
             // 哥布林：尖耳朵
-            // 左耳朵
             ctx.fillStyle = skinColor;
-            ctx.beginPath();
-            ctx.moveTo(cx - 12, size * 0.2 + offsetY);
-            ctx.lineTo(cx - 20, size * 0.1 + offsetY);
-            ctx.lineTo(cx - 14, size * 0.28 + offsetY);
-            ctx.fill();
-            // 右耳朵
-            ctx.beginPath();
-            ctx.moveTo(cx + 12, size * 0.2 + offsetY);
-            ctx.lineTo(cx + 20, size * 0.1 + offsetY);
-            ctx.lineTo(cx + 14, size * 0.28 + offsetY);
-            ctx.fill();
-            // 头
-            ctx.beginPath();
-            ctx.arc(cx, size * 0.25 + offsetY, size * 0.18, 0, Math.PI * 2);
-            ctx.fill();
-        } else if (bodyType === 'hooded') {
-            // 法师：兜帽头
-            ctx.fillStyle = clothesColor;
-            ctx.beginPath();
-            ctx.arc(cx, size * 0.22 + offsetY, size * 0.2, 0, Math.PI * 2);
-            ctx.fill();
-            // 兜帽内部
-            ctx.fillStyle = '#1a1a2a';
-            ctx.beginPath();
-            ctx.arc(cx, size * 0.22 + offsetY, size * 0.15, 0, Math.PI * 2);
-            ctx.fill();
+            if (isSide) {
+                // 侧面只显示朝向的耳朵
+                const earX = isLeft ? -8 : 8;
+                ctx.beginPath();
+                ctx.moveTo(cx + earX - 4, size * 0.2 + offsetY);
+                ctx.lineTo(cx + earX - 12, size * 0.1 + offsetY);
+                ctx.lineTo(cx + earX + 2, size * 0.28 + offsetY);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(cx, size * 0.25 + offsetY, size * 0.16, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // 左耳朵
+                ctx.beginPath();
+                ctx.moveTo(cx - 12, size * 0.2 + offsetY);
+                ctx.lineTo(cx - 20, size * 0.1 + offsetY);
+                ctx.lineTo(cx - 14, size * 0.28 + offsetY);
+                ctx.fill();
+                // 右耳朵
+                ctx.beginPath();
+                ctx.moveTo(cx + 12, size * 0.2 + offsetY);
+                ctx.lineTo(cx + 20, size * 0.1 + offsetY);
+                ctx.lineTo(cx + 14, size * 0.28 + offsetY);
+                ctx.fill();
+                // 头
+                ctx.beginPath();
+                ctx.arc(cx, size * 0.25 + offsetY, size * 0.18, 0, Math.PI * 2);
+                ctx.fill();
+            }
         } else if (bodyType === 'bony') {
             // 白骨：瘦骨头脸
             ctx.fillStyle = '#f5f5f5';
-            ctx.beginPath();
-            ctx.ellipse(cx, size * 0.25 + offsetY, 12, 14, 0, 0, Math.PI * 2);
+            if (isSide) {
+                ctx.beginPath();
+                ctx.ellipse(cx, size * 0.25 + offsetY, 8, 12, 0, 0, Math.PI * 2);
+            } else {
+                ctx.beginPath();
+                ctx.ellipse(cx, size * 0.25 + offsetY, 12, 14, 0, 0, Math.PI * 2);
+            }
             ctx.fill();
             // 眼窝
             ctx.fillStyle = '#1a1a1a';
+            if (!isSide) {
+                ctx.beginPath();
+                ctx.ellipse(cx - 5, size * 0.24 + offsetY, 4, 5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(cx + 5, size * 0.24 + offsetY, 4, 5, 0, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.ellipse(cx + (isLeft ? -3 : 3), size * 0.24 + offsetY, 4, 5, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else if (bodyType === 'frozen') {
+            // 冰魔：冰雪头部
+            ctx.fillStyle = skinColor;
             ctx.beginPath();
-            ctx.ellipse(cx - 5, size * 0.24 + offsetY, 4, 5, 0, 0, Math.PI * 2);
+            ctx.arc(cx, size * 0.25 + offsetY, size * 0.16, 0, Math.PI * 2);
             ctx.fill();
+            // 冰晶装饰
+            ctx.fillStyle = '#88ddff';
+            if (!isSide) {
+                ctx.beginPath();
+                ctx.moveTo(cx - 8, size * 0.15 + offsetY);
+                ctx.lineTo(cx - 12, size * 0.08 + offsetY);
+                ctx.lineTo(cx - 6, size * 0.12 + offsetY);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(cx + 8, size * 0.15 + offsetY);
+                ctx.lineTo(cx + 12, size * 0.08 + offsetY);
+                ctx.lineTo(cx + 6, size * 0.12 + offsetY);
+                ctx.fill();
+            }
+        } else if (bodyType === 'scaled') {
+            // 龙：龙头
+            ctx.fillStyle = skinColor;
             ctx.beginPath();
-            ctx.ellipse(cx + 5, size * 0.24 + offsetY, 4, 5, 0, 0, Math.PI * 2);
+            ctx.arc(cx, size * 0.25 + offsetY, size * 0.16, 0, Math.PI * 2);
             ctx.fill();
+            // 角
+            ctx.fillStyle = '#cc3311';
+            if (!isSide) {
+                ctx.beginPath();
+                ctx.moveTo(cx - 6, size * 0.12 + offsetY);
+                ctx.lineTo(cx - 10, size * 0.02 + offsetY);
+                ctx.lineTo(cx - 2, size * 0.1 + offsetY);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(cx + 6, size * 0.12 + offsetY);
+                ctx.lineTo(cx + 10, size * 0.02 + offsetY);
+                ctx.lineTo(cx + 2, size * 0.1 + offsetY);
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(cx + (isLeft ? -4 : 4), size * 0.12 + offsetY);
+                ctx.lineTo(cx + (isLeft ? -8 : 8), size * 0.02 + offsetY);
+                ctx.lineTo(cx + (isLeft ? 0 : 0), size * 0.1 + offsetY);
+                ctx.fill();
+            }
+        } else if (bodyType === 'demonic') {
+            // 恶魔：恶魔头
+            ctx.fillStyle = skinColor;
+            ctx.beginPath();
+            if (isSide) {
+                ctx.arc(cx, size * 0.25 + offsetY, size * 0.15, 0, Math.PI * 2);
+            } else {
+                ctx.arc(cx, size * 0.25 + offsetY, size * 0.16, 0, Math.PI * 2);
+            }
+            ctx.fill();
+            // 角
+            if (!isSide) {
+                ctx.fillStyle = '#2a1a3a';
+                ctx.beginPath();
+                ctx.moveTo(cx - 8, size * 0.12 + offsetY);
+                ctx.lineTo(cx - 12, size * 0.02 + offsetY);
+                ctx.lineTo(cx - 4, size * 0.1 + offsetY);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(cx + 8, size * 0.12 + offsetY);
+                ctx.lineTo(cx + 12, size * 0.02 + offsetY);
+                ctx.lineTo(cx + 4, size * 0.1 + offsetY);
+                ctx.fill();
+            }
         } else {
             // 普通头
             ctx.fillStyle = skinColor;
