@@ -999,6 +999,93 @@ function drawDrops(ctx, drops, animate = true) {
             ctx.lineWidth = 4; // 放大2倍
             ctx.strokeText(d.item.name || '', d.x, drawY - 16); // 放大2倍
             ctx.fillText(d.item.name || '', d.x, drawY - 16);
+        } else if (d.item.type === 'skin') {
+            // 皮肤掉落 - 使用卡片样式渲染
+            const skin = window.PlayerSkins?.skins[d.item.skinId];
+            if (skin) {
+                const cardWidth = 64;
+                const cardHeight = 80;
+                const cardX = d.x - cardWidth / 2;
+                const cardY = drawY - cardHeight / 2;
+                
+                const rarityColors = {
+                    common: '#9d9d9d',
+                    rare: '#1eff00',
+                    epic: '#0070dd',
+                    legendary: '#ff8000',
+                    mythical: '#e600e6'
+                };
+                const rarityColor = rarityColors[skin.rarity] || '#ffd700';
+                
+                // 卡片背景
+                ctx.fillStyle = 'rgba(30, 25, 20, 0.9)';
+                ctx.strokeStyle = rarityColor;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.roundRect(cardX, cardY, cardWidth, cardHeight, 8);
+                ctx.fill();
+                ctx.stroke();
+                
+                // 发光效果
+                ctx.shadowColor = rarityColor;
+                ctx.shadowBlur = 15;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                // 绘制皮肤预览
+                const previewSize = 40;
+                const previewX = cardX + (cardWidth - previewSize) / 2;
+                const previewY = cardY + 8;
+                
+                // 简化版皮肤渲染
+                const cx = previewX + previewSize / 2;
+                
+                // 阴影
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(cx, previewY + previewSize - 4, 12, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 腿部
+                ctx.fillStyle = skin.clothesColor;
+                ctx.fillRect(cx - 6, previewY + previewSize * 0.55, 5, previewSize * 0.28);
+                ctx.fillRect(cx + 1, previewY + previewSize * 0.55, 5, previewSize * 0.28);
+                
+                // 身体
+                ctx.fillStyle = skin.clothesColor;
+                ctx.beginPath();
+                ctx.roundRect(cx - 10, previewY + previewSize * 0.32, 20, previewSize * 0.26, 2);
+                ctx.fill();
+                
+                // 头部
+                ctx.fillStyle = skin.skinColor;
+                ctx.beginPath();
+                ctx.arc(cx, previewY + previewSize * 0.22, 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 眼睛
+                ctx.fillStyle = skin.eyeColor;
+                ctx.beginPath();
+                ctx.arc(cx - 3, previewY + previewSize * 0.21, 2, 0, Math.PI * 2);
+                ctx.arc(cx + 3, previewY + previewSize * 0.21, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 头发
+                ctx.fillStyle = skin.hairColor;
+                ctx.beginPath();
+                ctx.arc(cx, previewY + previewSize * 0.14, 9, Math.PI, Math.PI * 2);
+                ctx.fill();
+                
+                // 名称背景
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(cardX + 2, cardY + cardHeight - 18, cardWidth - 4, 16);
+                
+                // 名称
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = rarityColor;
+                ctx.fillText(skin.name, cardX + cardWidth / 2, cardY + cardHeight - 6);
+            }
         } else {
             ctx.font = '48px Arial'; // 放大2倍
             ctx.textAlign = 'center';

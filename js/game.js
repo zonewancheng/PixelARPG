@@ -561,7 +561,7 @@ function bossUseSkill(skill, boss) {
     }
 }
 
-function spawnDrop(x, y, isBoss = false) {
+function spawnDrop(x, y, isBoss = false, bossInfo = null) {
     if (!window.discoveredItems) window.discoveredItems = {};
 
     const rand = Math.random();
@@ -596,6 +596,85 @@ function spawnDrop(x, y, isBoss = false) {
         if (item && item.baseId) window.discoverItem(item.baseId);
     }
     drops.push({ x: x + 10, y: y + 10, item: item, life: 1800 });
+
+    // Boss掉落皮肤 - 使用传入的bossInfo参数
+    if (isBoss && bossInfo) {
+        const bossSkinMap = {
+            'boss_slime': 'slime_king',
+            'boss_goblin': 'goblin_lord',
+            'boss_orc': 'orc_king',
+            'boss_mage': 'dark_mage',
+            'boss_skeleton_queen': 'skeleton_queen',
+            'boss_dragon': 'fire_dragon',
+            'boss_ice': 'ice_devil',
+            'boss_demon': 'demon_lord'
+        };
+        
+        const skinId = bossSkinMap[bossInfo.render];
+        if (skinId && window.PlayerSkins) {
+            const skin = window.PlayerSkins.skins[skinId];
+            const alreadyUnlocked = window.PlayerSkins.isUnlocked(skinId);
+            
+            // 创建皮肤掉落物品
+            const skinItem = {
+                id: 'skin_' + skinId,
+                name: skin.name,
+                type: 'skin',
+                skinId: skinId,
+                rarity: skin.rarity,
+                icon: '👤',
+                description: skin.description
+            };
+            
+            // 作为掉落物添加到地面
+            drops.push({ x: x - 20, y: y + 20, item: skinItem, life: 1800 });
+            
+            if (!alreadyUnlocked) {
+                window.PlayerSkins.unlockSkin(skinId);
+                showMessage(`获得新皮肤: ${skin.name}!`, 300);
+            }
+        }
+    }
+    drops.push({ x: x + 10, y: y + 10, item: item, life: 1800 });
+
+    // Boss掉落皮肤
+    if (isBoss && boss) {
+        const bossSkinMap = {
+            'boss_slime': 'slime_king',
+            'boss_goblin': 'goblin_lord',
+            'boss_orc': 'orc_king',
+            'boss_mage': 'dark_mage',
+            'boss_skeleton_queen': 'skeleton_queen',
+            'boss_dragon': 'fire_dragon',
+            'boss_ice': 'ice_devil',
+            'boss_demon': 'demon_lord'
+        };
+        
+        const skinId = bossSkinMap[boss.render];
+        if (skinId && window.PlayerSkins) {
+            const skin = window.PlayerSkins.skins[skinId];
+            const alreadyUnlocked = window.PlayerSkins.isUnlocked(skinId);
+            
+            // 创建皮肤掉落物品
+            const skinItem = {
+                id: 'skin_' + skinId,
+                name: skin.name,
+                type: 'skin',
+                skinId: skinId,
+                rarity: skin.rarity,
+                icon: '👤',
+                description: skin.description
+            };
+            
+            // 作为掉落物添加到地面
+            drops.push({ x: x - 20, y: y + 20, item: skinItem, life: 1800 });
+            
+            if (!alreadyUnlocked) {
+                window.PlayerSkins.unlockSkin(skinId);
+                showMessage(`获得新皮肤: ${skin.name}!`, 300);
+            }
+        }
+    }
 
     const extraDrops = isBoss ? 3 : 1;
     for (let i = 0; i < extraDrops; i++) {
@@ -997,10 +1076,10 @@ function update() {
         if (player.regenTimer >= 60) {
             player.regenTimer = 0;
             if (player.hp < player.maxHp) {
-                player.hp = Math.min(player.maxHp, player.hp + player.hpRegen);
+                player.hp = Math.min(player.maxHp, Math.floor(player.hp + player.hpRegen));
             }
             if (player.mp < player.maxMp) {
-                player.mp = Math.min(player.maxMp, player.mp + player.mpRegen);
+                player.mp = Math.min(player.maxMp, Math.floor(player.mp + player.mpRegen));
             }
         }
     }
@@ -1310,13 +1389,13 @@ function update() {
                         // 没有useConsumable函数时的回退
                         if (!result) {
                             if (d.item.heal) {
-                                player.hp = Math.min(player.maxHp, player.hp + d.item.heal);
+                                player.hp = Math.min(player.maxHp, Math.floor(player.hp + d.item.heal));
                                 spawnDamageNumber(player.x + player.w/2, player.y, d.item.heal, true);
                                 showMessage(`+${d.item.heal} HP!`);
                                 spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'heal');
                             }
                             if (d.item.mp) {
-                                player.mp = Math.min(player.maxMp, player.mp + d.item.mp);
+                                player.mp = Math.min(player.maxMp, Math.floor(player.mp + d.item.mp));
                                 spawnDamageNumber(player.x + player.w/2, player.y - 15, d.item.mp, true);
                                 showMessage(`+${d.item.mp} MP!`);
                                 spawnPotionEffect(player.x + player.w/2, player.y + player.h/2, 'mana');
@@ -1482,7 +1561,7 @@ function update() {
                     if (boss.hp <= 0) {
                         player.exp += Math.floor(boss.exp * 1.5);
                         player.gold += boss.gold;
-                        spawnDrop(boss.x, boss.y, true);
+                        spawnDrop(boss.x, boss.y, true, boss);
                         window.discoverEnemy?.(boss.render, boss.name);
                         showMessage(`${boss.name} DEFEATED! +${Math.floor(boss.exp * 1.5)} EXP!`);
                         
@@ -1924,6 +2003,11 @@ function setupInput() {
     
     setInterval(() => {
         if (gameState !== 'playing') return;
+        // 对话框打开时不处理键盘移动
+        if (window.dialogueOpen) return;
+        // 自动走向NPC时不处理键盘移动
+        if (window.playerWalkingToNPC) return;
+        
         const player = window.player;
         let dx = 0, dy = 0;
         
@@ -2047,7 +2131,7 @@ function attack() {
         deadBosses.forEach(boss => {
             player.exp += Math.floor(boss.exp * 1.5);
             player.gold += boss.gold;
-            spawnDrop(boss.x, boss.y, true);
+            spawnDrop(boss.x, boss.y, true, boss);
             window.discoverEnemy?.(boss.render, boss.name);
             const idx = window.bosses.indexOf(boss);
             if (idx > -1) window.bosses.splice(idx, 1);
@@ -2082,7 +2166,7 @@ function attack() {
             if (window.boss.hp <= 0) {
                 player.exp += Math.floor(window.boss.exp * 1.5);
                 player.gold += window.boss.gold;
-                spawnDrop(window.boss.x, window.boss.y, true);
+                spawnDrop(window.boss.x, window.boss.y, true, window.boss);
                 window.discoverEnemy?.(window.boss.render, window.boss.name);
                 showMessage(`BOSS DEFEATED! +${Math.floor(window.boss.exp * 1.5)} EXP!`);
                 
@@ -3292,12 +3376,12 @@ function useItem(index) {
 
     if (item.type === 'consumable' || item.type === 'consumable_inventory') {
         if (item.heal) {
-            player.hp = Math.min(player.maxHp, player.hp + item.heal);
+            player.hp = Math.min(player.maxHp, Math.floor(player.hp + item.heal));
             spawnDamageNumber(player.x + player.w/2, player.y, item.heal, true);
             showMessage(`+${item.heal} HP!`);
         }
         if (item.mp) {
-            player.mp = Math.min(player.maxMp, player.mp + item.mp);
+            player.mp = Math.min(player.maxMp, Math.floor(player.mp + item.mp));
             spawnDamageNumber(player.x + player.w/2, player.y - 15, item.mp, true);
             showMessage(`+${item.mp} MP!`);
         }

@@ -36,6 +36,7 @@ window.UIBestiary = {
                 <div class="panel-tabs">
                     <button class="panel-tab ${this.currentTab === 'monster' ? 'active' : ''}" data-tab="monster">怪物</button>
                     <button class="panel-tab ${this.currentTab === 'boss' ? 'active' : ''}" data-tab="boss">Boss</button>
+                    <button class="panel-tab ${this.currentTab === 'skin' ? 'active' : ''}" data-tab="skin">皮肤</button>
                     <button class="panel-tab ${this.currentTab === 'skill' ? 'active' : ''}" data-tab="skill">技能</button>
                     <button class="panel-tab ${this.currentTab === 'passive' ? 'active' : ''}" data-tab="passive">被动</button>
                     <button class="panel-tab ${this.currentTab === 'consumable' ? 'active' : ''}" data-tab="consumable">道具</button>
@@ -73,6 +74,8 @@ window.UIBestiary = {
             this.renderMonsters(content);
         } else if (this.currentTab === 'boss') {
             this.renderBosses(content);
+        } else if (this.currentTab === 'skin') {
+            this.renderSkins(content);
         } else if (this.currentTab === 'skill') {
             this.renderSkills(content);
         } else if (this.currentTab === 'passive') {
@@ -104,6 +107,132 @@ window.UIBestiary = {
         });
         
         container.appendChild(grid);
+    },
+    
+    renderSkins: function(container) {
+        container.innerHTML = '<div class="bestiary-grid">';
+        const grid = container.querySelector('.bestiary-grid');
+        
+        if (!window.PlayerSkins) {
+            grid.innerHTML = '<div class="bestiary-empty">皮肤系统未加载</div>';
+            container.appendChild(grid);
+            return;
+        }
+        
+        const allSkins = window.PlayerSkins.getAllSkins();
+        const rarityColors = {
+            common: '#9d9d9d',
+            rare: '#1eff00',
+            epic: '#0070dd',
+            legendary: '#ff8000',
+            mythical: '#e600e6'
+        };
+        
+        allSkins.forEach(skin => {
+            const unlocked = window.PlayerSkins.isUnlocked(skin.id);
+            const current = window.PlayerSkins.current === skin.id;
+            const rarityColor = rarityColors[skin.rarity] || '#fff';
+            
+            // 渲染皮肤预览
+            let previewHtml = '';
+            if (unlocked) {
+                const imgSrc = this.renderSkinPreview(skin);
+                previewHtml = `<img src="${imgSrc}" style="width:48px;height:48px;image-rendering:pixelated;border-radius:6px;">`;
+            } else {
+                previewHtml = `<div style="width:48px;height:48px;background:linear-gradient(135deg,#222,#111);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px dashed #444;">🔒</div>`;
+            }
+            
+            grid.innerHTML += `
+                <div class="bestiary-item ${unlocked ? 'unlocked' : 'locked'} ${current ? 'current' : ''}" 
+                     data-skin-id="${skin.id}"
+                     style="opacity: ${unlocked ? 1 : 0.5}; ${current ? 'border-color: #ffd700;' : ''}">
+                    <div class="item-icon" style="background: transparent;">
+                        ${previewHtml}
+                    </div>
+                    <div class="item-info">
+                        <div class="item-name" style="color:${unlocked ? rarityColor : '#666'};${current ? 'font-weight:bold;' : ''}">
+                            ${skin.name} ${current ? '✓' : ''}
+                        </div>
+                        <div class="item-desc">${unlocked ? skin.description : '击败对应Boss解锁'}</div>
+                        <div class="item-source" style="color:#888;font-size:11px;">${unlocked ? '来源: ' + skin.source : ''}</div>
+                        <div class="item-rarity" style="color:${rarityColor};font-size:10px;">${unlocked ? skin.rarity : ''}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.appendChild(grid);
+        
+        // 绑定点击事件
+        container.querySelectorAll('.bestiary-item').forEach(item => {
+            item.onclick = () => {
+                const skinId = item.dataset.skinId;
+                if (window.PlayerSkins.isUnlocked(skinId)) {
+                    window.PlayerSkins.setSkin(skinId);
+                    this.renderSkins(container);
+                    showMessage(`已切换为: ${window.PlayerSkins.skins[skinId].name}`, 60);
+                }
+            };
+        });
+    },
+    
+    renderSkinPreview: function(skin) {
+        // 直接返回canvas渲染
+        const canvas = document.createElement('canvas');
+        canvas.width = 48;
+        canvas.height = 48;
+        canvas.style.imageRendering = 'pixelated';
+        
+        const cx = 24;
+        const size = 48;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // 阴影
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(cx, size * 0.9, size * 0.2, size * 0.05, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 腿部
+        ctx.fillStyle = skin.clothesColor;
+        ctx.fillRect(cx - 8, size * 0.6, 6, size * 0.25);
+        ctx.fillRect(cx + 2, size * 0.6, 6, size * 0.25);
+        
+        // 身体
+        ctx.fillStyle = skin.clothesColor;
+        ctx.beginPath();
+        ctx.roundRect(cx - 12, size * 0.35, 24, size * 0.28, 3);
+        ctx.fill();
+        
+        // 头部
+        ctx.fillStyle = skin.skinColor;
+        ctx.beginPath();
+        ctx.arc(cx, size * 0.25, size * 0.18, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 眼睛
+        ctx.fillStyle = skin.eyeColor;
+        ctx.beginPath();
+        ctx.arc(cx - 4, size * 0.24, 2.5, 0, Math.PI * 2);
+        ctx.arc(cx + 4, size * 0.24, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 眼睛高光
+        ctx.fillStyle = skin.eyeHighlight || '#fff';
+        ctx.beginPath();
+        ctx.arc(cx - 3, size * 0.23, 1, 0, Math.PI * 2);
+        ctx.arc(cx + 5, size * 0.23, 1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 头发
+        ctx.fillStyle = skin.hairColor;
+        ctx.beginPath();
+        ctx.arc(cx, size * 0.18, size * 0.16, Math.PI, Math.PI * 2);
+        ctx.fill();
+        
+        // 返回data URL
+        return canvas.toDataURL();
     },
     
     renderSkills: function(container) {
