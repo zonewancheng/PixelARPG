@@ -2402,6 +2402,11 @@ function setupUI() {
             <div class="cooldown"></div>
         `;
         slot.addEventListener('click', () => useSkill(i + 1));
+        slot.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            useSkill(i + 1);
+        }, { passive: false });
         skillsContainer.appendChild(slot);
     });
     
@@ -2903,6 +2908,17 @@ function setupUI() {
                 }
             }
         });
+        weatherBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.toggleWeather) {
+                window.toggleWeather();
+                const icon = document.getElementById('weather-icon');
+                if (icon) {
+                    icon.textContent = window.Weather && window.Weather.type === 'rain' ? '🌧️' : '☀️';
+                }
+            }
+        }, { passive: false });
     }
 }
 

@@ -58,7 +58,8 @@ window.QUALITIES = {
 };
 
 // 生成随机物品
-window.generateRandomItem = function(type, level = 1) {
+window.generateRandomItem = function(type, level) {
+    if (level === undefined) level = 1;
     const typeItems = window.BASE_ITEMS.filter(i => i.type === type);
     if (typeItems.length === 0) return null;
     
@@ -75,7 +76,8 @@ window.generateRandomItem = function(type, level = 1) {
 };
 
 // 按品质生成物品
-window.generateItemByQuality = function(quality, type, level = 1) {
+window.generateItemByQuality = function(quality, type, level) {
+    if (level === undefined) level = 1;
     const q = window.QUALITIES[quality] || window.QUALITIES.common;
     const typeItems = window.BASE_ITEMS.filter(i => i.type === type);
     if (typeItems.length === 0) return null;

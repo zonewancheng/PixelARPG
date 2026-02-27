@@ -23,7 +23,7 @@ window.initMapSize = function(canvasWidth, canvasHeight) {
     window.MAP_W = 66;
     window.MAP_H = 66;
     
-    console.log(`Map: ${window.MAP_W}x${window.MAP_H}, TILE=${window.TILE}`);
+    console.log('Map: ' + window.MAP_W + 'x' + window.MAP_H + ', TILE=' + window.TILE);
 };
 
 // 游戏版本

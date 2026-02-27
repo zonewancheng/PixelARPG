@@ -225,7 +225,8 @@ window.updateSkillInstance = function(skill, dt) {
 /**
  * 技能渲染（可用于图鉴预览）
  */
-window.renderSkillIcon = function(skill, size = 32) {
+window.renderSkillIcon = function(skill, size) {
+    if (size === undefined) size = 32;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;

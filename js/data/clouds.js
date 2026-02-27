@@ -316,7 +316,8 @@ window.drawSingleCloud = function(ctx, cloud, time, camX, camY) {
  * @param {number} mapLevel - 地图等级
  * @param {boolean} animate - 是否播放动画
  */
-window.drawClouds = function(ctx, clouds, player, enemies, bosses, projectiles, camX, camY, mapLevel, animate = true) {
+window.drawClouds = function(ctx, clouds, player, enemies, bosses, projectiles, camX, camY, mapLevel, animate) {
+    if (animate === undefined) animate = true;
     if (!clouds || !clouds.length) return;
     
     // 获取地图尺寸

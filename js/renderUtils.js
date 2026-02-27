@@ -47,7 +47,8 @@ window.RenderUtils = {
     /**
      * 获取物品的Tooltip完整描述
      */
-    getItemTooltip: function(item, options = {}) {
+    getItemTooltip: function(item, options) {
+        if (options === undefined) options = {};
         if (!item) return options.slotName || '空';
         
         const nameColor = item.color || '#fff';
@@ -62,7 +63,8 @@ window.RenderUtils = {
     /**
      * 获取物品格子的HTML
      */
-    getItemSlotHtml: function(item, options = {}) {
+    getItemSlotHtml: function(item, options) {
+        if (options === undefined) options = {};
         const {
             isEquipped = false,
             showBadge = true,
@@ -102,7 +104,8 @@ window.RenderUtils = {
     /**
      * 获取装备槽的HTML
      */
-    getEquipSlotHtml: function(item, slot, options = {}) {
+    getEquipSlotHtml: function(item, slot, options) {
+        if (options === undefined) options = {};
         const {
             size = 48,
             onclick = '',
@@ -133,7 +136,8 @@ window.RenderUtils = {
     /**
      * 获取商店物品的HTML
      */
-    getShopItemHtml: function(item, options = {}) {
+    getShopItemHtml: function(item, options) {
+        if (options === undefined) options = {};
         const {
             onclick = '',
             usePixelArt = true,
@@ -194,7 +198,8 @@ window.RenderUtils = {
      * 直接使用enemies.js中的渲染函数
      * 返回canvas对象，用于canvas绘制
      */
-    renderMonsterIcon: function(enemyType, size = 32) {
+    renderMonsterIcon: function(enemyType, size) {
+        if (size === undefined) size = 32;
         if (window.renderEnemyIcon) {
             return window.renderEnemyIcon(enemyType, size);
         }
@@ -212,7 +217,8 @@ window.RenderUtils = {
     /**
      * 获取怪物图标URL（用于HTML img标签）
      */
-    renderMonsterIconUrl: function(enemyType, size = 32) {
+    renderMonsterIconUrl: function(enemyType, size) {
+        if (size === undefined) size = 32;
         const canvas = this.renderMonsterIcon(enemyType, size);
         return canvas.toDataURL();
     },
@@ -220,7 +226,8 @@ window.RenderUtils = {
     /**
      * 获取图鉴怪物卡片的HTML（使用与游戏一致的渲染）
      */
-    getBestiaryMonsterHtml: function(enemy, discovered = 0) {
+    getBestiaryMonsterHtml: function(enemy, discovered) {
+        if (discovered === undefined) discovered = 0;
         const stats = this.getEnemyStatsText(enemy);
         const iconUrl = this.renderMonsterIconUrl(enemy, 32);
         
@@ -243,7 +250,8 @@ window.RenderUtils = {
     /**
      * 获取图鉴技能卡片的HTML
      */
-    getBestiarySkillHtml: function(skill, unlocked = false) {
+    getBestiarySkillHtml: function(skill, unlocked) {
+        if (unlocked === undefined) unlocked = false;
         const iconUrl = window.renderSkillIcon ? window.renderSkillIcon(skill, 28) : '';
         
         // 构建技能计算规则描述
@@ -271,7 +279,8 @@ window.RenderUtils = {
     /**
      * 获取图鉴装备卡片的HTML
      */
-    getBestiaryEquipmentHtml: function(item, discovered = false) {
+    getBestiaryEquipmentHtml: function(item, discovered) {
+        if (discovered === undefined) discovered = false;
         const slotName = window.EQUIPMENT_SLOTS?.[item.type]?.name || item.type;
         const statsText = this.getItemStatsText(item);
         

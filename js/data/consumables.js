@@ -88,7 +88,8 @@ window.createConsumableInstance = function(consumableId) {
 };
 
 // 渲染道具图标
-window.renderConsumableIcon = function(consumable, size = 24) {
+window.renderConsumableIcon = function(consumable, size) {
+    if (size === undefined) size = 24;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;

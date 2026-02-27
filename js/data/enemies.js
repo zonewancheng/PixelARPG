@@ -60,7 +60,8 @@ window.getBossByType = function(type) {
  * @param {number} level - 怪物等级
  * @returns {Object} 怪物实例
  */
-window.createEnemyFromType = function(enemyType, level = 1) {
+window.createEnemyFromType = function(enemyType, level) {
+    if (level === undefined) level = 1;
     const mult = 1 + level * 0.15;
     return {
         ...enemyType,
@@ -104,7 +105,8 @@ window.discoverItem = function(itemId) {
 /**
  * 渲染怪物图标（与游戏渲染一致）
  */
-window.renderEnemyIcon = function(enemyType, size = 32) {
+window.renderEnemyIcon = function(enemyType, size) {
+    if (size === undefined) size = 32;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;

@@ -24,7 +24,8 @@ window.Weather = {
         this.initPuddles();
     },
     
-    setWeather: function(type, intensity = 1) {
+    setWeather: function(type, intensity) {
+        if (intensity === undefined) intensity = 1;
         this.type = type;
         this.intensity = intensity;
         
@@ -60,7 +61,10 @@ window.Weather = {
         }
     },
     
-    update: function(player, animate = true, cameraX = 0, cameraY = 0) {
+    update: function(player, animate, cameraX, cameraY) {
+        if (animate === undefined) animate = true;
+        if (cameraX === undefined) cameraX = 0;
+        if (cameraY === undefined) cameraY = 0;
         this.cameraX = cameraX;
         this.cameraY = cameraY;
         this.player = player;
@@ -83,109 +87,147 @@ window.Weather = {
             return;
         }
         
-        // 生成雨滴（更大）
+        // 生成雨滴
         while (this.raindrops.length < this.config.maxRaindrops * this.intensity) {
             this.raindrops.push({
-                x: Math.random() * (gameWidth + 200) - 100,
-                y: Math.random() * -40,
-                speed: 14 + Math.random() * 10,
-                length: 25 + Math.random() * 25,
-                alpha: 0.35 + Math.random() * 0.35
+                x: Math.random() * gameWidth,
+                y: Math.random() * gameHeight * 0.3 - gameHeight * 0.3,
+                speed: 12 + Math.random() * 8,
+                length: 25 + Math.random() * 20,
+                alpha: 0.4 + Math.random() * 0.3,
+                inScreen: false
             });
         }
         
-        // 获取地图信息用于检测落地
+        // 获取地图信息
         const TILE = window.TILE || 32;
-        const MAP_W = window.MAP_W;
-        const MAP_H = window.MAP_H;
-        const map = window.map;
+        const map = window.map || window.gameMap;
+        const MAP_W = window.MAP_W || 50;
+        const MAP_H = window.MAP_H || 50;
         
-        // 更新雨滴位置并检测碰撞
+        // 更新雨滴位置
         this.raindrops = this.raindrops.filter(drop => {
-            const oldY = drop.y;
             drop.y += drop.speed * Math.cos(this.rainAngle);
             drop.x += drop.speed * Math.sin(this.rainAngle);
             
-            // 将屏幕坐标转换为地图坐标
-            const mapX = Math.floor((drop.x + cameraX) / TILE);
-            const mapY = Math.floor((drop.y + cameraY) / TILE);
-            
-            // 检测是否碰到地面（非墙壁区域）
-            let hitGround = false;
-            let groundScreenX = drop.x;
-            let groundScreenY = drop.y;
-            
-            if (map && map[mapY] && map[mapY][mapX] !== undefined) {
-                const tile = map[mapY][mapX];
-                // 如果不是墙壁(1)，则视为地面
-                if (tile !== 1) {
-                    hitGround = true;
-                    // 计算落点
-                    groundScreenX = mapX * TILE - cameraX + TILE / 2;
-                    groundScreenY = mapY * TILE - cameraY + TILE / 2;
-                }
-            }
-            
-            // 碰到地面
-            if (hitGround) {
-                this.addSplash(groundScreenX, groundScreenY, 1.5);
+            // 边界检查
+            if (drop.x < -20 || drop.x > gameWidth + 20 || drop.y > gameHeight + 20) {
                 return false;
             }
             
-            // 碰到玩家
-            if (player) {
-                const px = player.x - cameraX;
-                const py = player.y - cameraY;
-                if (drop.x > px && drop.x < px + player.w &&
-                    drop.y > py && drop.y < py + player.h) {
-                    this.addSplash(drop.x, drop.y, 0.8);
-                    return false;
+            // 雨滴进入屏幕后开始检测碰撞
+            if (drop.y > 0 && drop.x > 0 && drop.x < gameWidth) {
+                // 1. 先检测玩家
+                if (player) {
+                    const px = player.x - cameraX;
+                    const py = player.y - cameraY;
+                    if (drop.x > px && drop.x < px + player.w &&
+                        drop.y > py && drop.y < py + player.h) {
+                        this.addSplash(drop.x, drop.y, 0.8);
+                        return false;
+                    }
                 }
-            }
-            
-            // 碰到掉落物
-            if (window.drops) {
-                for (let d of window.drops) {
-                    const dx = d.x - cameraX;
-                    const dy = d.y - cameraY;
-                    if (drop.x > dx - 10 && drop.x < dx + 30 &&
-                        drop.y > dy - 10 && drop.y < dy + 30) {
-                        this.addSplash(drop.x, drop.y, 1);
+                
+                // 2. 检测敌人
+                if (window.enemies) {
+                    for (let e of window.enemies) {
+                        const ex = e.x - cameraX;
+                        const ey = e.y - cameraY;
+                        if (drop.x > ex && drop.x < ex + e.w &&
+                            drop.y > ey && drop.y < ey + e.h) {
+                            this.addSplash(drop.x, drop.y, 1);
+                            return false;
+                        }
+                    }
+                }
+                
+                // 3. 检测Boss
+                if (window.bosses) {
+                    for (let b of window.bosses) {
+                        if (!b || b.hp <= 0) continue;
+                        const bx = b.x - cameraX;
+                        const by = b.y - cameraY;
+                        if (drop.x > bx && drop.x < bx + b.w &&
+                            drop.y > by && drop.y < by + b.h) {
+                            this.addSplash(drop.x, drop.y, 1.2);
+                            return false;
+                        }
+                    }
+                }
+                
+                // 4. 检测掉落物
+                if (window.drops) {
+                    for (let d of window.drops) {
+                        const dx = d.x - cameraX;
+                        const dy = d.y - cameraY;
+                        if (drop.x > dx - 5 && drop.x < dx + 25 &&
+                            drop.y > dy - 5 && drop.y < dy + 25) {
+                            this.addSplash(drop.x, drop.y, 1);
+                            return false;
+                        }
+                    }
+                }
+                
+                // 5. 检测地面（地图瓦片）
+                const mapX = Math.floor((drop.x + cameraX) / TILE);
+                const mapY = Math.floor((drop.y + cameraY) / TILE);
+                
+                if (map && mapY >= 0 && mapY < MAP_H && mapX >= 0 && mapX < MAP_W) {
+                    const tile = map[mapY][mapX];
+                    // 墙壁(1)不产生水花，其他都产生
+                    if (tile !== 1) {
+                        this.addSplash(drop.x, drop.y, 1.5);
                         return false;
                     }
                 }
             }
             
-            // 碰到敌人
-            if (window.enemies) {
-                for (let e of window.enemies) {
-                    const ex = e.x - cameraX;
-                    const ey = e.y - cameraY;
-                    if (drop.x > ex && drop.x < ex + e.w &&
-                        drop.y > ey && drop.y < ey + e.h) {
-                        this.addSplash(drop.x, drop.y, 1);
+            return true;
+        });
+        
+        // 更新雨滴位置
+        this.raindrops = this.raindrops.filter(drop => {
+            drop.y += drop.speed * Math.cos(this.rainAngle);
+            drop.x += drop.speed * Math.sin(this.rainAngle);
+            
+            // 雨滴进入屏幕后开始检测碰撞
+            if (drop.y > 0 && drop.y < gameHeight && drop.x > 0 && drop.x < gameWidth) {
+                drop.inScreen = true;
+            }
+            
+            // 只有进入屏幕后才检测碰撞
+            if (drop.inScreen) {
+                // 将屏幕坐标转换为地图坐标
+                const mapX = Math.floor((drop.x + cameraX) / TILE);
+                const mapY = Math.floor((drop.y + cameraY) / TILE);
+                
+                // 检测碰撞
+                if (map && mapY >= 0 && mapY < MAP_H && mapX >= 0 && mapX < MAP_W) {
+                    const tile = map[mapY][mapX];
+                    // 墙壁(1)不产生水花，其他都产生
+                    if (tile !== 1) {
+                        this.addSplash(drop.x, drop.y, 1.5);
+                        return false;
+                    }
+                }
+                
+                // 碰到玩家
+                if (player) {
+                    const px = player.x - cameraX;
+                    const py = player.y - cameraY;
+                    if (drop.x > px && drop.x < px + player.w &&
+                        drop.y > py && drop.y < py + player.h) {
+                        this.addSplash(drop.x, drop.y, 0.8);
                         return false;
                     }
                 }
             }
             
-            // 碰到Boss
-            if (window.bosses) {
-                for (let b of window.bosses) {
-                    if (!b || b.hp <= 0) continue;
-                    const bx = b.x - cameraX;
-                    const by = b.y - cameraY;
-                    if (drop.x > bx && drop.x < bx + b.w &&
-                        drop.y > by && drop.y < by + b.h) {
-                        this.addSplash(drop.x, drop.y, 1.2);
-                        return false;
-                    }
-                }
-            }
-            
-            if (drop.y > gameHeight + 30 || drop.x < -120 || drop.x > gameWidth + 120) {
+            // 离开屏幕后移除
+            if (drop.y > gameHeight + 20 || drop.x < -30 || drop.x > gameWidth + 30) {
                 return false;
             }
+            
             return true;
         });
         
@@ -275,24 +317,27 @@ window.Weather = {
         this.puddles = this.puddles.filter((_, index) => !toRemove.has(index));
     },
     
-    addSplash: function(x, y, sizeMult = 1) {
+    addSplash: function(x, y, sizeMult) {
+        if (sizeMult === undefined) sizeMult = 1;
         if (this.splashParticles.length < this.config.maxSplashParticles) {
-            const count = Math.floor((3 + Math.random() * 5) * sizeMult);
+            const count = Math.floor((4 + Math.random() * 5) * sizeMult);
             for (let i = 0; i < count; i++) {
                 this.splashParticles.push({
-                    x: x + (Math.random() - 0.5) * 12 * sizeMult,
+                    x: x + (Math.random() - 0.5) * 10 * sizeMult,
                     y: y,
-                    vx: (Math.random() - 0.5) * 3 * sizeMult,
-                    vy: 2 + Math.random() * 4 * sizeMult,
-                    size: (2 + Math.random() * 4) * sizeMult,
-                    alpha: 0.9,
+                    vx: (Math.random() - 0.5) * 4 * sizeMult,
+                    vy: 3 + Math.random() * 5 * sizeMult,
+                    size: (3 + Math.random() * 5) * sizeMult,
+                    alpha: 0.95,
                     life: 1
                 });
             }
         }
     },
     
-    draw: function(ctx, cameraX = 0, cameraY = 0) {
+    draw: function(ctx, cameraX, cameraY) {
+        if (cameraX === undefined) cameraX = 0;
+        if (cameraY === undefined) cameraY = 0;
         const time = Date.now() / 1000;
         
         // 绘制积水
@@ -343,9 +388,9 @@ window.Weather = {
         
         // 绘制水花
         if (this.splashParticles.length > 0) {
-            ctx.fillStyle = 'rgba(185, 220, 245, 0.85)';
+            ctx.fillStyle = 'rgba(200, 230, 255, 0.95)';
             this.splashParticles.forEach(p => {
-                if (p.alpha > 0.02) {
+                if (p.alpha > 0.05) {
                     ctx.globalAlpha = p.alpha;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
