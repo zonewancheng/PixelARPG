@@ -235,23 +235,23 @@ window.Weather = {
             if (drop.y > 0 && drop.x > 0 && drop.x < gameWidth) {
                 // 1. 先检测玩家
                 if (player) {
-                    const px = player.x - cameraX;
-                    const py = player.y - cameraY;
+                    var px = player.x - cameraX;
+                    var py = player.y - cameraY;
                     if (drop.x > px && drop.x < px + player.w &&
                         drop.y > py && drop.y < py + player.h) {
-                        this.addSplash(drop.x, drop.y, 0.8);
+                        this.addSplash(drop.x, drop.y, 0.5);
                         return false;
                     }
                 }
                 
                 // 2. 检测敌人
                 if (window.enemies) {
-                    for (let e of window.enemies) {
-                        const ex = e.x - cameraX;
-                        const ey = e.y - cameraY;
+                    for (var e of window.enemies) {
+                        var ex = e.x - cameraX;
+                        var ey = e.y - cameraY;
                         if (drop.x > ex && drop.x < ex + e.w &&
                             drop.y > ey && drop.y < ey + e.h) {
-                            this.addSplash(drop.x, drop.y, 1);
+                            this.addSplash(drop.x, drop.y, 0.5);
                             return false;
                         }
                     }
@@ -259,13 +259,13 @@ window.Weather = {
                 
                 // 3. 检测Boss
                 if (window.bosses) {
-                    for (let b of window.bosses) {
+                    for (var b of window.bosses) {
                         if (!b || b.hp <= 0) continue;
-                        const bx = b.x - cameraX;
-                        const by = b.y - cameraY;
+                        var bx = b.x - cameraX;
+                        var by = b.y - cameraY;
                         if (drop.x > bx && drop.x < bx + b.w &&
                             drop.y > by && drop.y < by + b.h) {
-                            this.addSplash(drop.x, drop.y, 1.2);
+                            this.addSplash(drop.x, drop.y, 0.6);
                             return false;
                         }
                     }
@@ -273,26 +273,26 @@ window.Weather = {
                 
                 // 4. 检测掉落物
                 if (window.drops) {
-                    for (let d of window.drops) {
-                        const dx = d.x - cameraX;
-                        const dy = d.y - cameraY;
+                    for (var d of window.drops) {
+                        var dx = d.x - cameraX;
+                        var dy = d.y - cameraY;
                         if (drop.x > dx - 5 && drop.x < dx + 25 &&
                             drop.y > dy - 5 && drop.y < dy + 25) {
-                            this.addSplash(drop.x, drop.y, 1);
+                            this.addSplash(drop.x, drop.y, 0.5);
                             return false;
                         }
                     }
                 }
                 
                 // 5. 检测地面（地图瓦片）
-                const mapX = Math.floor((drop.x + cameraX) / TILE);
-                const mapY = Math.floor((drop.y + cameraY) / TILE);
+                var mapX = Math.floor((drop.x + cameraX) / TILE);
+                var mapY = Math.floor((drop.y + cameraY) / TILE);
                 
                 if (map && mapY >= 0 && mapY < MAP_H && mapX >= 0 && mapX < MAP_W) {
-                    const tile = map[mapY][mapX];
+                    var tile = map[mapY][mapX];
                     // 墙壁(1)不产生水花，其他都产生
                     if (tile !== 1) {
-                        this.addSplash(drop.x, drop.y, 1.5);
+                        this.addSplash(drop.x, drop.y, 0.7);
                         return false;
                     }
                 }
@@ -314,26 +314,26 @@ window.Weather = {
             // 只有进入屏幕后才检测碰撞
             if (drop.inScreen) {
                 // 将屏幕坐标转换为地图坐标
-                const mapX = Math.floor((drop.x + cameraX) / TILE);
-                const mapY = Math.floor((drop.y + cameraY) / TILE);
+                var mapX = Math.floor((drop.x + cameraX) / TILE);
+                var mapY = Math.floor((drop.y + cameraY) / TILE);
                 
                 // 检测碰撞
                 if (map && mapY >= 0 && mapY < MAP_H && mapX >= 0 && mapX < MAP_W) {
-                    const tile = map[mapY][mapX];
+                    var tile = map[mapY][mapX];
                     // 墙壁(1)不产生水花，其他都产生
                     if (tile !== 1) {
-                        this.addSplash(drop.x, drop.y, 1.5);
+                        this.addSplash(drop.x, drop.y, 0.7);
                         return false;
                     }
                 }
                 
                 // 碰到玩家
                 if (player) {
-                    const px = player.x - cameraX;
-                    const py = player.y - cameraY;
+                    var px = player.x - cameraX;
+                    var py = player.y - cameraY;
                     if (drop.x > px && drop.x < px + player.w &&
                         drop.y > py && drop.y < py + player.h) {
-                        this.addSplash(drop.x, drop.y, 0.8);
+                        this.addSplash(drop.x, drop.y, 0.5);
                         return false;
                     }
                 }
@@ -349,10 +349,10 @@ window.Weather = {
         
         // 玩家移动时产生水花
         if (player && player.isMoving) {
-            if (Math.random() < 0.25) {
-                const screenX = player.x + player.w / 2 - cameraX + (Math.random() - 0.5) * player.w * 0.6;
-                const screenY = player.y + player.h - cameraY;
-                this.addSplash(screenX, screenY, 1.3);
+            if (Math.random() < 0.2) {
+                var screenX = player.x + player.w / 2 - cameraX + (Math.random() - 0.5) * player.w * 0.6;
+                var screenY = player.y + player.h - cameraY;
+                this.addSplash(screenX, screenY, 0.6);
             }
         }
         
@@ -436,15 +436,15 @@ window.Weather = {
     addSplash: function(x, y, sizeMult) {
         if (sizeMult === undefined) sizeMult = 1;
         if (this.splashParticles.length < this.config.maxSplashParticles) {
-            const count = Math.floor((4 + Math.random() * 5) * sizeMult);
-            for (let i = 0; i < count; i++) {
+            var count = Math.floor((2 + Math.random() * 3) * sizeMult);
+            for (var i = 0; i < count; i++) {
                 this.splashParticles.push({
-                    x: x + (Math.random() - 0.5) * 10 * sizeMult,
+                    x: x + (Math.random() - 0.5) * 6 * sizeMult,
                     y: y,
-                    vx: (Math.random() - 0.5) * 4 * sizeMult,
-                    vy: 3 + Math.random() * 5 * sizeMult,
-                    size: (3 + Math.random() * 5) * sizeMult,
-                    alpha: 0.95,
+                    vx: (Math.random() - 0.5) * 2 * sizeMult,
+                    vy: 1.5 + Math.random() * 2.5 * sizeMult,
+                    size: (1.5 + Math.random() * 2.5) * sizeMult,
+                    alpha: 0.8,
                     life: 1
                 });
             }
