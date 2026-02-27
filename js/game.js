@@ -1830,6 +1830,14 @@ function render() {
     // 恢复摄像机偏移
     ctx.restore();
     
+    // 绘制天气效果（屏幕空间）
+    if (window.Weather) {
+        const camX = window.cameraX || 0;
+        const camY = window.cameraY || 0;
+        window.Weather.update(player, !panelOpen, camX, camY);
+        window.Weather.draw(ctx, camX, camY);
+    }
+    
     // 云层（基于地图坐标移动，不跟随玩家）
     const camX = window.cameraX || 0;
     const camY = window.cameraY || 0;
@@ -2878,6 +2886,23 @@ function setupUI() {
                 window.PanelManager.closePanel('bestiary');
             } else {
                 window.PanelManager.openPanel('bestiary');
+            }
+        });
+    }
+    
+    // 天气按钮
+    const weatherBtn = document.getElementById('weatherBtn');
+    if (weatherBtn) {
+        weatherBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (window.Weather) {
+                if (window.Weather.type === 'rain') {
+                    window.Weather.clear();
+                    document.getElementById('weather-icon').textContent = '☀️';
+                } else {
+                    window.Weather.setWeather('rain', 1);
+                    document.getElementById('weather-icon').textContent = '🌧️';
+                }
             }
         });
     }
