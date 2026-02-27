@@ -3,27 +3,32 @@
  */
 
 window.Weather = {
-    type: 'clear',
+    type: 'sunny',
     intensity: 0,
     raindrops: [],
     splashParticles: [],
     puddles: [],
     rainAngle: -0.25,
+    sunRays: [],
+    rainSound: null,
+    rainSoundVolume: 0.3,
     
     config: {
-        maxRaindrops: 200,
-        maxSplashParticles: 100,
+        maxRaindrops: 300,
+        maxSplashParticles: 150,
         puddleSpawnRate: 0.012,
         puddleMaxSize: 50,
         puddleMinSize: 10,
         puddleGrowRate: 0.2,
-        puddleShrinkRate: 0.1
+        puddleShrinkRate: 0.1,
+        maxSunRays: 25
     },
     
     init: function() {
         this.initPuddles();
+        this.initSunRays();
     },
-    
+
     setWeather: function(type, intensity) {
         if (intensity === undefined) intensity = 1;
         this.type = type;
@@ -31,26 +36,86 @@ window.Weather = {
         
         if (type === 'rain') {
             this.initPuddles();
+            this.playRainSound();
+        } else if (type === 'sunny') {
+            this.initSunRays();
+            this.stopRainSound();
+        }
+    },
+    
+    playRainSound: function() {
+        this.stopRainSound();
+        
+        try {
+            var AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            
+            var ctx = new AudioContext();
+            var bufferSize = 2 * ctx.sampleRate;
+            var noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            var output = noiseBuffer.getChannelData(0);
+            
+            for (var i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            
+            var whiteNoise = ctx.createBufferSource();
+            whiteNoise.buffer = noiseBuffer;
+            whiteNoise.loop = true;
+            
+            var filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 400;
+            
+            var gainNode = ctx.createGain();
+            gainNode.gain.value = this.rainSoundVolume;
+            
+            whiteNoise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            
+            whiteNoise.start();
+            this.rainSound = { source: whiteNoise, ctx: ctx, gain: gainNode };
+        } catch (e) {
+            console.log('Rain sound not supported:', e);
+        }
+    },
+    
+    stopRainSound: function() {
+        if (this.rainSound) {
+            try {
+                this.rainSound.source.stop();
+                this.rainSound.ctx.close();
+            } catch (e) {}
+            this.rainSound = null;
+        }
+    },
+    
+    setRainVolume: function(volume) {
+        this.rainSoundVolume = Math.max(0, Math.min(1, volume));
+        if (this.rainSound && this.rainSound.gain) {
+            this.rainSound.gain.gain.value = this.rainSoundVolume;
         }
     },
     
     clear: function() {
-        this.type = 'clear';
+        this.type = 'sunny';
         this.intensity = 0;
         this.raindrops = [];
         this.splashParticles = [];
+        this.initSunRays();
     },
     
     initPuddles: function() {
         this.puddles = [];
         if (!window.MAP_W || !window.MAP_H || !window.TILE) return;
         
-        const mapWidth = window.MAP_W * window.TILE;
-        const mapHeight = window.MAP_H * window.TILE;
+        var mapWidth = window.MAP_W * window.TILE;
+        var mapHeight = window.MAP_H * window.TILE;
         
-        const numInitialPuddles = 10 + Math.floor(Math.random() * 10);
+        var numInitialPuddles = 10 + Math.floor(Math.random() * 10);
         
-        for (let i = 0; i < numInitialPuddles; i++) {
+        for (var i = 0; i < numInitialPuddles; i++) {
             this.puddles.push({
                 x: Math.random() * mapWidth,
                 y: Math.random() * mapHeight,
@@ -59,6 +124,43 @@ window.Weather = {
                 shimmer: Math.random() * Math.PI * 2
             });
         }
+    },
+    
+    initSunRays: function() {
+        this.sunRays = [];
+        var maxRays = this.config.maxSunRays;
+        if (gameWidth > 800) maxRays = Math.floor(maxRays * 1.5);
+        if (gameHeight > 600) maxRays = Math.floor(maxRays * 1.3);
+        
+        for (var i = 0; i < maxRays; i++) {
+            this.sunRays.push({
+                x: Math.random() * gameWidth * 1.5 - gameWidth * 0.25,
+                y: Math.random() * gameHeight * 0.5,
+                width: 30 + Math.random() * 80,
+                length: 200 + Math.random() * 300,
+                angle: -0.35 + Math.random() * 0.15,
+                alpha: 0.03 + Math.random() * 0.06,
+                speed: 0.15 + Math.random() * 0.25,
+                offset: Math.random() * 1000
+            });
+        }
+    },
+    
+    updateSunRays: function() {
+        var time = Date.now() / 1000;
+        var self = this;
+        this.sunRays.forEach(function(ray) {
+            ray.x += ray.speed;
+            ray.offset += ray.speed * 0.5;
+            
+            if (ray.x > gameWidth + ray.length) {
+                ray.x = -ray.length;
+                ray.y = Math.random() * gameHeight * 0.5;
+                ray.alpha = 0.03 + Math.random() * 0.06;
+            }
+            
+            ray.currentAlpha = ray.alpha * (0.7 + 0.3 * Math.sin(time * 2 + ray.offset * 0.01));
+        });
     },
     
     update: function(player, animate, cameraX, cameraY) {
@@ -72,10 +174,24 @@ window.Weather = {
         if (!animate) {
             this.raindrops = [];
             this.splashParticles = [];
+            this.sunRays = [];
             return;
         }
         
         this.updatePuddles();
+        
+        // 晴天：更新阳光射线
+        if (this.type === 'sunny') {
+            this.updateSunRays();
+            // 晴天也保持雨水效果淡出
+            this.raindrops = [];
+            this.splashParticles = this.splashParticles.filter(p => {
+                p.life -= 0.04;
+                p.alpha = p.life * 0.4;
+                return p.life > 0;
+            });
+            return;
+        }
         
         if (this.type !== 'rain') {
             this.raindrops = [];
@@ -87,11 +203,11 @@ window.Weather = {
             return;
         }
         
-        // 生成雨滴
+        // 生成雨滴 - 覆盖整个屏幕区域
         while (this.raindrops.length < this.config.maxRaindrops * this.intensity) {
             this.raindrops.push({
-                x: Math.random() * gameWidth,
-                y: Math.random() * gameHeight * 0.3 - gameHeight * 0.3,
+                x: Math.random() * (gameWidth + 100) - 50,
+                y: Math.random() * (gameHeight + 100) - 50,
                 speed: 12 + Math.random() * 8,
                 length: 25 + Math.random() * 20,
                 alpha: 0.4 + Math.random() * 0.3,
@@ -400,6 +516,38 @@ window.Weather = {
             ctx.globalAlpha = 1;
         }
         
+        // 晴天：绘制阳光射线
+        if (this.type === 'sunny' && this.sunRays.length > 0) {
+            const gradient = ctx.createLinearGradient(0, 0, gameWidth, gameHeight);
+            gradient.addColorStop(0, 'rgba(255, 250, 220, 0.15)');
+            gradient.addColorStop(1, 'rgba(255, 240, 200, 0.02)');
+            
+            this.sunRays.forEach(ray => {
+                ctx.save();
+                ctx.translate(ray.x, ray.y);
+                ctx.rotate(ray.angle);
+                
+                const rayGradient = ctx.createLinearGradient(0, 0, 0, ray.length);
+                rayGradient.addColorStop(0, 'rgba(255, 255, 200, ' + (ray.currentAlpha || ray.alpha) + ')');
+                rayGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+                
+                ctx.fillStyle = rayGradient;
+                ctx.beginPath();
+                ctx.moveTo(-ray.width / 2, 0);
+                ctx.lineTo(ray.width / 2, 0);
+                ctx.lineTo(ray.width * 0.3, ray.length);
+                ctx.lineTo(-ray.width * 0.3, ray.length);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.restore();
+            });
+            
+            // 晴天暖色调
+            ctx.fillStyle = 'rgba(255, 250, 210, 0.08)';
+            ctx.fillRect(0, 0, gameWidth, gameHeight);
+        }
+        
         // 雨天色调
         if (this.type === 'rain') {
             ctx.fillStyle = 'rgba(30, 45, 70, 0.1)';
@@ -415,7 +563,7 @@ window.setWeather = function(type, intensity) {
 window.toggleWeather = function() {
     if (!window.Weather) return;
     if (window.Weather.type === 'rain') {
-        window.Weather.setWeather('clear', 0);
+        window.Weather.setWeather('sunny', 1);
     } else {
         window.Weather.setWeather('rain', 1);
     }
