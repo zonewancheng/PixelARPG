@@ -2895,13 +2895,11 @@ function setupUI() {
     if (weatherBtn) {
         weatherBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (window.Weather) {
-                if (window.Weather.type === 'rain') {
-                    window.Weather.clear();
-                    document.getElementById('weather-icon').textContent = '☀️';
-                } else {
-                    window.Weather.setWeather('rain', 1);
-                    document.getElementById('weather-icon').textContent = '🌧️';
+            if (window.toggleWeather) {
+                window.toggleWeather();
+                const icon = document.getElementById('weather-icon');
+                if (icon) {
+                    icon.textContent = window.Weather && window.Weather.type === 'rain' ? '🌧️' : '☀️';
                 }
             }
         });

@@ -859,52 +859,33 @@ function drawMap(ctx, map, TILE, MAP_W, MAP_H) {
                 ctx.ellipse(baseX + TILE/2, baseY + TILE * 0.75, TILE * 0.125, TILE * 0.06, 0, 0, Math.PI*2);
                 ctx.fill();
             } else if (tile === 3) {
-                // 重新设计的水域 - 波光粼粼效果
-                // 基础水色渐变
-                const waterGrad = ctx.createLinearGradient(baseX, baseY, baseX, baseY + TILE);
-                waterGrad.addColorStop(0, '#1a3a5a');
-                waterGrad.addColorStop(0.5, '#2a4a6a');
-                waterGrad.addColorStop(1, '#1a3a5a');
-                ctx.fillStyle = waterGrad;
+                // 水域 - 先画草地背景，再画积水
+                ctx.fillStyle = GROUND_COLOR;
                 ctx.fillRect(baseX, baseY, TILE, TILE);
                 
-                // 多层波纹动画
-                const waveTime = Date.now() / 800;
-                const waveColors = ['#3a6a9a', '#4a7aaa', '#5a8aba'];
+                // 积水 - 椭圆形
+                const time = Date.now() / 1000;
+                const puddleSize = TILE * 0.42;
+                const shimmer = Math.sin(time * 2 + x * 0.5 + y * 0.3) * 0.02;
                 
-                for (let i = 0; i < 3; i++) {
-                    const waveY = baseY + 8 + i * 9;
-                    const waveOffset = Math.sin(waveTime + x * 0.5 + y * 0.3 + i) * 4;
-                    const waveWidth = 10 + Math.sin(waveTime * 0.7 + i) * 3;
-                    const waveX = baseX + 6 + waveOffset + i * 3;
-                    
-                    ctx.fillStyle = waveColors[i];
-                    ctx.globalAlpha = 0.6 + Math.sin(waveTime * 2 + i) * 0.3;
-                    
-                    // 波浪形状
-                    ctx.beginPath();
-                    ctx.moveTo(waveX, waveY);
-                    ctx.quadraticCurveTo(waveX + waveWidth/2, waveY - 2, waveX + waveWidth, waveY);
-                    ctx.quadraticCurveTo(waveX + waveWidth/2, waveY + 2, waveX, waveY);
-                    ctx.fill();
-                }
-                ctx.globalAlpha = 1;
-                
-                // 高光反射
-                const shineTime = Date.now() / 1200;
-                const shineOffset = Math.sin(shineTime + x * 0.3 + y * 0.2) * 8;
-                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                // 主体积水（透明蓝色）
+                ctx.fillStyle = `rgba(65, 125, 175, ${0.22 + shimmer * 8})`;
                 ctx.beginPath();
-                ctx.ellipse(baseX + TILE/2 + shineOffset, baseY + TILE/2, 6, 3, 0, 0, Math.PI*2);
+                ctx.ellipse(baseX + TILE/2, baseY + TILE/2 + 3, puddleSize, puddleSize * 0.46, 0, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // 小水花
-                const splashTime = Date.now() / 600;
-                const splashX = baseX + TILE * 0.31 + Math.sin(splashTime + x) * TILE * 0.19;
-                const splashY = baseY + TILE * 0.62 + Math.cos(splashTime * 0.8 + y) * TILE * 0.12;
-                ctx.fillStyle = 'rgba(200,230,255,0.3)';
+                // 反射高光
+                ctx.fillStyle = 'rgba(175, 210, 235, 0.32)';
                 ctx.beginPath();
-                ctx.arc(splashX, splashY, TILE * 0.06, 0, Math.PI*2);
+                ctx.ellipse(baseX + TILE/2 - puddleSize * 0.18, baseY + TILE/2 - puddleSize * 0.12 + 2, 
+                           puddleSize * 0.3, puddleSize * 0.1, -0.25, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 小高光点
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+                ctx.beginPath();
+                ctx.ellipse(baseX + TILE/2 + puddleSize * 0.14, baseY + TILE/2 + puddleSize * 0.06 + 2, 
+                           puddleSize * 0.12, puddleSize * 0.04, 0.2, 0, Math.PI * 2);
                 ctx.fill();
                 
             } else if (tile === 7) {
